@@ -1,5 +1,15 @@
 更新日志（中文）
 
+[0.1.8] - 2026-08-17
+新增
+- 系统环境变量与 $PATH 链路全景诊断探针 (Environment Variables & $PATH Inspector)：
+  - **$PATH 链路拆解分析**：将冒号隔开的 `$PATH` 逐条拆解为带寻址优先级的链路列表，自动检测每一项目录在 macOS 上的有效性；
+  - **全量环境变量检索器**：实时呈现系统全局环境变量（包括 Dev、System、Proxy、Custom 等维度），支持实时搜索与分类过滤；
+  - **敏感密钥自动脱敏保护**：遇到包含 `KEY`、`SECRET`、`TOKEN`、`PASSWORD`、`AUTH` 等敏感环境变量自动进行掩码脱敏，支持点击明文切换；
+  - **终端代理状态检测**：自动侦测 `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY` 配置状态。
+变更
+- 环境探针界面重构：采用选项卡切换机制，在同一页面无缝切换「工具链与运行时」、「$PATH 链路拆解」与「环境变量检索器」。
+
 [0.1.7] - 2026-08-17
 修复
 - 修复点击 VS Code 按钮意外打开 Cursor 的问题：将编辑器调起逻辑重构为基于 macOS 原生 App Bundle (`Visual Studio Code.app` / `Cursor.app`) 精准唤起，彻底避免被 Cursor CLI 劫持的 `/usr/local/bin/code` 软链接导致误打开。
@@ -61,6 +71,16 @@
 ---
 
 Changelog (English)
+
+[0.1.8] - 2026-08-17
+Added
+- Environment Variables & $PATH Resolution Inspector:
+  - **$PATH Chain Resolution**: Analyzes the exact lookup priority of colon-separated `$PATH` directories and validates directory existence on macOS.
+  - **Environment Variables Browser**: Real-time browser categorized across Dev, System, Proxy, and Custom variables with live search.
+  - **Automatic Secret Masking**: Masks sensitive API tokens, secrets, and credentials with 1-click reveal toggle.
+  - **Proxy Configuration Radar**: Detects active `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` variables.
+Changed
+- DevTools UI Tab Navigation: Seamlessly switch between Toolchains, $PATH Analysis, and Variables Browser.
 
 [0.1.7] - 2026-08-17
 Fixed

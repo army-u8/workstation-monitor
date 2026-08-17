@@ -457,6 +457,23 @@ export const zh = {
     reachable: '畅通连接',
     unreachable: '无法直连',
   },
+  envVars: {
+    title: '系统环境变量 & $PATH 链路全景诊断',
+    subtitle: '直观查看系统全局变量、拆解 $PATH 路径链路有效性并自动对敏感密钥安全脱敏',
+    refreshBtn: '刷新环境变量',
+    pathTitle: '🛣️ $PATH 链路拆解分析',
+    pathSubtitle: '终端命令按以下顺序在目录中依次寻址，高亮显示有效与失效路径',
+    envTitle: '📋 全量环境变量检索器',
+    searchPlaceholder: '搜索变量名 (如 PATH, HOME, JAVA, PROXY)...',
+    showSecret: '显示明文',
+    hideSecret: '安全脱敏',
+    proxyNotice: '🌐 发现活跃代理环境变量',
+    noProxyNotice: '未配置全局终端代理',
+    pathExists: '目录有效',
+    pathMissing: '目录不存在',
+    totalVars: '共 {count} 个环境变量',
+    totalPaths: '{count} 条 PATH 路径',
+  },
 };
 
 export type Dict = typeof zh;

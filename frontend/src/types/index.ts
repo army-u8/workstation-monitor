@@ -381,6 +381,29 @@ export interface OllamaStatusResponse {
   installed_models: string[];
 }
 
+export interface EnvVarEntry {
+  name: string;
+  value: string;
+  is_secret: boolean;
+  category: string;
+}
+
+export interface PathEntry {
+  index: number;
+  path: string;
+  exists: boolean;
+}
+
+export interface EnvVarsPayload {
+  shell: string;
+  user: string;
+  home: string;
+  proxy_configured: boolean;
+  proxy_summary?: string | null;
+  path_entries: PathEntry[];
+  env_vars: EnvVarEntry[];
+}
+
 export type WsEvent =
   | { type: 'TrafficUpdate'; data: TrafficSummary }
   | { type: 'SocketsUpdate'; data: SocketsPayload }

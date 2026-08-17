@@ -10,9 +10,9 @@ use std::process::Command;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use crate::collectors::{
-    kill_process, kill_process_by_port, AiRadarManager, AutoUpdater, GitRadar, HostsManager,
-    MachineInfoCollector, ObsidianManager, SavePointManager, SpeedTester, SystemCleaner,
-    WebArtifactsManager,
+    kill_process, kill_process_by_port, AiRadarManager, AutoUpdater, EnvVarsCollector, GitRadar,
+    HostsManager, MachineInfoCollector, ObsidianManager, SavePointManager, SpeedTester,
+    SystemCleaner, WebArtifactsManager,
 };
 use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};
@@ -40,6 +40,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/dev-tools", get(get_dev_tools))
         // New Features APIs
         .route("/api/system/machine-info", get(get_machine_info))
+        .route("/api/system/env-vars", get(get_env_vars))
         .route("/api/system/update/check", get(get_update_check))
         .route("/api/system/update/apply", post(post_update_apply))
         .route("/api/cleaner/scan", get(get_cleaner_scan))
@@ -785,6 +786,11 @@ async fn post_ollama_unload(Json(payload): Json<OllamaUnloadRequest>) -> impl In
             Json(serde_json::json!({"success": false, "message": err})),
         ),
     }
+}
+
+async fn get_env_vars() -> impl IntoResponse {
+    let payload = tokio::task::spawn_blocking(EnvVarsCollector::collect).await.unwrap_or_else(|_| EnvVarsCollector::collect());
+    (StatusCode::OK, Json(serde_json::to_value(payload).unwrap()))
 }
 
 

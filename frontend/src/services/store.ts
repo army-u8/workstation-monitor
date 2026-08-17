@@ -26,6 +26,7 @@ import type {
   ConfirmModalConfig,
   DevToolInfo,
   DiskInfo,
+  EnvVarsPayload,
   GitAccountSummary,
   GitProjectInfo,
   HostEntry,
@@ -176,6 +177,10 @@ export const [isTestingLlmLatency, setIsTestingLlmLatency] = createSignal(false)
 export const [ollamaStatus, setOllamaStatus] = createSignal<OllamaStatusResponse | null>(null);
 export const [isLoadingOllamaStatus, setIsLoadingOllamaStatus] = createSignal(false);
 export const [isUnloadingOllama, setIsUnloadingOllama] = createSignal(false);
+
+// Environment Variables Signals
+export const [envVarsData, setEnvVarsData] = createSignal<EnvVarsPayload | null>(null);
+export const [isLoadingEnvVars, setIsLoadingEnvVars] = createSignal(false);
 
 export const [activeSection, setActiveSection] = createSignal<NavSectionId>(NavSectionId.OVERVIEW);
 export const [isSidebarOpen, setIsSidebarOpen] = createSignal(false);
@@ -827,6 +832,26 @@ export async function unloadOllamaModelApi(modelName: string): Promise<boolean> 
     return false;
   } finally {
     setIsUnloadingOllama(false);
+  }
+}
+
+// ----------------------------------------------------
+// Environment Variables API Functions
+// ----------------------------------------------------
+
+export async function fetchEnvVarsApi(): Promise<EnvVarsPayload | null> {
+  setIsLoadingEnvVars(true);
+  try {
+    const res = await fetch(ApiEndpoint.ENV_VARS);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: EnvVarsPayload = await res.json();
+    setEnvVarsData(data);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to fetch environment variables', ToastType.ERROR);
+    return null;
+  } finally {
+    setIsLoadingEnvVars(false);
   }
 }
 
