@@ -206,10 +206,11 @@ xattr -cr /Applications/Workstation\ Monitor.app
 
 ---
 
-## 🚀 未来路线图
+## 🚀 产品需求与未来路线图
 
-关于向 **Vibe Coding（氛围编程）与 AI 创造者工作台** 的演进计划与功能蓝图，详见：
-👉 **[Vibe Studio 演进路线图 (docs/VIBE_STUDIO_ROADMAP.md)](docs/VIBE_STUDIO_ROADMAP.md)**
+关于向 **Vibe Coding（氛围编程）与 AI 创造者工作台 (VibeDesk)** 的详细产品需求规范与演进路线图，详见：
+- 📖 **[VibeDesk 产品需求文档 PRD v1.0 (docs/VIBEDESK_PRD.md)](docs/VIBEDESK_PRD.md)**
+- 🗺️ **[Vibe Studio 演化路线图 (docs/VIBE_STUDIO_ROADMAP.md)](docs/VIBE_STUDIO_ROADMAP.md)**
 
 ---
 

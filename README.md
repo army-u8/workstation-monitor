@@ -206,10 +206,11 @@ Then double-click to open.
 
 ---
 
-## 🚀 Future Roadmap
+## 🚀 Future Roadmap & Product Spec
 
-For the transformation into a dedicated **Vibe Coding & AI Creator Workbench**, please check:
-👉 **[Vibe Studio Roadmap (docs/VIBE_STUDIO_ROADMAP.md)](docs/VIBE_STUDIO_ROADMAP.md)**
+For the transformation into a dedicated **Vibe Coding & AI Creator Workbench (VibeDesk)**, please check:
+- 📖 **[VibeDesk PRD v1.0 (docs/VIBEDESK_PRD.md)](docs/VIBEDESK_PRD.md)**
+- 🗺️ **[Vibe Studio Roadmap (docs/VIBE_STUDIO_ROADMAP.md)](docs/VIBE_STUDIO_ROADMAP.md)**
 
 ---
 
