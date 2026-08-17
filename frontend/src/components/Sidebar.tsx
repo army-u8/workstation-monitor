@@ -36,6 +36,7 @@ import {
   speedTestResult,
   stats,
   traffic,
+  webArtifacts,
   wsStatus,
   wsStatusText,
 } from '../services/store';
@@ -187,6 +188,12 @@ export const Sidebar: Component = () => {
           },
         },
         {
+          id: NavSectionId.ARTIFACTS,
+          icon: OverviewIcon,
+          label: () => t().sidebar.navArtifacts,
+          badge: () => (webArtifacts().length ? webArtifacts().length : null),
+        },
+        {
           id: NavSectionId.HOSTS,
           icon: HostsIcon,
           label: () => t().sidebar.navHosts,
@@ -197,6 +204,11 @@ export const Sidebar: Component = () => {
     {
       category: () => t().sidebar.groupDevops,
       items: [
+        {
+          id: NavSectionId.AI_RADAR,
+          icon: LatencyIcon,
+          label: () => t().sidebar.navAiRadar,
+        },
         {
           id: NavSectionId.DEVTOOLS,
           icon: DevToolsIcon,

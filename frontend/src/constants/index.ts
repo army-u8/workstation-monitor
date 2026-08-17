@@ -39,6 +39,8 @@ export const NavSectionId = {
   SPEEDTEST: 'speedtest',
   DEVTOOLS: 'devtools',
   OPS: 'ops',
+  ARTIFACTS: 'artifacts',
+  AI_RADAR: 'ai_radar',
 } as const;
 export type NavSectionId = (typeof NavSectionId)[keyof typeof NavSectionId];
 
@@ -58,6 +60,8 @@ export const RoutePath = {
   HOSTS: '/hosts',
   DEVTOOLS: '/devtools',
   OPS: '/ops',
+  ARTIFACTS: '/artifacts',
+  AI_RADAR: '/ai-radar',
 } as const;
 export type RoutePath = (typeof RoutePath)[keyof typeof RoutePath];
 
@@ -77,6 +81,8 @@ export const sectionToPathMap: Record<NavSectionId, RoutePath> = {
   [NavSectionId.HOSTS]: RoutePath.HOSTS,
   [NavSectionId.DEVTOOLS]: RoutePath.DEVTOOLS,
   [NavSectionId.OPS]: RoutePath.OPS,
+  [NavSectionId.ARTIFACTS]: RoutePath.ARTIFACTS,
+  [NavSectionId.AI_RADAR]: RoutePath.AI_RADAR,
 };
 
 export const pathToSectionMap: Record<string, NavSectionId> = {
@@ -95,6 +101,8 @@ export const pathToSectionMap: Record<string, NavSectionId> = {
   [RoutePath.HOSTS]: NavSectionId.HOSTS,
   [RoutePath.DEVTOOLS]: NavSectionId.DEVTOOLS,
   [RoutePath.OPS]: NavSectionId.OPS,
+  [RoutePath.ARTIFACTS]: NavSectionId.ARTIFACTS,
+  [RoutePath.AI_RADAR]: NavSectionId.AI_RADAR,
   '/git_radar': NavSectionId.GIT_RADAR,
   '/machine_info': NavSectionId.MACHINE_INFO,
   '/': NavSectionId.OVERVIEW,
@@ -183,6 +191,10 @@ export const ApiEndpoint = {
   SNAPSHOTS_LIST: '/api/projects/snapshots',
   SNAPSHOTS_CREATE: '/api/projects/snapshots/create',
   SNAPSHOTS_ROLLBACK: '/api/projects/snapshots/rollback',
+  WEB_ARTIFACTS: '/api/services/web-artifacts',
+  LLM_LATENCY: '/api/tools/llm-latency',
+  OLLAMA_STATUS: '/api/tools/ollama/status',
+  OLLAMA_UNLOAD: '/api/tools/ollama/unload',
 } as const;
 export type ApiEndpoint = (typeof ApiEndpoint)[keyof typeof ApiEndpoint];
 

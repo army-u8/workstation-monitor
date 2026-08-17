@@ -402,6 +402,56 @@ pub struct SnapshotActionResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebArtifactInfo {
+    pub port: u16,
+    pub url: String,
+    pub title: Option<String>,
+    pub framework: String,
+    pub status_code: Option<u16>,
+    pub response_time_ms: Option<f64>,
+    pub pid: Option<u32>,
+    pub process_name: Option<String>,
+    pub is_healthy: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LlmApiLatency {
+    pub provider_id: String,
+    pub name: String,
+    pub endpoint: String,
+    pub is_reachable: bool,
+    pub latency_ms: Option<f64>,
+    pub status_code: Option<u16>,
+    pub error_message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OllamaModelInfo {
+    pub name: String,
+    pub size_bytes: u64,
+    pub vram_bytes: u64,
+    pub format: String,
+    pub family: String,
+    pub parameter_size: String,
+    pub quantization_level: String,
+    pub expires_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OllamaStatusResponse {
+    pub is_running: bool,
+    pub version: Option<String>,
+    pub total_vram_used_bytes: u64,
+    pub loaded_models: Vec<OllamaModelInfo>,
+    pub installed_models: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OllamaUnloadRequest {
+    pub model_name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data")]
 pub enum WsEvent {
     TrafficUpdate(TrafficSummary),

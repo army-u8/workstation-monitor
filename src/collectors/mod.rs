@@ -1,3 +1,4 @@
+pub mod ai_radar;
 pub mod battery;
 pub mod cleaner;
 pub mod connections;
@@ -14,7 +15,9 @@ pub mod sniffer;
 pub mod speedtest;
 pub mod traffic;
 pub mod updater;
+pub mod web_artifacts;
 
+pub use ai_radar::AiRadarManager;
 pub use battery::BatteryCollector;
 pub use cleaner::SystemCleaner;
 pub use connections::ConnectionsCollector;
@@ -31,3 +34,4 @@ pub use sniffer::start_sniffer;
 pub use speedtest::SpeedTester;
 pub use traffic::TrafficCollector;
 pub use updater::AutoUpdater;
+pub use web_artifacts::WebArtifactsManager;

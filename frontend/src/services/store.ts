@@ -30,10 +30,12 @@ import type {
   GitProjectInfo,
   HostEntry,
   LatencyTarget,
+  LlmApiLatency,
   MachineInfoSummary,
   ObsidianNoteDetail,
   ObsidianSearchResponse,
   ObsidianVaultSummary,
+  OllamaStatusResponse,
   OpenObsidianPayload,
   OpsResponse,
   PingResponse,
@@ -47,6 +49,7 @@ import type {
   TrafficSummary,
   UpdateApplyResponse,
   UpdateCheckResponse,
+  WebArtifactInfo,
   WsEvent,
 } from '../types';
 import { t } from '../i18n';
@@ -162,6 +165,17 @@ export const [snapshotsData, setSnapshotsData] = createSignal<SnapshotsListRespo
 export const [isLoadingSnapshots, setIsLoadingSnapshots] = createSignal(false);
 export const [isCreatingSnapshot, setIsCreatingSnapshot] = createSignal(false);
 export const [isRollingBackSnapshot, setIsRollingBackSnapshot] = createSignal(false);
+
+// Live Web Artifacts Signals
+export const [webArtifacts, setWebArtifacts] = createSignal<WebArtifactInfo[]>([]);
+export const [isLoadingArtifacts, setIsLoadingArtifacts] = createSignal(false);
+
+// AI & LLM API Radar Signals
+export const [llmLatencies, setLlmLatencies] = createSignal<LlmApiLatency[]>([]);
+export const [isTestingLlmLatency, setIsTestingLlmLatency] = createSignal(false);
+export const [ollamaStatus, setOllamaStatus] = createSignal<OllamaStatusResponse | null>(null);
+export const [isLoadingOllamaStatus, setIsLoadingOllamaStatus] = createSignal(false);
+export const [isUnloadingOllama, setIsUnloadingOllama] = createSignal(false);
 
 export const [activeSection, setActiveSection] = createSignal<NavSectionId>(NavSectionId.OVERVIEW);
 export const [isSidebarOpen, setIsSidebarOpen] = createSignal(false);
@@ -714,6 +728,105 @@ export async function rollbackSnapshotApi(
     return false;
   } finally {
     setIsRollingBackSnapshot(false);
+  }
+}
+
+// ----------------------------------------------------
+// Web Artifacts API Functions
+// ----------------------------------------------------
+
+export async function fetchWebArtifactsApi(): Promise<WebArtifactInfo[]> {
+  setIsLoadingArtifacts(true);
+  try {
+    const res = await fetch(ApiEndpoint.WEB_ARTIFACTS);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: WebArtifactInfo[] = await res.json();
+    setWebArtifacts(data);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to fetch web artifacts', ToastType.ERROR);
+    return [];
+  } finally {
+    setIsLoadingArtifacts(false);
+  }
+}
+
+export async function freeArtifactPortApi(port: number, processName?: string, pid?: number) {
+  openConfirmDialog({
+    title: t().artifacts.killConfirmTitle,
+    message: t().artifacts.killConfirmWarning
+      .replace('{port}', port.toString())
+      .replace('{process}', processName || 'unknown')
+      .replace('{pid}', (pid || 0).toString()),
+    confirmText: t().artifacts.freePort,
+    isDestructive: true,
+    onConfirm: async () => {
+      await killPortApi(port);
+      await fetchWebArtifactsApi();
+    },
+  });
+}
+
+// ----------------------------------------------------
+// AI & LLM API Radar Functions
+// ----------------------------------------------------
+
+export async function fetchLlmLatencyApi(): Promise<LlmApiLatency[]> {
+  setIsTestingLlmLatency(true);
+  try {
+    const res = await fetch(ApiEndpoint.LLM_LATENCY);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: LlmApiLatency[] = await res.json();
+    setLlmLatencies(data);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to probe LLM APIs', ToastType.ERROR);
+    return [];
+  } finally {
+    setIsTestingLlmLatency(false);
+  }
+}
+
+export async function fetchOllamaStatusApi(): Promise<OllamaStatusResponse | null> {
+  setIsLoadingOllamaStatus(true);
+  try {
+    const res = await fetch(ApiEndpoint.OLLAMA_STATUS);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: OllamaStatusResponse = await res.json();
+    setOllamaStatus(data);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to fetch Ollama status', ToastType.ERROR);
+    return null;
+  } finally {
+    setIsLoadingOllamaStatus(false);
+  }
+}
+
+export async function unloadOllamaModelApi(modelName: string): Promise<boolean> {
+  if (isUnloadingOllama() || !modelName) return false;
+  setIsUnloadingOllama(true);
+  try {
+    const res = await fetch(ApiEndpoint.OLLAMA_UNLOAD, {
+      method: HTTP_METHODS.POST,
+      headers: { 'Content-Type': CONTENT_TYPES.JSON },
+      body: JSON.stringify({ model_name: modelName }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: { success: boolean; message: string } = await res.json();
+    if (data.success) {
+      showToast(data.message, ToastType.SUCCESS);
+      await fetchOllamaStatusApi();
+      return true;
+    } else {
+      showToast(data.message || 'Failed to unload model', ToastType.ERROR);
+      return false;
+    }
+  } catch (err: any) {
+    showToast(err.message || 'Failed to unload model', ToastType.ERROR);
+    return false;
+  } finally {
+    setIsUnloadingOllama(false);
   }
 }
 

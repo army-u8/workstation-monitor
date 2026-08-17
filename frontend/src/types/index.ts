@@ -340,6 +340,47 @@ export interface SnapshotActionResponse {
   snapshot?: SavePointSnapshot | null;
 }
 
+export interface WebArtifactInfo {
+  port: number;
+  url: string;
+  title?: string | null;
+  framework: string;
+  status_code?: number | null;
+  response_time_ms?: number | null;
+  pid?: number | null;
+  process_name?: string | null;
+  is_healthy: boolean;
+}
+
+export interface LlmApiLatency {
+  provider_id: string;
+  name: string;
+  endpoint: string;
+  is_reachable: boolean;
+  latency_ms?: number | null;
+  status_code?: number | null;
+  error_message?: string | null;
+}
+
+export interface OllamaModelInfo {
+  name: string;
+  size_bytes: number;
+  vram_bytes: number;
+  format: string;
+  family: string;
+  parameter_size: string;
+  quantization_level: string;
+  expires_at?: string | null;
+}
+
+export interface OllamaStatusResponse {
+  is_running: boolean;
+  version?: string | null;
+  total_vram_used_bytes: number;
+  loaded_models: OllamaModelInfo[];
+  installed_models: string[];
+}
+
 export type WsEvent =
   | { type: 'TrafficUpdate'; data: TrafficSummary }
   | { type: 'SocketsUpdate'; data: SocketsPayload }

@@ -1,5 +1,13 @@
 更新日志（中文）
 
+[0.1.6] - 2026-08-17
+新增
+- 本地 Web 产物即时画廊与端口冲突自愈 (Web Artifacts & Port Auto-Healer)：智能嗅探本地正在监听的 Web 开发端口（3000、5173、8000、8080 等），自动识别 Next.js、Vite、Vue、React、FastAPI 等框架与网页标题，支持一键在浏览器打开或 1 秒强制释放冲突端口。
+- 全球主流 LLM API 连通性测速雷达 (AI & LLM API Radar)：一键向 DeepSeek (深度求索)、Anthropic (Claude)、OpenAI (GPT-4o)、Google Gemini、OpenRouter、SiliconFlow 等全球 AI 节点发起时延测速与网络路由诊断，1 秒排查科学代理与超时问题。
+- 本地大模型 (Ollama) 显控与显存一键释放：自动连接本地 Ollama 服务，实时呈现模型列表、量化等级以及对 Apple Silicon 统一内存 / GPU 显存的占用，支持一键卸载模型释放显存。
+变更
+- 侧边栏导航扩展：在工作空间与开发工具中新增「产物画廊」与「AI 测速 & 显控」专属一级入口。
+
 [0.1.5] - 2026-08-17
 新增
 - 游戏化时光机与存档点系统 (Save Point & Time Machine)：在让 AI 大改代码前一键保存好用状态，改崩时 1 秒无痛回滚。
@@ -48,6 +56,14 @@
 ---
 
 Changelog (English)
+
+[0.1.6] - 2026-08-17
+Added
+- Local Web Artifacts Gallery & Port Auto-Healer: Automatically detects active listening web ports (3000, 5173, 8000, etc.), infers frameworks (Next.js, Vite, React, Vue, FastAPI) and page titles, providing 1-click browser opening and instant port freeing.
+- Global LLM API Latency Radar: Probes network reachability and round-trip latency to DeepSeek, Anthropic Claude, OpenAI, Google Gemini, OpenRouter, and SiliconFlow in 1 second.
+- Local LLM (Ollama) Memory Controller: Connects to local Ollama daemon to inspect active models in Apple Silicon unified memory / GPU VRAM and release memory with 1-click unload.
+Changed
+- Navigation Sidebar Expansion: Added dedicated top-level navigation entries for "Web Artifacts" and "AI Radar & Hub".
 
 [0.1.5] - 2026-08-17
 Added

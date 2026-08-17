@@ -10,14 +10,15 @@ use std::process::Command;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use crate::collectors::{
-    kill_process, kill_process_by_port, AutoUpdater, GitRadar, HostsManager, MachineInfoCollector,
-    ObsidianManager, SavePointManager, SpeedTester, SystemCleaner,
+    kill_process, kill_process_by_port, AiRadarManager, AutoUpdater, GitRadar, HostsManager,
+    MachineInfoCollector, ObsidianManager, SavePointManager, SpeedTester, SystemCleaner,
+    WebArtifactsManager,
 };
 use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};
 use crate::types::{
-    CleanRequest, CreateSnapshotRequest, KillPortRequest, KillProcessRequest, OpenAppRequest,
-    OpenObsidianRequest, OpsResponse, PingRequest, PingResponse, QuickCaptureRequest,
+    CleanRequest, CreateSnapshotRequest, KillPortRequest, KillProcessRequest, OllamaUnloadRequest,
+    OpenAppRequest, OpenObsidianRequest, OpsResponse, PingRequest, PingResponse, QuickCaptureRequest,
     RollbackSnapshotRequest, UpdateApplyRequest, UpdateApplyResponse,
 };
 
@@ -48,6 +49,10 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/projects/snapshots", get(get_snapshots))
         .route("/api/projects/snapshots/create", post(post_snapshot_create))
         .route("/api/projects/snapshots/rollback", post(post_snapshot_rollback))
+        .route("/api/services/web-artifacts", get(get_web_artifacts))
+        .route("/api/tools/llm-latency", get(get_llm_latency))
+        .route("/api/tools/ollama/status", get(get_ollama_status))
+        .route("/api/tools/ollama/unload", post(post_ollama_unload))
         .route("/api/hosts/get", get(get_hosts))
         .route("/api/tools/speedtest", post(post_speedtest))
         .route("/api/tools/open-app", post(post_open_app))
@@ -727,6 +732,34 @@ async fn post_snapshot_rollback(Json(payload): Json<RollbackSnapshotRequest>) ->
             Json(
                 serde_json::json!({"success": false, "message": format!("Internal error: {}", e)}),
             ),
+        ),
+    }
+}
+
+async fn get_web_artifacts() -> impl IntoResponse {
+    let artifacts = WebArtifactsManager::scan_web_artifacts().await;
+    (StatusCode::OK, Json(serde_json::to_value(artifacts).unwrap()))
+}
+
+async fn get_llm_latency() -> impl IntoResponse {
+    let latencies = AiRadarManager::probe_llm_apis().await;
+    (StatusCode::OK, Json(serde_json::to_value(latencies).unwrap()))
+}
+
+async fn get_ollama_status() -> impl IntoResponse {
+    let status = AiRadarManager::get_ollama_status().await;
+    (StatusCode::OK, Json(serde_json::to_value(status).unwrap()))
+}
+
+async fn post_ollama_unload(Json(payload): Json<OllamaUnloadRequest>) -> impl IntoResponse {
+    match AiRadarManager::unload_ollama_model(&payload.model_name).await {
+        Ok(msg) => (
+            StatusCode::OK,
+            Json(serde_json::json!({"success": true, "message": msg})),
+        ),
+        Err(err) => (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"success": false, "message": err})),
         ),
     }
 }
