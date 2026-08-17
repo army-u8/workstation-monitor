@@ -35,23 +35,31 @@
 
 ---
 
-## Installation
+## Quick Start (no build needed)
+
+For most users — **no command line, no toolchain required**:
+
+1. Go to **[Releases](https://github.com/army-u8/workstation-monitor/releases)** and download `Workstation Monitor.app.zip`.
+2. Unzip and drag **Workstation Monitor** into your `Applications` folder.
+3. Double-click it. Your browser opens automatically to **http://localhost:9527**.
+
+> macOS may show *"Workstation Monitor cannot be opened because the developer cannot be verified."* This is normal for an unsigned app. See [Bypassing Gatekeeper](#bypassing-gatekeeper) below.
+
+---
+
+## Installation (build from source)
+
+> The frontend is now built **automatically at compile time** by `build.rs`, so a single `cargo build` is enough — no separate `npm run build` step is required anymore.
 
 ```bash
 git clone git@github.com:army-u8/workstation-monitor.git
 cd workstation-monitor
 
-# 1. Build the frontend first (outputs to frontend/dist)
-cd frontend
-npm install
-npm run build
-
-# 2. Build the backend, which embeds frontend/dist at compile time
-cd ..
+# Builds the frontend (via build.rs) and embeds it into the binary
 cargo build --release
 ```
 
-> The frontend is embedded into the binary via `rust-embed` **at compile time** (from `frontend/dist/`). Since `dist/` is gitignored, you must run `npm run build` before `cargo build` — a fresh clone has no `dist/` and the server will 404 until the frontend is built.
+To skip the automatic frontend build (e.g. you already ran it), set `SKIP_FRONTEND_BUILD=1`.
 
 ---
 
@@ -154,6 +162,47 @@ workstation-monitor/
 - [ ] Config file (`config.toml`)
 - [ ] Auth / token for remote access
 - [ ] Historical metrics & charts export
+
+---
+
+## Packaging & Release
+
+The app is distributed as a signed-less `.app` bundle built with [`cargo-bundle`](https://github.com/burtonqin/cargo-bundle):
+
+```bash
+# One-time install of the bundler
+cargo install cargo-bundle
+
+# Build release binary (frontend auto-built by build.rs) and package the .app
+cargo bundle --release
+```
+
+The result lands at `target/release/bundle/osx/Workstation Monitor.app`. Zip it and upload to a GitHub Release so users can follow [Quick Start](#quick-start-no-build-needed).
+
+The app icon (`assets/icon.icns`) is generated from `assets/AppIcon-1024.png` via `scripts/gen_icon.py` + `iconutil`.
+
+---
+
+## Bypassing Gatekeeper
+
+The distributed `.app` is **not code-signed or notarized** (no Apple Developer certificate). On first launch macOS blocks it. To open it:
+
+**Option A — right-click**
+1. Right-click **Workstation Monitor** in Applications.
+2. Choose **Open**.
+3. Click **Open** again in the confirmation dialog. (Needed only once.)
+
+**Option B — System Settings**
+1. Try to open it; when blocked, go to **System Settings → Privacy & Security**.
+2. Find the *"Workstation Monitor was blocked"* message and click **Open Anyway**.
+
+**Option C — Terminal** (if you downloaded the zip directly)
+```bash
+xattr -cr /Applications/Workstation\ Monitor.app
+```
+Then double-click to open.
+
+> Running with `sudo` enables the deep packet sniffer (`/dev/bpf`); without it the app still works fully, just without raw packet capture.
 
 ---
 

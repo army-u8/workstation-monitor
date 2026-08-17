@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::time::Duration;
 use sysinfo::System;
+use std::process::Command as ProcCommand;
 use tokio::sync::{broadcast, RwLock};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -252,6 +253,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("║  • Packet Sniffer: ⚠️ Disabled (Run with sudo to enable)    ║");
     }
     println!("╚══════════════════════════════════════════════════════════════╝\n");
+
+    // Auto-open the dashboard in the default browser so that double-clicking the
+    // bundled .app just works for non-technical users.
+    let dashboard_url = format!("http://localhost:{}", port);
+    if let Err(e) = open::that(&dashboard_url) {
+        tracing::warn!("failed to auto-open browser ({}), trying `open` command", e);
+        let _ = ProcCommand::new("open").arg(&dashboard_url).spawn();
+    }
 
     axum::serve(listener, router).await?;
 

@@ -35,23 +35,31 @@
 
 ---
 
-## 安装
+## 快速开始（无需编译）
+
+适合绝大多数用户——**无需命令行，无需安装任何工具链**：
+
+1. 前往 **[Releases](https://github.com/army-u8/workstation-monitor/releases)** 下载 `Workstation Monitor.app.zip`。
+2. 解压后把 **Workstation Monitor** 拖入"应用程序"文件夹。
+3. 双击打开，浏览器会自动跳转到 **http://localhost:9527**。
+
+> macOS 可能提示*"无法打开"Workstation Monitor"，因为无法验证开发者"*。未签名应用的正常现象，见下方[绕过 Gatekeeper](#绕过-gatekeeper)。
+
+---
+
+## 安装（从源码编译）
+
+> 前端现在由 `build.rs` 在**编译时自动构建**，因此只需一条 `cargo build` 即可，不再需要单独的 `npm run build` 步骤。
 
 ```bash
 git clone git@github.com:army-u8/workstation-monitor.git
 cd workstation-monitor
 
-# 1. 先构建前端（输出到 frontend/dist）
-cd frontend
-npm install
-npm run build
-
-# 2. 构建后端，编译时会将 frontend/dist 内嵌进二进制
-cd ..
+# 自动构建前端（经 build.rs）并内嵌进二进制
 cargo build --release
 ```
 
-> 前端通过 `rust-embed` 在**编译时**从 `frontend/dist/` 嵌入二进制。由于 `dist/` 已被 gitignore 忽略，必须先执行 `npm run build` 再执行 `cargo build`——全新 clone 不存在 `dist/`，在构建前端之前访问服务会返回 404。
+若想跳过自动前端构建（例如你已经手动构建过），设置 `SKIP_FRONTEND_BUILD=1`。
 
 ---
 
@@ -154,6 +162,47 @@ workstation-monitor/
 - [ ] 配置文件（`config.toml`）
 - [ ] 远程访问鉴权 / Token
 - [ ] 历史指标与图表导出
+
+---
+
+## 打包与发布
+
+应用以**未签名**的 `.app` 形式分发，使用 [`cargo-bundle`](https://github.com/burtonqin/cargo-bundle) 打包：
+
+```bash
+# 一次性安装打包工具
+cargo install cargo-bundle
+
+# 构建发布版并打包 .app（前端由 build.rs 自动构建）
+cargo bundle --release
+```
+
+产物位于 `target/release/bundle/osx/Workstation Monitor.app`。将其压缩后上传到 GitHub Release，用户即可按[快速开始](#快速开始无需编译)使用。
+
+应用图标 `assets/icon.icns` 由 `assets/AppIcon-1024.png` 经 `scripts/gen_icon.py` + `iconutil` 生成。
+
+---
+
+## 绕过 Gatekeeper
+
+分发的 `.app` **未做代码签名与公证**（无 Apple 开发者证书）。首次打开会被 macOS 拦截。打开方式：
+
+**方式 A —— 右键打开**
+1. 在"应用程序"里右键点击 **Workstation Monitor**。
+2. 选择 **打开**。
+3. 在确认弹窗中再次点击 **打开**。（仅需一次）
+
+**方式 B —— 系统设置**
+1. 尝试打开被拦截后，进入 **系统设置 → 隐私与安全性**。
+2. 找到*"Workstation Monitor 已被拦截"*提示，点击 **仍要打开**。
+
+**方式 C —— 终端**（若直接下载了 zip）
+```bash
+xattr -cr /Applications/Workstation\ Monitor.app
+```
+随后双击打开。
+
+> 使用 `sudo` 运行可开启深度报文嗅探（`/dev/bpf`）；不使用 sudo 应用同样完整可用，仅缺少原始报文抓包。
 
 ---
 
