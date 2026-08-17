@@ -39,11 +39,11 @@ jobs:
       - name: Generate Detailed Release Notes
         run: |
           VERSION="${{ github.ref_name }}"
+          CHANGELOG_TEXT=$(python3 scripts/extract_changelog.py "${VERSION}")
           cat << EOF > release_body.md
           ## 🚀 Workstation Monitor ${VERSION}
 
-          macOS 原生轻量工作站性能监控与网络诊断总控台发布！  
-          *Native lightweight macOS workstation performance monitoring & network diagnostic mission control.*
+          ${CHANGELOG_TEXT}
 
           ---
 
