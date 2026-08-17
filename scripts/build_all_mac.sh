@@ -98,6 +98,8 @@ package_arch() {
   <string>${VERSION}</string>
   <key>LSApplicationCategoryType</key>
   <string>public.app-category.utilities</string>
+  <key>LSUIElement</key>
+  <true/>
   <key>NSHighResolutionCapable</key>
   <true/>
   <key>NSHumanReadableCopyright</key>
