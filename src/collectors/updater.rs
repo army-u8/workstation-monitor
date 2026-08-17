@@ -1,24 +1,40 @@
-use crate::types::UpdateCheckResponse;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::Duration;
+#[cfg(target_family = "unix")]
+use std::os::unix::fs::PermissionsExt;
+
+use serde::{Deserialize, Serialize};
 
 pub struct AutoUpdater;
 
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitHubReleaseAsset {
     pub name: String,
     pub size: u64,
     pub browser_download_url: String,
 }
 
-#[derive(Debug, Clone, serde::Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitHubReleaseResponse {
     pub tag_name: String,
+    pub name: Option<String>,
     pub body: Option<String>,
     pub published_at: Option<String>,
     pub assets: Vec<GitHubReleaseAsset>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateCheckResponse {
+    pub has_update: bool,
+    pub current_version: String,
+    pub latest_version: String,
+    pub release_notes: String,
+    pub download_url: Option<String>,
+    pub asset_name: Option<String>,
+    pub asset_size_bytes: Option<u64>,
+    pub published_at: Option<String>,
+    pub error_msg: Option<String>,
 }
 
 impl AutoUpdater {
@@ -48,28 +64,30 @@ impl AutoUpdater {
         late_parts.len() > curr_parts.len()
     }
 
-    /// Select the best matching asset for the current OS and architecture
+    /// Select the best matching asset for the current OS and architecture:
+    /// Prioritize exact architecture .app.zip (smallest & fastest), then Universal, then tar.gz.
     pub fn pick_best_asset<'a>(
         assets: &'a [GitHubReleaseAsset],
         target_arch: &str,
     ) -> Option<&'a GitHubReleaseAsset> {
-        // 1. Prefer .app.zip Universal
-        if let Some(a) = assets
-            .iter()
-            .find(|a| a.name.contains("universal") && a.name.ends_with(".app.zip"))
-        {
-            return Some(a);
-        }
-
-        // 2. Arch-specific .app.zip
         let arch_keyword = if target_arch.contains("aarch64") || target_arch.contains("arm64") {
             "aarch64"
         } else {
             "x64"
         };
+
+        // 1. Exact architecture .app.zip (e.g. aarch64 is 3.2MB vs Universal 6.5MB)
         if let Some(a) = assets
             .iter()
             .find(|a| a.name.contains(arch_keyword) && a.name.ends_with(".app.zip"))
+        {
+            return Some(a);
+        }
+
+        // 2. Universal .app.zip
+        if let Some(a) = assets
+            .iter()
+            .find(|a| a.name.contains("universal") && a.name.ends_with(".app.zip"))
         {
             return Some(a);
         }
@@ -79,7 +97,23 @@ impl AutoUpdater {
             return Some(a);
         }
 
-        // 4. Universal DMG
+        // 4. Exact architecture .tar.gz
+        if let Some(a) = assets
+            .iter()
+            .find(|a| a.name.contains(arch_keyword) && a.name.ends_with(".tar.gz"))
+        {
+            return Some(a);
+        }
+
+        // 5. Universal .tar.gz
+        if let Some(a) = assets
+            .iter()
+            .find(|a| a.name.contains("universal") && a.name.ends_with(".tar.gz"))
+        {
+            return Some(a);
+        }
+
+        // 6. Universal DMG
         if let Some(a) = assets
             .iter()
             .find(|a| a.name.contains("universal") && a.name.ends_with(".dmg"))
@@ -87,7 +121,7 @@ impl AutoUpdater {
             return Some(a);
         }
 
-        // 5. Arch DMG
+        // 7. Arch DMG
         if let Some(a) = assets
             .iter()
             .find(|a| a.name.contains(arch_keyword) && a.name.ends_with(".dmg"))
@@ -95,7 +129,7 @@ impl AutoUpdater {
             return Some(a);
         }
 
-        // 6. Any DMG
+        // 8. Any DMG
         if let Some(a) = assets.iter().find(|a| a.name.ends_with(".dmg")) {
             return Some(a);
         }
@@ -113,7 +147,8 @@ impl AutoUpdater {
         );
 
         let client = match reqwest::Client::builder()
-            .timeout(Duration::from_secs(8))
+            .timeout(Duration::from_secs(10))
+            .redirect(reqwest::redirect::Policy::limited(10))
             .build()
         {
             Ok(c) => c,
@@ -246,7 +281,7 @@ impl AutoUpdater {
             }
         };
 
-        tracing::info!("Downloading update from: {}", target_url);
+        tracing::info!("Downloading update package from: {}", target_url);
 
         // 1. Download asset to temporary directory
         let tmp_dir = PathBuf::from("/tmp/workstation_update");
@@ -254,30 +289,52 @@ impl AutoUpdater {
         std::fs::create_dir_all(&tmp_dir)
             .map_err(|e| format!("Failed to create tmp dir: {}", e))?;
 
-        let client = reqwest::Client::builder()
-            .timeout(Duration::from_secs(120))
-            .build()
-            .map_err(|e| format!("Failed to create download client: {}", e))?;
+        let downloaded_file = tmp_dir.join("update_package.bin");
 
-        let resp = client
-            .get(&target_url)
-            .header(reqwest::header::USER_AGENT, "workstation-monitor-updater")
-            .send()
-            .await
-            .map_err(|e| format!("Failed to send download request: {}", e))?;
+        // Dual-Engine Download Strategy:
+        // Try Reqwest with redirect & gzip support first, with automatic fallback to native curl.
+        let mut download_success = false;
+        let client_res = reqwest::Client::builder()
+            .timeout(Duration::from_secs(180))
+            .redirect(reqwest::redirect::Policy::limited(10))
+            .build();
 
-        if !resp.status().is_success() {
-            return Err(format!("Download failed with HTTP {}", resp.status()));
+        if let Ok(client) = client_res {
+            if let Ok(resp) = client
+                .get(&target_url)
+                .header(reqwest::header::USER_AGENT, "workstation-monitor-updater")
+                .header(reqwest::header::ACCEPT, "*/*")
+                .send()
+                .await
+            {
+                if resp.status().is_success() {
+                    if let Ok(bytes) = resp.bytes().await {
+                        if !bytes.is_empty() && std::fs::write(&downloaded_file, &bytes).is_ok() {
+                            download_success = true;
+                        }
+                    }
+                }
+            }
         }
 
-        let bytes = resp
-            .bytes()
-            .await
-            .map_err(|e| format!("Failed to read downloaded bytes: {}", e))?;
+        // Robust Fallback: macOS built-in curl
+        if !download_success {
+            tracing::warn!("Reqwest download failed or decoding error, falling back to /usr/bin/curl");
+            let curl_status = Command::new("/usr/bin/curl")
+                .args([
+                    "-fSL",
+                    "--retry", "3",
+                    "--connect-timeout", "15",
+                    "-o", downloaded_file.to_str().unwrap(),
+                    &target_url,
+                ])
+                .status()
+                .map_err(|e| format!("Failed to invoke /usr/bin/curl: {}", e))?;
 
-        let downloaded_file = tmp_dir.join("update_package.bin");
-        std::fs::write(&downloaded_file, &bytes)
-            .map_err(|e| format!("Failed to write downloaded archive: {}", e))?;
+            if !curl_status.success() {
+                return Err(format!("Download failed for URL: {}", target_url));
+            }
+        }
 
         // 2. Extract package
         let extract_dir = tmp_dir.join("extracted");
@@ -292,6 +349,15 @@ impl AutoUpdater {
 
             if !status.success() {
                 return Err("ditto decompression failed".to_string());
+            }
+        } else if target_url.ends_with(".tar.gz") {
+            let status = Command::new("tar")
+                .args(["-xzf", downloaded_file.to_str().unwrap(), "-C", extract_dir.to_str().unwrap()])
+                .status()
+                .map_err(|e| format!("Failed to execute tar: {}", e))?;
+
+            if !status.success() {
+                return Err("tar decompression failed".to_string());
             }
         } else {
             // Direct binary download fallback
@@ -318,6 +384,7 @@ impl AutoUpdater {
         }
 
         // Ensure executable permissions
+        #[cfg(target_family = "unix")]
         if let Ok(metadata) = std::fs::metadata(&current_exe) {
             let mut perms = metadata.permissions();
             perms.set_mode(0o755);
@@ -377,23 +444,26 @@ mod tests {
     fn test_pick_best_asset() {
         let assets = vec![
             GitHubReleaseAsset {
-                name: "Workstation_Monitor_0.1.1_x64.dmg".to_string(),
-                size: 3000000,
-                browser_download_url: "https://.../x64.dmg".to_string(),
+                name: "Workstation_Monitor_0.1.3_x64.app.zip".to_string(),
+                size: 3300000,
+                browser_download_url: "https://.../x64.app.zip".to_string(),
             },
             GitHubReleaseAsset {
-                name: "Workstation_Monitor_0.1.1_universal.app.zip".to_string(),
-                size: 6000000,
+                name: "Workstation_Monitor_0.1.3_universal.app.zip".to_string(),
+                size: 6500000,
                 browser_download_url: "https://.../universal.app.zip".to_string(),
             },
             GitHubReleaseAsset {
-                name: "Workstation_Monitor_0.1.1_aarch64.dmg".to_string(),
-                size: 3000000,
-                browser_download_url: "https://.../aarch64.dmg".to_string(),
+                name: "Workstation_Monitor_0.1.3_aarch64.app.zip".to_string(),
+                size: 3200000,
+                browser_download_url: "https://.../aarch64.app.zip".to_string(),
             },
         ];
 
-        let best = AutoUpdater::pick_best_asset(&assets, "aarch64").expect("asset found");
-        assert_eq!(best.name, "Workstation_Monitor_0.1.1_universal.app.zip");
+        let best_arm = AutoUpdater::pick_best_asset(&assets, "aarch64").expect("asset found");
+        assert_eq!(best_arm.name, "Workstation_Monitor_0.1.3_aarch64.app.zip");
+
+        let best_intel = AutoUpdater::pick_best_asset(&assets, "x86_64").expect("asset found");
+        assert_eq!(best_intel.name, "Workstation_Monitor_0.1.3_x64.app.zip");
     }
 }

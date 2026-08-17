@@ -340,18 +340,6 @@ pub struct OpenObsidianRequest {
     pub target_app: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UpdateCheckResponse {
-    pub has_update: bool,
-    pub current_version: String,
-    pub latest_version: String,
-    pub release_notes: String,
-    pub download_url: Option<String>,
-    pub asset_name: Option<String>,
-    pub asset_size_bytes: Option<u64>,
-    pub published_at: Option<String>,
-    pub error_msg: Option<String>,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateApplyRequest {

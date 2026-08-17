@@ -1,5 +1,14 @@
 更新日志（中文）
 
+[0.1.4] - 2026-08-17
+新增
+- 架构资产精准匹配：升级资产选择算法，自动优先为 Apple Silicon (M1~M4) 匹配仅 3.2MB 的 aarch64 专用包，为 Intel Mac 匹配 x64 专用包，下载体积减半、速度提升 2 倍。
+- 双引擎热更新下载体系：在 HTTP 下载器中内置 macOS 原生 curl 自动容灾引擎，完美处理 GitHub/AWS S3 的 302 重定向与代理分块传输。
+- 采用 MIT 开源许可证：正式采用标准宽松的 MIT License 协议。
+修复
+- 修复热升级 API 在特定网络或代理环境下可能出现的 500 解码异常 (error decoding response body)。
+- 清理冗余类型定义与编译器警告。
+
 [0.1.3] - 2026-08-17
 新增
 - 独立开发环境页面：将开发环境工具链检测矩阵独立为专用视图，支持查看 Node.js/Rust/Python/Docker/Ollama 等工具版本与路径一键复制。
@@ -29,6 +38,15 @@
 ---
 
 Changelog (English)
+
+[0.1.4] - 2026-08-17
+Added
+- Exact Architecture Matching: Prioritizes arch-specific packages (e.g. 3.2MB aarch64 for Apple Silicon, 3.3MB x64 for Intel) over universal bundles, halving download size and doubling update speed.
+- Dual-Engine Download Pipeline: Integrated macOS native curl fallback engine to flawlessly handle AWS S3 redirects and chunked proxy streams.
+- MIT Open Source License: Formally adopted the standard MIT license across the repository.
+Fixed
+- Fixed 500 stream decoding error (error decoding response body) during update apply in certain proxy environments.
+- Cleaned up redundant struct definitions and compiler warnings.
 
 [0.1.3] - 2026-08-17
 Added
