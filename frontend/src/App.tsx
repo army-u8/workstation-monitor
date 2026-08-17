@@ -16,7 +16,8 @@ import { SystemCleaner } from './components/SystemCleaner';
 import { GitRadar } from './components/GitRadar';
 import { ObsidianHub } from './components/ObsidianHub';
 import { HostsManager } from './components/HostsManager';
-import { DevOpsToolkit } from './components/DevOpsToolkit';
+import { DevToolsView } from './components/DevToolsView';
+import { OpsView } from './components/OpsView';
 import {
   fetchHostsApi,
   fetchMachineInfoApi,
@@ -61,8 +62,8 @@ export const App: Component = () => {
       <Route path={RoutePath.GIT_RADAR} component={GitRadar} />
       <Route path={RoutePath.OBSIDIAN} component={ObsidianHub} />
       <Route path={RoutePath.HOSTS} component={HostsManager} />
-      <Route path={RoutePath.DEVTOOLS} component={DevOpsToolkit} />
-      <Route path={RoutePath.OPS} component={DevOpsToolkit} />
+      <Route path={RoutePath.DEVTOOLS} component={DevToolsView} />
+      <Route path={RoutePath.OPS} component={OpsView} />
       <Route path="*path" component={() => <Navigate href={RoutePath.OVERVIEW} />} />
     </Route>
   );
