@@ -254,13 +254,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     println!("╚══════════════════════════════════════════════════════════════╝\n");
 
-    // Auto-open the dashboard in the default browser so that double-clicking the
-    // bundled .app just works for non-technical users.
+    // Auto-open the dashboard in the default browser once the server is actually
+    // listening, so double-clicking the bundled .app just works without a transient
+    // "cannot connect" error. We poll the port in a background task instead of
+    // opening before `axum::serve` starts.
     let dashboard_url = format!("http://localhost:{}", port);
-    if let Err(e) = open::that(&dashboard_url) {
-        tracing::warn!("failed to auto-open browser ({}), trying `open` command", e);
-        let _ = ProcCommand::new("open").arg(&dashboard_url).spawn();
-    }
+    let listen_addr = std::net::SocketAddr::new(
+        ([127, 0, 0, 1]).into(),
+        port,
+    );
+    tokio::spawn(async move {
+        for _ in 0..100 {
+            if tokio::net::TcpStream::connect(listen_addr).await.is_ok() {
+                if let Err(e) = open::that(&dashboard_url) {
+                    tracing::warn!("failed to auto-open browser ({}), trying `open` command", e);
+                    let _ = ProcCommand::new("open").arg(&dashboard_url).spawn();
+                }
+                return;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+        }
+        tracing::warn!("server did not become reachable; skipping auto-open of {}", dashboard_url);
+    });
 
     axum::serve(listener, router).await?;
 

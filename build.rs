@@ -6,9 +6,17 @@ use std::process::Command;
 /// This removes the footgun where running `cargo build` alone produced a
 /// binary whose embedded frontend 404s because `dist/` was never generated.
 fn main() {
+    // Re-run the build script when any relevant frontend input changes, or when
+    // the skip toggle flips, so Cargo never embeds a stale `frontend/dist`.
     println!("cargo:rerun-if-changed=frontend/src");
+    println!("cargo:rerun-if-changed=frontend/public");
+    println!("cargo:rerun-if-changed=frontend/index.html");
     println!("cargo:rerun-if-changed=frontend/package.json");
+    println!("cargo:rerun-if-changed=frontend/package-lock.json");
     println!("cargo:rerun-if-changed=frontend/vite.config.ts");
+    println!("cargo:rerun-if-changed=frontend/tsconfig.json");
+    println!("cargo:rerun-if-changed=frontend/dist");
+    println!("cargo:rerun-if-env-changed=SKIP_FRONTEND_BUILD");
 
     // Skip frontend build when explicitly disabled (e.g. CI that pre-builds it,
     // or when node is unavailable and a prebuilt dist already exists).

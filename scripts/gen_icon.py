@@ -56,10 +56,10 @@ for i, h in enumerate(heights):
 dot_cx, dot_cy, dot_r = S - PAD - 100, PAD + 100, 40
 dot_mask = lambda px, py: (px - dot_cx) ** 2 + (py - dot_cy) ** 2 <= dot_r * dot_r
 
-pixels = bytearray()
+raw = bytearray()
 for y in range(S):
     row = bytearray()
-    row.append(0)  # filter type 0
+    row.append(0)  # filter type 0 (none) for each scanline
     for x in range(S):
         t = (x + y) / (2 * S)
         bg = lerp(top, bot, t)
@@ -72,8 +72,11 @@ for y in range(S):
         if dot_mask(x, y):
             r, g, b = live
         row += bytes((r, g, b, 255))
-    # zlib compress per row (raw deflate of filtered scanline)
-    pixels += zlib.compress(row, 9)
+    raw += row
+
+# Compress the whole image as ONE continuous zlib stream (PNG requires the
+# concatenated IDAT data to be a single zlib datastream, not per-row streams).
+idat = zlib.compress(raw, 9)
 
 # PNG chunks
 def chunk(tag, data):
@@ -84,7 +87,6 @@ def chunk(tag, data):
 
 sig = b"\x89PNG\r\n\x1a\n"
 ihdr = struct.pack(">IIBBBBB", S, S, 8, 6, 0, 0, 0)  # 8-bit RGBA
-idat = pixels
 out = sig + chunk(b"IHDR", ihdr) + chunk(b"IDAT", idat) + chunk(b"IEND", b"")
 
 with open("assets/AppIcon-1024.png", "wb") as f:
