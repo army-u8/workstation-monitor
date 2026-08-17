@@ -1,5 +1,14 @@
 更新日志（中文）
 
+[0.1.3] - 2026-08-17
+新增
+- 独立开发环境页面：将开发环境工具链检测矩阵独立为专用视图，支持查看 Node.js/Rust/Python/Docker/Ollama 等工具版本与路径一键复制。
+- 独立快捷运维页面：将 DNS 刷新、端口释放与实时 Ping 诊断独立为专属运维控制台。
+变更
+- 页面架构解耦：拆分原合并的 DevOps 视图，优化路由匹配与侧边栏激活联动。
+修复
+- 修复开发环境与快捷运维路由指向相同组件的问题。
+
 [0.1.2] - 2026-08-17
 新增
 - 一键在线自动升级系统：支持 GitHub Releases 语义化版本检测、增量下载、macOS 运行中二进制原子热替换与服务无感重拉起，并在前端控制台提供专属升级弹窗与进度反馈。
@@ -20,6 +29,15 @@
 ---
 
 Changelog (English)
+
+[0.1.3] - 2026-08-17
+Added
+- Dedicated Dev Tools View: Separated developer environment toolchain inspection into a standalone page with version detection and one-click path copying.
+- Dedicated Ops Toolkit View: Separated DNS flush, port killing, and real-time ICMP Ping diagnostics into an operations console.
+Changed
+- View Architecture Decoupling: Split merged DevOps views and improved routing and sidebar synchronization.
+Fixed
+- Fixed route mapping conflict where both /devtools and /ops rendered the same component.
 
 [0.1.2] - 2026-08-17
 Added
