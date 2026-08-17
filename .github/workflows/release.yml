@@ -42,24 +42,27 @@ jobs:
           cat << EOF > release_body.md
           ## 🚀 Workstation Monitor ${VERSION}
 
-          macOS 原生轻量工作站性能监控与网络诊断总控台发布！
+          macOS 原生轻量工作站性能监控与网络诊断总控台发布！  
+          *Native lightweight macOS workstation performance monitoring & network diagnostic mission control.*
+
+          ---
 
           ### 📦 资产下载推荐 / Asset Downloads
-          | 架构 / Architecture | 推荐适用机型 | 安装镜像 (DMG) | 独立压缩包 (.app.zip) |
+          | 架构 / Architecture | 适用机型 / Supported Machines | 安装镜像 / Installer (DMG) | 独立压缩包 / Portable (.app.zip) |
           | :--- | :--- | :--- | :--- |
-          | 🌟 **Universal (通用版)** | 兼容所有 Mac (M1~M4 及 Intel) | [Universal DMG](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_universal.dmg) | [Universal App Zip](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_universal.app.zip) |
-          | ⚡ **Apple Silicon** | M1 / M2 / M3 / M4 芯片 Mac | [Apple Silicon DMG](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_aarch64.dmg) | [Apple Silicon Zip](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_aarch64.app.zip) |
-          | 💻 **Intel Mac** | 传统 Intel 处理器 Mac | [Intel Mac DMG](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_x64.dmg) | [Intel Mac Zip](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_x64.app.zip) |
+          | 🌟 **Universal (通用版)** | 兼容所有 Mac / All Macs (M1~M4 & Intel) | [Universal DMG](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_universal.dmg) | [Universal App (.zip)](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_universal.app.zip) |
+          | ⚡ **Apple Silicon** | M1 / M2 / M3 / M4 芯片 Mac | [Apple Silicon DMG](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_aarch64.dmg) | [Apple Silicon App (.zip)](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_aarch64.app.zip) |
+          | 💻 **Intel Mac** | 传统 Intel 处理器 Mac / Intel-based Macs | [Intel Mac DMG](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_x64.dmg) | [Intel Mac App (.zip)](https://github.com/army-u8/workstation-monitor/releases/download/${VERSION}/Workstation_Monitor_${VERSION#v}_x64.app.zip) |
 
           ---
 
-          ### 💡 自动更新功能说明 / Auto-Update
-          - 本版本已完整内置 **一键在线热升级系统**。
-          - 处于当前及后续版本的用户，打开网页控制台后将自动检测新版本，可在控制台右上角点击 **「立即升级并重启」** 无感热更新，无需再手动下载 DMG。
+          ### 💡 自动在线更新说明 / In-App Auto-Update Guide
+          - 🇨🇳 **中文**：本版本已内置**一键在线热升级系统**。当前及后续版本的用户打开网页控制台后将自动检测新版本，可在右上角直接点击 **「立即升级并重启」** 无感热更新，无需重新手动下载 DMG。
+          - 🇺🇸 **English**: This release features the **One-Click In-App Auto-Updater**. Starting from this version, new updates will be detected automatically in the web mission control console. Simply click **"Update & Restart Now"** in the top-right header for seamless in-place hot-reloads without manual DMG downloads.
 
           ---
 
-          ### 🔐 SHA256 校验和 / Checksums
+          ### 🔐 校验和 / SHA256 Checksums
           \`\`\`text
           $(cat target/release-assets/SHA256SUMS.txt)
           \`\`\`
