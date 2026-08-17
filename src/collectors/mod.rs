@@ -9,6 +9,7 @@ pub mod latency;
 pub mod machine_info;
 pub mod obsidian;
 pub mod processes;
+pub mod save_point;
 pub mod sniffer;
 pub mod speedtest;
 pub mod traffic;
@@ -25,8 +26,8 @@ pub use latency::LatencyCollector;
 pub use machine_info::MachineInfoCollector;
 pub use obsidian::ObsidianManager;
 pub use processes::{kill_process, kill_process_by_port, ProcessCollector};
+pub use save_point::SavePointManager;
 pub use sniffer::start_sniffer;
 pub use speedtest::SpeedTester;
 pub use traffic::TrafficCollector;
 pub use updater::AutoUpdater;
-

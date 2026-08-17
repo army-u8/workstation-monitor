@@ -11,14 +11,14 @@ use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use crate::collectors::{
     kill_process, kill_process_by_port, AutoUpdater, GitRadar, HostsManager, MachineInfoCollector,
-    ObsidianManager, SpeedTester, SystemCleaner,
+    ObsidianManager, SavePointManager, SpeedTester, SystemCleaner,
 };
 use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};
 use crate::types::{
-    CleanRequest, KillPortRequest, KillProcessRequest, OpenAppRequest, OpenObsidianRequest,
-    OpsResponse, PingRequest, PingResponse, QuickCaptureRequest, UpdateApplyRequest,
-    UpdateApplyResponse,
+    CleanRequest, CreateSnapshotRequest, KillPortRequest, KillProcessRequest, OpenAppRequest,
+    OpenObsidianRequest, OpsResponse, PingRequest, PingResponse, QuickCaptureRequest,
+    RollbackSnapshotRequest, UpdateApplyRequest, UpdateApplyResponse,
 };
 
 pub fn build_router(state: AppState) -> Router {
@@ -45,6 +45,9 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/cleaner/clean", post(post_cleaner_clean))
         .route("/api/git/projects", get(get_git_projects))
         .route("/api/git/account", get(get_git_account))
+        .route("/api/projects/snapshots", get(get_snapshots))
+        .route("/api/projects/snapshots/create", post(post_snapshot_create))
+        .route("/api/projects/snapshots/rollback", post(post_snapshot_rollback))
         .route("/api/hosts/get", get(get_hosts))
         .route("/api/tools/speedtest", post(post_speedtest))
         .route("/api/tools/open-app", post(post_open_app))
@@ -653,4 +656,79 @@ async fn post_update_apply(Json(payload): Json<UpdateApplyRequest>) -> impl Into
         ),
     }
 }
+
+// 8. Save Point & Time Machine Handlers
+#[derive(Debug, Deserialize)]
+pub struct SnapshotQuery {
+    pub path: Option<String>,
+}
+
+async fn get_snapshots(Query(params): Query<SnapshotQuery>) -> impl IntoResponse {
+    let path = match params.path {
+        Some(p) if !p.trim().is_empty() => p,
+        _ => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({"error": "Missing 'path' query parameter"})),
+            )
+        }
+    };
+
+    match tokio::task::spawn_blocking(move || SavePointManager::list_snapshots(&path)).await {
+        Ok(Ok(data)) => (StatusCode::OK, Json(serde_json::to_value(data).unwrap())),
+        Ok(Err(e)) => (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"error": e})),
+        ),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({"error": format!("Internal error: {}", e)})),
+        ),
+    }
+}
+
+async fn post_snapshot_create(Json(payload): Json<CreateSnapshotRequest>) -> impl IntoResponse {
+    match tokio::task::spawn_blocking(move || {
+        SavePointManager::create_snapshot(&payload.project_path, &payload.title)
+    })
+    .await
+    {
+        Ok(Ok(res)) => (StatusCode::OK, Json(serde_json::to_value(res).unwrap())),
+        Ok(Err(e)) => (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"success": false, "message": e})),
+        ),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(
+                serde_json::json!({"success": false, "message": format!("Internal error: {}", e)}),
+            ),
+        ),
+    }
+}
+
+async fn post_snapshot_rollback(Json(payload): Json<RollbackSnapshotRequest>) -> impl IntoResponse {
+    match tokio::task::spawn_blocking(move || {
+        SavePointManager::rollback_snapshot(
+            &payload.project_path,
+            &payload.target_commit,
+            payload.create_safety_backup,
+        )
+    })
+    .await
+    {
+        Ok(Ok(res)) => (StatusCode::OK, Json(serde_json::to_value(res).unwrap())),
+        Ok(Err(e)) => (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({"success": false, "message": e})),
+        ),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(
+                serde_json::json!({"success": false, "message": format!("Internal error: {}", e)}),
+            ),
+        ),
+    }
+}
+
 

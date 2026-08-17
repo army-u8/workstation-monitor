@@ -313,6 +313,33 @@ export interface UpdateApplyResponse {
   new_version?: string | null;
 }
 
+export interface SavePointSnapshot {
+  commit_hash: string;
+  short_hash: string;
+  title: string;
+  author: string;
+  created_at: string;
+  relative_time: string;
+  is_save_point: boolean;
+  is_head: boolean;
+  changed_files_summary?: string | null;
+}
+
+export interface SnapshotsListResponse {
+  project_name: string;
+  project_path: string;
+  current_branch: string;
+  is_dirty: boolean;
+  uncommitted_count: number;
+  snapshots: SavePointSnapshot[];
+}
+
+export interface SnapshotActionResponse {
+  success: boolean;
+  message: string;
+  snapshot?: SavePointSnapshot | null;
+}
+
 export type WsEvent =
   | { type: 'TrafficUpdate'; data: TrafficSummary }
   | { type: 'SocketsUpdate'; data: SocketsPayload }

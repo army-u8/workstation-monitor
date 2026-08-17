@@ -354,6 +354,54 @@ pub struct UpdateApplyResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SavePointSnapshot {
+    pub commit_hash: String,
+    pub short_hash: String,
+    pub title: String,
+    pub author: String,
+    pub created_at: String,
+    pub relative_time: String,
+    pub is_save_point: bool,
+    pub is_head: bool,
+    pub changed_files_summary: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotsListResponse {
+    pub project_name: String,
+    pub project_path: String,
+    pub current_branch: String,
+    pub is_dirty: bool,
+    pub uncommitted_count: usize,
+    pub snapshots: Vec<SavePointSnapshot>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CreateSnapshotRequest {
+    pub project_path: String,
+    pub title: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RollbackSnapshotRequest {
+    pub project_path: String,
+    pub target_commit: String,
+    #[serde(default = "default_true")]
+    pub create_safety_backup: bool,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SnapshotActionResponse {
+    pub success: bool,
+    pub message: String,
+    pub snapshot: Option<SavePointSnapshot>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data")]
 pub enum WsEvent {
     TrafficUpdate(TrafficSummary),

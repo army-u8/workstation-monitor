@@ -180,6 +180,9 @@ export const ApiEndpoint = {
   OBSIDIAN_OPEN: '/api/obsidian/open',
   UPDATE_CHECK: '/api/system/update/check',
   UPDATE_APPLY: '/api/system/update/apply',
+  SNAPSHOTS_LIST: '/api/projects/snapshots',
+  SNAPSHOTS_CREATE: '/api/projects/snapshots/create',
+  SNAPSHOTS_ROLLBACK: '/api/projects/snapshots/rollback',
 } as const;
 export type ApiEndpoint = (typeof ApiEndpoint)[keyof typeof ApiEndpoint];
 

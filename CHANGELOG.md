@@ -1,5 +1,15 @@
 更新日志（中文）
 
+[0.1.5] - 2026-08-17
+新增
+- 游戏化时光机与存档点系统 (Save Point & Time Machine)：在让 AI 大改代码前一键保存好用状态，改崩时 1 秒无痛回滚。
+- 自动安全隐式备份机制：在执行回滚操作前自动在后台生成安全备份，杜绝任何误操作丢代码的风险。
+- 全景时光轴抽屉：在 Git 项目卡片上直接唤起时光机面板，直观查看所有历史好用状态节点与 HEAD 指针。
+变更
+- GitRadar 卡片交互升级：在 Grid、Table、Compact 三种视图中均集成时光机快捷入口。
+修复
+- 优化 TypeScript 类型定义，去除编译器无用警告。
+
 [0.1.4] - 2026-08-17
 新增
 - 架构资产精准匹配：升级资产选择算法，自动优先为 Apple Silicon (M1~M4) 匹配仅 3.2MB 的 aarch64 专用包，为 Intel Mac 匹配 x64 专用包，下载体积减半、速度提升 2 倍。
@@ -39,6 +49,16 @@
 
 Changelog (English)
 
+[0.1.5] - 2026-08-17
+Added
+- Game-like Save Point & Time Machine System: Create instant save points before AI modifies code, and rollback to working state in 1 second.
+- Automatic Hidden Safety Backup: Silently backs up any dirty modifications before rollback execution to eliminate risk of accidental code loss.
+- Panoramic Time Machine Drawer: Interactive vertical timeline component directly integrated into project cards with HEAD indicators.
+Changed
+- GitRadar Card Action Upgrade: Embedded Time Machine action triggers across Grid, Table, and Compact layouts.
+Fixed
+- Cleaned up TypeScript type definitions and fixed unused compiler warnings.
+
 [0.1.4] - 2026-08-17
 Added
 - Exact Architecture Matching: Prioritizes arch-specific packages (e.g. 3.2MB aarch64 for Apple Silicon, 3.3MB x64 for Intel) over universal bundles, halving download size and doubling update speed.
@@ -68,7 +88,7 @@ Fixed
 - Fixed continuous Dock bouncing on launch by configuring LSUIElement daemon property.
 - Fixed unreplaced version template placeholder in update check toast notification.
 
-[0.1.1] - 2026-08-17
+[.0.1.1] - 2026-08-17
 Added
 - Multi-Architecture macOS Release Pipeline: Native packaging support for Apple Silicon (aarch64), Intel (x64), and Universal 2 Fat binaries.
 - High-Resolution Apple Retina ICNS: Compiled 10-layer standard Retina app icon and DMG volume icon.

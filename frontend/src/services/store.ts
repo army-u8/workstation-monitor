@@ -39,6 +39,8 @@ import type {
   PingResponse,
   ProcessInfo,
   QuickCapturePayload,
+  SnapshotActionResponse,
+  SnapshotsListResponse,
   SocketsPayload,
   SpeedTestResult,
   SystemStats,
@@ -152,6 +154,14 @@ export const [isCheckingUpdate, setIsCheckingUpdate] = createSignal(false);
 export const [isApplyingUpdate, setIsApplyingUpdate] = createSignal(false);
 export const [isUpdateModalOpen, setIsUpdateModalOpen] = createSignal(false);
 export const [updateStep, setUpdateStep] = createSignal<'idle' | 'downloading' | 'installing' | 'restarting' | 'reconnecting'>('idle');
+
+// Save Point & Time Machine Signals
+export const [activeSnapshotPath, setActiveSnapshotPath] = createSignal<string | null>(null);
+export const [isSnapshotDrawerOpen, setIsSnapshotDrawerOpen] = createSignal(false);
+export const [snapshotsData, setSnapshotsData] = createSignal<SnapshotsListResponse | null>(null);
+export const [isLoadingSnapshots, setIsLoadingSnapshots] = createSignal(false);
+export const [isCreatingSnapshot, setIsCreatingSnapshot] = createSignal(false);
+export const [isRollingBackSnapshot, setIsRollingBackSnapshot] = createSignal(false);
 
 export const [activeSection, setActiveSection] = createSignal<NavSectionId>(NavSectionId.OVERVIEW);
 export const [isSidebarOpen, setIsSidebarOpen] = createSignal(false);
@@ -609,6 +619,102 @@ function pollForServerRestart() {
       window.location.reload();
     }
   }, 1000);
+}
+
+// ----------------------------------------------------
+// Save Point & Time Machine API Functions
+// ----------------------------------------------------
+
+export function openSnapshotDrawer(projectPath: string) {
+  setActiveSnapshotPath(projectPath);
+  setIsSnapshotDrawerOpen(true);
+  fetchSnapshotsApi(projectPath);
+}
+
+export function closeSnapshotDrawer() {
+  setIsSnapshotDrawerOpen(false);
+  setActiveSnapshotPath(null);
+}
+
+export async function fetchSnapshotsApi(projectPath: string): Promise<SnapshotsListResponse | null> {
+  if (!projectPath) return null;
+  setIsLoadingSnapshots(true);
+  try {
+    const res = await fetch(`${ApiEndpoint.SNAPSHOTS_LIST}?path=${encodeURIComponent(projectPath)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: SnapshotsListResponse = await res.json();
+    setSnapshotsData(data);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to fetch snapshots', ToastType.ERROR);
+    return null;
+  } finally {
+    setIsLoadingSnapshots(false);
+  }
+}
+
+export async function createSnapshotApi(projectPath: string, title: string): Promise<boolean> {
+  if (isCreatingSnapshot() || !projectPath) return false;
+  setIsCreatingSnapshot(true);
+  try {
+    const res = await fetch(ApiEndpoint.SNAPSHOTS_CREATE, {
+      method: HTTP_METHODS.POST,
+      headers: { 'Content-Type': CONTENT_TYPES.JSON },
+      body: JSON.stringify({ project_path: projectPath, title }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: SnapshotActionResponse = await res.json();
+    if (data.success) {
+      showToast(data.message, ToastType.SUCCESS);
+      await fetchSnapshotsApi(projectPath);
+      scanGitProjectsApi();
+      return true;
+    } else {
+      showToast(data.message || 'Failed to create snapshot', ToastType.ERROR);
+      return false;
+    }
+  } catch (err: any) {
+    showToast(err.message || 'Failed to create snapshot', ToastType.ERROR);
+    return false;
+  } finally {
+    setIsCreatingSnapshot(false);
+  }
+}
+
+export async function rollbackSnapshotApi(
+  projectPath: string,
+  targetCommit: string,
+  createSafetyBackup = true
+): Promise<boolean> {
+  if (isRollingBackSnapshot() || !projectPath || !targetCommit) return false;
+  setIsRollingBackSnapshot(true);
+  try {
+    const res = await fetch(ApiEndpoint.SNAPSHOTS_ROLLBACK, {
+      method: HTTP_METHODS.POST,
+      headers: { 'Content-Type': CONTENT_TYPES.JSON },
+      body: JSON.stringify({
+        project_path: projectPath,
+        target_commit: targetCommit,
+        create_safety_backup: createSafetyBackup,
+      }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: SnapshotActionResponse = await res.json();
+    if (data.success) {
+      showToast(data.message, ToastType.SUCCESS);
+      await fetchSnapshotsApi(projectPath);
+      scanGitProjectsApi();
+      return true;
+    } else {
+      showToast(data.message || 'Rollback failed', ToastType.ERROR);
+      return false;
+    }
+  } catch (err: any) {
+    showToast(err.message || 'Rollback failed', ToastType.ERROR);
+    return false;
+  } finally {
+    setIsRollingBackSnapshot(false);
+  }
 }
 
 // ----------------------------------------------------
