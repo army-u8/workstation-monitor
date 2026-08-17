@@ -41,17 +41,17 @@
 git clone git@github.com:army-u8/workstation-monitor.git
 cd workstation-monitor
 
-# 构建发布版二进制（会自动构建并内嵌前端）
+# 1. 先构建前端（输出到 frontend/dist）
+cd frontend
+npm install
+npm run build
+
+# 2. 构建后端，编译时会将 frontend/dist 内嵌进二进制
+cd ..
 cargo build --release
 ```
 
-或者先构建前端，再由 `cargo run` 托管：
-
-```bash
-cd frontend
-npm install
-npm run build   # 输出到 frontend/dist，运行时被内嵌
-```
+> 前端通过 `rust-embed` 在**编译时**从 `frontend/dist/` 嵌入二进制。由于 `dist/` 已被 gitignore 忽略，必须先执行 `npm run build` 再执行 `cargo build`——全新 clone 不存在 `dist/`，在构建前端之前访问服务会返回 404。
 
 ---
 

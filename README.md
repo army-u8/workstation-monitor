@@ -41,17 +41,17 @@
 git clone git@github.com:army-u8/workstation-monitor.git
 cd workstation-monitor
 
-# Build the release binary (also builds & embeds the frontend)
+# 1. Build the frontend first (outputs to frontend/dist)
+cd frontend
+npm install
+npm run build
+
+# 2. Build the backend, which embeds frontend/dist at compile time
+cd ..
 cargo build --release
 ```
 
-Or build the frontend first and let `cargo run` serve it:
-
-```bash
-cd frontend
-npm install
-npm run build   # outputs to frontend/dist, embedded at runtime
-```
+> The frontend is embedded into the binary via `rust-embed` **at compile time** (from `frontend/dist/`). Since `dist/` is gitignored, you must run `npm run build` before `cargo build` — a fresh clone has no `dist/` and the server will 404 until the frontend is built.
 
 ---
 
