@@ -106,26 +106,45 @@ ICONSET_SIZES = [
 
 os.makedirs("icons.iconset", exist_ok=True)
 
-# Resize with sips if available
-has_sips = subprocess.run(["which", "sips"], stdout=subprocess.DEVNULL).returncode == 0
-if has_sips:
-    for filename, px in ICONSET_SIZES:
-        out_path = os.path.join("icons.iconset", filename)
-        if px == 1024:
-            with open(out_path, "wb") as f:
-                f.write(out)
-        else:
-            subprocess.run(
-                ["sips", "-z", str(px), str(px), "assets/AppIcon-1024.png", "--out", out_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                check=True,
-            )
-    print(f"✓ Generated icons.iconset/ with {len(ICONSET_SIZES)} Apple Retina resolutions")
+import shutil
+import sys
 
-    # Compile .icns
-    subprocess.run(
-        ["iconutil", "-c", "icns", "icons.iconset", "-o", "assets/icon.icns"],
-        check=True,
-    )
-    print("✓ Compiled assets/icon.icns (Standard 10-layer Apple ICNS)")
+# Validate required macOS toolchain
+sips_bin = shutil.which("sips")
+iconutil_bin = shutil.which("iconutil")
+
+if not sips_bin:
+    print("error: 'sips' command not found. Cannot generate iconset.", file=sys.stderr)
+    sys.exit(1)
+
+if not iconutil_bin:
+    print("error: 'iconutil' command not found. Cannot compile .icns.", file=sys.stderr)
+    sys.exit(1)
+
+for filename, px in ICONSET_SIZES:
+    out_path = os.path.join("icons.iconset", filename)
+    if px == 1024:
+        with open(out_path, "wb") as f:
+            f.write(out)
+    else:
+        subprocess.run(
+            [sips_bin, "-z", str(px), str(px), "assets/AppIcon-1024.png", "--out", out_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+        )
+
+print(f"✓ Generated icons.iconset/ with {len(ICONSET_SIZES)} Apple Retina resolutions")
+
+# Compile .icns
+subprocess.run(
+    [iconutil_bin, "-c", "icns", "icons.iconset", "-o", "assets/icon.icns"],
+    check=True,
+)
+
+if not os.path.exists("assets/icon.icns") or os.path.getsize("assets/icon.icns") < 10000:
+    print("error: assets/icon.icns generation failed or produced invalid file.", file=sys.stderr)
+    sys.exit(1)
+
+print(f"✓ Compiled assets/icon.icns ({os.path.getsize('assets/icon.icns')} bytes, Standard 10-layer Apple ICNS)")
+

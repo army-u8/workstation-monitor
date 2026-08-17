@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Build complete multi-architecture macOS release assets:
-# 1. Apple Silicon (aarch64 / arm64) DMG & tar.gz
-# 2. Intel Mac (x86_64 / x64) DMG & tar.gz
-# 3. Universal 2 (Fat binary: arm64 + x86_64) DMG & tar.gz
+# 1. Apple Silicon (aarch64 / arm64) DMG, zip & tar.gz
+# 2. Intel Mac (x86_64 / x64) DMG, zip & tar.gz
+# 3. Universal 2 (Fat binary: arm64 + x86_64) DMG, zip & tar.gz
 # 4. SHA256 checksums file (SHA256SUMS.txt)
 set -euo pipefail
 
@@ -22,8 +22,12 @@ echo "========================================================="
 rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR"
 
-# 2. Build Frontend UI
+# 2. Ensure frontend deps & build UI
 echo "==> [1/6] Building embedded frontend..."
+if [ ! -d "frontend/node_modules" ]; then
+  echo "    Installing frontend dependencies (npm ci)..."
+  (cd frontend && npm ci)
+fi
 (cd frontend && npm run build)
 
 # 3. Ensure Icon is 100% compliant
@@ -44,7 +48,7 @@ lipo -create \
   target/aarch64-apple-darwin/release/workstation-monitor \
   -output target/universal-apple-darwin/release/workstation-monitor
 
-# 5. Helper function to package .app and .dmg for a target architecture
+# 5. Helper function to package .app, .zip, and .dmg for a target architecture
 package_arch() {
   local ARCH_KEY="$1"       # "aarch64", "x64", or "universal"
   local BIN_PATH="$2"       # path to binary
@@ -104,12 +108,17 @@ EOF
 
   touch "${STAGE_DIR}/${APP_NAME}.app"
 
-  # A. Create .app.tar.gz archive
+  # A. Create metadata-preserving .app.zip archive (Apple ditto)
+  local ZIP_OUT="${DIST_DIR}/${SLUG_NAME}_${ARCH_KEY}.app.zip"
+  echo "  -> Generating ${SLUG_NAME}_${ARCH_KEY}.app.zip (preserves metadata)..."
+  ditto -c -k --sequesterRsrc --keepParent "${STAGE_DIR}/${APP_NAME}.app" "$ZIP_OUT"
+
+  # B. Create .app.tar.gz archive
   local TAR_OUT="${DIST_DIR}/${SLUG_NAME}_${ARCH_KEY}.app.tar.gz"
   echo "  -> Generating ${SLUG_NAME}_${ARCH_KEY}.app.tar.gz..."
-  tar -czf "$TAR_OUT" -C "$STAGE_DIR" "${APP_NAME}.app"
+  COPYFILE_DISABLE=0 tar -czf "$TAR_OUT" -C "$STAGE_DIR" "${APP_NAME}.app"
 
-  # B. Create .dmg installer
+  # C. Create .dmg installer
   local DMG_STAGE="target/dmg_stage_${ARCH_KEY}"
   rm -rf "$DMG_STAGE"
   mkdir -p "$DMG_STAGE"

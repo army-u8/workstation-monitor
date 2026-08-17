@@ -27,6 +27,10 @@ jobs:
         with:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
 
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
       - name: Build All Multi-Architecture Assets
         run: |
           chmod +x scripts/build_all_mac.sh
