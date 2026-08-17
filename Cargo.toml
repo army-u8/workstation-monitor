@@ -1,6 +1,6 @@
 [package]
 name = "workstation-monitor"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 build = "build.rs"
 default-run = "workstation-monitor"
@@ -29,7 +29,7 @@ open = "5"
 [package.metadata.bundle]
 name = "Workstation Monitor"
 identifier = "com.armyu8.workstation-monitor"
-version = "0.1.0"
+version = "0.1.1"
 category = "Utility"
 short_description = "macOS workstation monitoring dashboard"
 long_description = "A self-hosted, single-binary dashboard for monitoring and operating your macOS workstation."
