@@ -394,13 +394,28 @@ impl AutoUpdater {
         // 5. Clean up temporary files
         let _ = std::fs::remove_dir_all(&tmp_dir);
 
-        // 6. Schedule restart in background
-        let relaunch_path = current_exe.clone();
+        // 6. Schedule detached supervisor restart to prevent port conflict
+        let current_exe_str = current_exe.to_string_lossy().to_string();
+        let is_app_bundle = current_exe_str.contains(".app/Contents/MacOS");
+
+        let restart_cmd = if is_app_bundle {
+            let mut app_path = current_exe.clone();
+            app_path.pop(); // MacOS
+            app_path.pop(); // Contents
+            format!("sleep 1.2 && open -n '{}'", app_path.display())
+        } else {
+            format!("sleep 1.2 && '{}'", current_exe.display())
+        };
+
+        tracing::info!("Spawning detached restart supervisor: {}", restart_cmd);
+        let _ = Command::new("/bin/sh")
+            .args(["-c", &format!("({} >/dev/null 2>&1 &)", restart_cmd)])
+            .spawn();
+
+        // 7. Exit old process after brief flush window so port is freed before new process binds
         tokio::spawn(async move {
-            tokio::time::sleep(Duration::from_millis(600)).await;
-            tracing::info!("Relaunching updated process: {:?}", relaunch_path);
-            let _ = Command::new(&relaunch_path).spawn();
-            tokio::time::sleep(Duration::from_millis(200)).await;
+            tokio::time::sleep(Duration::from_millis(300)).await;
+            tracing::info!("Old process exiting cleanly to release port...");
             std::process::exit(0);
         });
 

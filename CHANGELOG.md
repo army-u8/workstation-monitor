@@ -1,5 +1,12 @@
 更新日志（中文）
 
+[0.1.9] - 2026-08-17
+修复
+- 彻底修复热更新后由于端口竞争导致服务崩溃/超时的 Bug：
+  - **解耦重启守护机制 (Decoupled Restart Supervisor)**：将新进程拉起重构为异步脱钩 Shell 调度器，先使旧进程优雅退出并释放 3000 端口，杜绝新进程启动时因 `Address already in use` 导致的闪退崩溃。
+  - **macOS 原生 .app 唤醒适配**：自动识别 macOS `.app` Application Bundle 容器，通过 `open -n` 规范拉起完整应用，避免脱离 GUI 容器导致的环境异常。
+  - **前端重连轮询韧性提升**：增强 `/api/status` 探测鲁棒性，保障服务原子重启后 100% 自动无缝刷新页面。
+
 [0.1.8] - 2026-08-17
 新增
 - 系统环境变量与 $PATH 链路全景诊断探针 (Environment Variables & $PATH Inspector)：
@@ -62,15 +69,22 @@
 - 修复 macOS 应用在后台启动时底下 Dock 栏图标一直上下跳动的问题（添加 LSUIElement 守护进程配置）。
 - 修复检查更新提示文案中未替换版本模板变量（v{version}）的 UI 问题。
 
-[0.1.1] - 2026-08-17
-新增
-- 多架构 macOS 原生发布体系：新增 Apple Silicon (aarch64)、Intel (x64) 以及 Universal 2 (Fat Binary) 的原生打包支持。
-- 高清 Retina 图标支持：生成 10 层标准 Apple Retina 分辨率的 .icns 应用与 DMG 卷标图标。
-- GitHub Actions 自动化发布流水线：支持 tag 推送触发全自动跨架构编译与 GitHub Releases 资产发布。
+[.0.1.1] - 2026-08-17
+Added
+- Multi-Architecture macOS Release Pipeline: Native packaging support for Apple Silicon (aarch64), Intel (x64), and Universal 2 Fat binaries.
+- High-Resolution Apple Retina ICNS: Compiled 10-layer standard Retina app icon and DMG volume icon.
+- GitHub Actions Automation: Tag-driven automated multi-target compilation and asset release pipeline.
 
 ---
 
 Changelog (English)
+
+[0.1.9] - 2026-08-17
+Fixed
+- Fixed Hot Update Relaunch Crash Bug:
+  - **Decoupled Restart Supervisor**: Spawns detached shell supervisor to cleanly allow old process to exit and release port 3000 before new process binds, preventing `Address already in use` crashes.
+  - **macOS App Bundle Launching**: Detects `.app` wrapper and uses `open -n` to launch cleanly in macOS window environment.
+  - **Robust Reconnection Polling**: Enhanced `/api/status` polling resilience for seamless automatic reload.
 
 [0.1.8] - 2026-08-17
 Added
