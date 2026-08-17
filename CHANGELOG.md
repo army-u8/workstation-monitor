@@ -1,5 +1,10 @@
 更新日志（中文）
 
+[0.1.7] - 2026-08-17
+修复
+- 修复点击 VS Code 按钮意外打开 Cursor 的问题：将编辑器调起逻辑重构为基于 macOS 原生 App Bundle (`Visual Studio Code.app` / `Cursor.app`) 精准唤起，彻底避免被 Cursor CLI 劫持的 `/usr/local/bin/code` 软链接导致误打开。
+- 增加对 Windsurf、Zed 等现代编辑器的精准唤起支持。
+
 [0.1.6] - 2026-08-17
 新增
 - 本地 Web 产物即时画廊与端口冲突自愈 (Web Artifacts & Port Auto-Healer)：智能嗅探本地正在监听的 Web 开发端口（3000、5173、8000、8080 等），自动识别 Next.js、Vite、Vue、React、FastAPI 等框架与网页标题，支持一键在浏览器打开或 1 秒强制释放冲突端口。
@@ -56,6 +61,11 @@
 ---
 
 Changelog (English)
+
+[0.1.7] - 2026-08-17
+Fixed
+- Fixed VS Code Button Opening Cursor: Upgraded app launcher to target macOS native App Bundles directly (`Visual Studio Code.app` / `Cursor.app`), resolving hijacked `/usr/local/bin/code` symlink conflicts.
+- Added native bundle dispatching support for Windsurf and Zed editors.
 
 [0.1.6] - 2026-08-17
 Added

@@ -237,8 +237,31 @@ async fn post_open_app(Json(payload): Json<OpenAppRequest>) -> impl IntoResponse
     let app = payload.app.unwrap_or_else(|| "finder".to_string()).to_lowercase();
 
     let cmd_res = match app.as_str() {
-        "code" => Command::new("code").arg(&path).spawn(),
-        "cursor" => Command::new("cursor").arg(&path).spawn(),
+        "code" | "vscode" => {
+            // Use macOS App Bundle name first to avoid hijacked /usr/local/bin/code symlink
+            Command::new("open")
+                .args(["-a", "Visual Studio Code", &path])
+                .spawn()
+                .or_else(|_| Command::new("code").arg(&path).spawn())
+        }
+        "cursor" => {
+            Command::new("open")
+                .args(["-a", "Cursor", &path])
+                .spawn()
+                .or_else(|_| Command::new("cursor").arg(&path).spawn())
+        }
+        "windsurf" => {
+            Command::new("open")
+                .args(["-a", "Windsurf", &path])
+                .spawn()
+                .or_else(|_| Command::new("windsurf").arg(&path).spawn())
+        }
+        "zed" => {
+            Command::new("open")
+                .args(["-a", "Zed", &path])
+                .spawn()
+                .or_else(|_| Command::new("zed").arg(&path).spawn())
+        }
         "terminal" => {
             // Try Ghostty / iTerm / Warp / default macOS Terminal
             Command::new("open").args(["-a", "Ghostty", &path]).spawn()
