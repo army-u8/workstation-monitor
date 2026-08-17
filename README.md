@@ -1,78 +1,162 @@
-# 🚀 workstation-monitor
+# workstation-monitor
 
-[中文文档](./README.zh-CN.md)
+[中文文档](./README.zh-CN.md) · macOS-only local workstation dashboard
 
-A high-performance local workstation monitoring console built with a **React + Vite + TypeScript** frontend and a **Rust (Axum + Tokio)** backend, providing developers with full-stack capabilities for system resource scheduling, network observability, storage/hardware monitoring, and DevOps operations.
+> A self-hosted, single-binary dashboard for monitoring and operating your macOS workstation — real-time network, processes, disks, power, and a toolbox of one-click DevOps actions.
 
----
-
-## ⚡ Tech Stack
-
-- **Frontend**:
-  - **Framework**: [React](https://react.dev/) + TypeScript
-  - **Build tool**: [Vite](https://vitejs.dev/)
-  - **UI**: Custom component library (`src/components`) with built-in i18n (`src/i18n`, English & Chinese)
-- **Backend**:
-  - **Language/Runtime**: Rust (Edition 2021) + Tokio async runtime
-  - **Web framework**: Axum + WebSocket full-duplex broadcast channel (`tokio::sync::broadcast`)
-  - **System probes**: `sysinfo` (network traffic, CPU/memory, processes, disks) + `netstat2` (ports/connections)
-  - **Packet sniffing**: Native macOS `libpcap` (`/dev/bpf`) deep packet parsing, with graceful degradation when running without root
-  - **Embedded assets**: `rust-embed` bundles `frontend/dist` into a single binary
+[![Rust](https://img.shields.io/badge/rust-2021-orange)](https://www.rust-lang.org/)
+[![Axum](https://img.shields.io/badge/web-Axum%200.7-9cf)](https://github.com/tokio-rs/axum)
+[![SolidJS](https://img.shields.io/badge/frontend-SolidJS%20%2B%20Tailwind-violet)](https://www.solidjs.com/)
+[![License](https://img.shields.io/badge/license-private-red)]()
 
 ---
 
-## 🌟 Core Modules
+## Features
 
-### 🌐 1. Network Observatory
-- Real-time throughput & waveform: per-interface (`en0`, `utun`, `lo0`) upload/download rates and cumulative traffic.
-- Listening ports & active connections: local open ports, associated processes, PIDs, and active TCP connections.
-- Service health matrix: TCP latency trends for public DNS, local gateway, and core services.
-- Packet sniffing stream: live parsing of local packets (TCP/UDP/DNS/TLS/ICMP/ARP) with pause and filter support.
-
-### ⚙️ 2. Process Cockpit
-- Real-time top processes: ranked by CPU or memory usage.
-- Detailed metrics: PID, name, CPU share, memory usage, disk I/O, and status.
-- Safe one-click kill: search by name/PID with a confirmation dialog.
-
-### 💾 3. Disks & Power State
-- APFS volume monitoring: scans local partitions and external drives, showing capacity and free space.
-- Battery & power management: real-time charge level, power source, and time-to-empty estimates.
-
-### 🛠️ 4. DevOps Toolkit
-- Environment probes: detects versions of Node.js, Rust, Go, Python, Git, Docker, Homebrew, etc.
-- One-click DNS flush: runs `dscacheutil -flushcache` and reloads `mDNSResponder`.
-- One-click port release: finds and kills the process holding a given port.
-- Instant ping diagnostics: probe any IP/domain and report round-trip latency.
+- **Network Observatory** — per-interface throughput (en0/utun/lo0), listening ports & active connections, service latency matrix, and live packet sniffing (TCP/UDP/DNS/TLS/ICMP/ARP).
+- **Process Cockpit** — top processes by CPU/memory, detailed metrics, and safe one-click kill with confirmation.
+- **Disks & Power** — APFS volume usage and battery/power-state monitoring.
+- **DevOps Toolkit** — runtime version probes (Node/Rust/Go/Python/Git/Docker/Homebrew), flush DNS cache, release a port, and ping diagnostics.
+- **Extras** — Git project radar, hosts file manager, system cleaner, Obsidian vault browser, and speed test.
+- **Single binary** — the SolidJS frontend is embedded into the Rust binary via `rust-embed`; no separate static server needed.
 
 ---
 
-## 🛠️ Getting Started
+## Requirements
 
-### 1. Production build (default port 9527)
+| Component | Version |
+| --- | --- |
+| macOS | 11+ (Apple Silicon or Intel) |
+| Rust | 1.75+ (edition 2021) |
+| Node.js | 18+ (for frontend dev/build) |
+| Xcode Command Line Tools | required (`pcap` build) |
+
+> **Packet sniffing** uses native `libpcap` (`/dev/bpf`). Run with `sudo` to enable deep capture; without it the sniffer degrades gracefully.
+
+---
+
+## Installation
+
 ```bash
-# Start the backend (serves the built frontend automatically)
+git clone git@github.com:army-u8/workstation-monitor.git
 cd workstation-monitor
-cargo run
 
-# Custom port
-cargo run -- 9999
-# or PORT=9000 cargo run
-
-# Unlock libpcap deep packet capture (macOS /dev/bpf requires admin privileges)
-sudo ./target/debug/workstation-monitor
+# Build the release binary (also builds & embeds the frontend)
+cargo build --release
 ```
-👉 Open: **[http://localhost:9527](http://localhost:9527)**
 
-### 2. Frontend dev mode (Vite Dev Server, port 9528)
+Or build the frontend first and let `cargo run` serve it:
+
 ```bash
-cd workstation-monitor/frontend
+cd frontend
+npm install
+npm run build   # outputs to frontend/dist, embedded at runtime
+```
+
+---
+
+## Usage
+
+### Run the server (default port 9527)
+
+```bash
+cargo run --release
+# or a custom port
+cargo run --release -- 9999
+# or via env
+PORT=9000 cargo run --release
+```
+
+Open **http://localhost:9527**.
+
+### Frontend dev mode (Vite, port 9528)
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
-👉 Open: **[http://localhost:9528](http://localhost:9528)** (proxies `/api` and `/ws` to backend on 9527)
+
+Open **http://localhost:9528** — Vite proxies `/api` and `/ws` to the backend on `9527`.
 
 ---
 
-## 📄 License
+## Configuration
 
-Private repository for personal use.
+| Variable | Default | Description |
+| --- | --- | --- |
+| `PORT` | `9527` | HTTP/WebSocket listen port. Also overridable by the first CLI arg (`cargo run -- 9999`). |
+| `RUST_LOG` | `workstation_monitor=info,tower_http=warn` | Tracing filter (e.g. `RUST_LOG=debug`). |
+
+---
+
+## API
+
+All endpoints return JSON. A WebSocket feed is available at `/ws`.
+
+### Query
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/status` | CPU, memory, uptime, sniffer state |
+| GET | `/api/traffic` | Network interface traffic |
+| GET | `/api/sockets` | Listening ports & active connections |
+| GET | `/api/latency` | Service latency probes |
+| GET | `/api/processes` | Process list |
+| GET | `/api/disks` | Disk volumes |
+| GET | `/api/battery` | Battery / power state |
+| GET | `/api/dev-tools` | Detected runtimes |
+| GET | `/api/system/machine-info` | Hardware & OS summary |
+| GET | `/api/cleaner/scan` | Scannable cache items |
+| GET | `/api/git/projects` | Local Git projects |
+| GET | `/api/git/account` | Git/GitHub identity |
+| GET | `/api/hosts/get` | Hosts file entries |
+| GET | `/api/obsidian/vault` | Obsidian vault summary |
+| GET | `/api/obsidian/note?path=` | Note content |
+
+### Actions (POST)
+
+| Endpoint | Body | Description |
+| --- | --- | --- |
+| `/api/cleaner/clean` | `{ "id": "..." }` | Clean a cache item |
+| `/api/tools/speedtest` | — | Run speed test |
+| `/api/tools/open-app` | `{ "path": "...", "app": "code" \| "cursor" \| "terminal" \| ... }` | Open a path in an app |
+| `/api/obsidian/search` | `{ "query": "..." }` | Search vault |
+| `/api/obsidian/quick-capture` | `{ "content": "..." }` | Append a quick note |
+| `/api/obsidian/open` | `{ "file_path": "...", "target_app": "..." }` | Open a note |
+| `/api/process/kill` | `{ "pid": 1234 }` | Kill a process |
+| `/api/port/kill` | `{ "port": 3000 }` | Kill process on a port |
+| `/api/tools/flush-dns` | — | Flush macOS DNS cache |
+| `/api/tools/ping` | `{ "host": "...", "count": 4 }` | Ping / TCP RTT probe |
+
+---
+
+## Project Structure
+
+```
+workstation-monitor/
+├── src/                  # Rust backend (Axum server + collectors)
+│   ├── main.rs           # Entry point, background collectors, server bootstrap
+│   ├── server/           # Router, WebSocket, embedded frontend assets
+│   ├── collectors/       # traffic, sockets, latency, processes, disks, battery, dev-tools, sniffer, git, hosts, obsidian, cleaner
+│   └── types.rs          # Shared data models
+├── frontend/            # SolidJS + Tailwind v4 + Vite frontend
+│   └── src/components/   # UI components & views
+├── web/                  # Legacy/standalone static assets
+└── Cargo.toml
+```
+
+---
+
+## Roadmap
+
+- [ ] Linux/Windows support
+- [ ] Config file (`config.toml`)
+- [ ] Auth / token for remote access
+- [ ] Historical metrics & charts export
+
+---
+
+## License
+
+Private repository for personal use. All rights reserved.
