@@ -29,6 +29,7 @@ if [ ! -d "frontend/node_modules" ]; then
   (cd frontend && npm ci)
 fi
 (cd frontend && npm run build)
+export SKIP_FRONTEND_BUILD=1
 
 # 3. Ensure Icon is 100% compliant
 echo "==> [2/6] Verifying icon assets..."

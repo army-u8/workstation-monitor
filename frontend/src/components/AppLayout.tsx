@@ -4,6 +4,7 @@ import { Header } from './Header';
 import { Footer } from './Footer';
 import { ToastShelf } from './ToastShelf';
 import { ConfirmModal } from './ConfirmModal';
+import { UpdateModal } from './UpdateModal';
 
 export const AppLayout: ParentComponent = (props) => {
   return (
@@ -30,8 +31,12 @@ export const AppLayout: ParentComponent = (props) => {
       {/* Global Confirmation Modal Dialog */}
       <ConfirmModal />
 
+      {/* Global Auto-Update Modal Dialog */}
+      <UpdateModal />
+
       {/* Global Toast Notifications Shelf */}
       <ToastShelf />
     </div>
   );
 };
+

@@ -12,6 +12,7 @@ pub mod processes;
 pub mod sniffer;
 pub mod speedtest;
 pub mod traffic;
+pub mod updater;
 
 pub use battery::BatteryCollector;
 pub use cleaner::SystemCleaner;
@@ -27,3 +28,5 @@ pub use processes::{kill_process, kill_process_by_port, ProcessCollector};
 pub use sniffer::start_sniffer;
 pub use speedtest::SpeedTester;
 pub use traffic::TrafficCollector;
+pub use updater::AutoUpdater;
+

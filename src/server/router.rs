@@ -10,14 +10,15 @@ use std::process::Command;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 use crate::collectors::{
-    kill_process, kill_process_by_port, GitRadar, HostsManager, MachineInfoCollector,
+    kill_process, kill_process_by_port, AutoUpdater, GitRadar, HostsManager, MachineInfoCollector,
     ObsidianManager, SpeedTester, SystemCleaner,
 };
 use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};
 use crate::types::{
     CleanRequest, KillPortRequest, KillProcessRequest, OpenAppRequest, OpenObsidianRequest,
-    OpsResponse, PingRequest, PingResponse, QuickCaptureRequest,
+    OpsResponse, PingRequest, PingResponse, QuickCaptureRequest, UpdateApplyRequest,
+    UpdateApplyResponse,
 };
 
 pub fn build_router(state: AppState) -> Router {
@@ -38,6 +39,8 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/dev-tools", get(get_dev_tools))
         // New Features APIs
         .route("/api/system/machine-info", get(get_machine_info))
+        .route("/api/system/update/check", get(get_update_check))
+        .route("/api/system/update/apply", post(post_update_apply))
         .route("/api/cleaner/scan", get(get_cleaner_scan))
         .route("/api/cleaner/clean", post(post_cleaner_clean))
         .route("/api/git/projects", get(get_git_projects))
@@ -623,3 +626,31 @@ async fn post_obsidian_open(Json(payload): Json<OpenObsidianRequest>) -> impl In
         ),
     }
 }
+
+// 7. System Auto-Updater Handlers
+async fn get_update_check() -> impl IntoResponse {
+    let update_info = AutoUpdater::check_update().await;
+    (StatusCode::OK, Json(serde_json::to_value(update_info).unwrap()))
+}
+
+async fn post_update_apply(Json(payload): Json<UpdateApplyRequest>) -> impl IntoResponse {
+    match AutoUpdater::apply_update(payload.download_url).await {
+        Ok(msg) => (
+            StatusCode::OK,
+            Json(UpdateApplyResponse {
+                success: true,
+                message: msg,
+                new_version: None,
+            }),
+        ),
+        Err(err) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(UpdateApplyResponse {
+                success: false,
+                message: err,
+                new_version: None,
+            }),
+        ),
+    }
+}
+

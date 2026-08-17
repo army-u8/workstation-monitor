@@ -10,6 +10,7 @@ export const Locale = {
 export type Locale = (typeof Locale)[keyof typeof Locale];
 
 export const ThemeMode = {
+  SYSTEM: 'system',
   DARK: 'dark',
   LIGHT: 'light',
 } as const;
@@ -177,6 +178,8 @@ export const ApiEndpoint = {
   OBSIDIAN_SEARCH: '/api/obsidian/search',
   OBSIDIAN_QUICK_CAPTURE: '/api/obsidian/quick-capture',
   OBSIDIAN_OPEN: '/api/obsidian/open',
+  UPDATE_CHECK: '/api/system/update/check',
+  UPDATE_APPLY: '/api/system/update/apply',
 } as const;
 export type ApiEndpoint = (typeof ApiEndpoint)[keyof typeof ApiEndpoint];
 

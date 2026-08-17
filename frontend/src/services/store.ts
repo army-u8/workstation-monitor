@@ -43,44 +43,89 @@ import type {
   SpeedTestResult,
   SystemStats,
   TrafficSummary,
+  UpdateApplyResponse,
+  UpdateCheckResponse,
   WsEvent,
 } from '../types';
 import { t } from '../i18n';
 
 export type NavSection = NavSectionId;
 
+const getSystemPreferredTheme = (): 'dark' | 'light' => {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'dark';
+};
+
 const getInitialTheme = (): ThemeMode => {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(StorageKey.THEME);
-    if (saved === ThemeMode.DARK || saved === ThemeMode.LIGHT) {
+    if (
+      saved === ThemeMode.SYSTEM ||
+      saved === ThemeMode.DARK ||
+      saved === ThemeMode.LIGHT
+    ) {
       return saved as ThemeMode;
     }
   }
-  return ThemeMode.DARK;
+  return ThemeMode.SYSTEM;
 };
 
 export const [theme, setThemeState] = createSignal<ThemeMode>(getInitialTheme());
+
+export const resolvedTheme = () => {
+  const current = theme();
+  if (current === ThemeMode.SYSTEM) {
+    return getSystemPreferredTheme();
+  }
+  return current;
+};
 
 export function setTheme(next: ThemeMode) {
   setThemeState(next);
   if (typeof window !== 'undefined') {
     localStorage.setItem(StorageKey.THEME, next);
-    document.documentElement.setAttribute('data-theme', next);
-    document.documentElement.classList.toggle('dark', next === ThemeMode.DARK);
-    document.documentElement.classList.toggle('light', next === ThemeMode.LIGHT);
+    const effective = next === ThemeMode.SYSTEM ? getSystemPreferredTheme() : next;
+    document.documentElement.setAttribute('data-theme', effective);
+    document.documentElement.setAttribute('data-theme-mode', next);
+    document.documentElement.classList.toggle('dark', effective === 'dark');
+    document.documentElement.classList.toggle('light', effective === 'light');
+  }
+}
+
+export function cycleTheme() {
+  const current = theme();
+  if (current === ThemeMode.SYSTEM) {
+    setTheme(ThemeMode.DARK);
+  } else if (current === ThemeMode.DARK) {
+    setTheme(ThemeMode.LIGHT);
+  } else {
+    setTheme(ThemeMode.SYSTEM);
   }
 }
 
 export function toggleTheme() {
-  setTheme(theme() === ThemeMode.DARK ? ThemeMode.LIGHT : ThemeMode.DARK);
+  cycleTheme();
 }
 
-// Immediately apply initial theme
+// Immediately apply initial theme & listen for OS system theme changes
 if (typeof window !== 'undefined') {
   const initial = getInitialTheme();
-  document.documentElement.setAttribute('data-theme', initial);
-  document.documentElement.classList.toggle('dark', initial === ThemeMode.DARK);
-  document.documentElement.classList.toggle('light', initial === ThemeMode.LIGHT);
+  const effective = initial === ThemeMode.SYSTEM ? getSystemPreferredTheme() : initial;
+  document.documentElement.setAttribute('data-theme', effective);
+  document.documentElement.setAttribute('data-theme-mode', initial);
+  document.documentElement.classList.toggle('dark', effective === 'dark');
+  document.documentElement.classList.toggle('light', effective === 'light');
+
+  if (window.matchMedia) {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    media.addEventListener('change', () => {
+      if (theme() === ThemeMode.SYSTEM) {
+        setTheme(ThemeMode.SYSTEM);
+      }
+    });
+  }
 }
 
 export const [stats, setStats] = createSignal<SystemStats | null>(null);
@@ -101,6 +146,12 @@ export const [gitAccount, setGitAccount] = createSignal<GitAccountSummary | null
 export const [hostsList, setHostsList] = createSignal<HostEntry[]>([]);
 export const [speedTestResult, setSpeedTestResult] = createSignal<SpeedTestResult | null>(null);
 export const [obsidianSummary, setObsidianSummary] = createSignal<ObsidianVaultSummary | null>(null);
+
+export const [updateInfo, setUpdateInfo] = createSignal<UpdateCheckResponse | null>(null);
+export const [isCheckingUpdate, setIsCheckingUpdate] = createSignal(false);
+export const [isApplyingUpdate, setIsApplyingUpdate] = createSignal(false);
+export const [isUpdateModalOpen, setIsUpdateModalOpen] = createSignal(false);
+export const [updateStep, setUpdateStep] = createSignal<'idle' | 'downloading' | 'installing' | 'restarting' | 'reconnecting'>('idle');
 
 export const [activeSection, setActiveSection] = createSignal<NavSectionId>(NavSectionId.OVERVIEW);
 export const [isSidebarOpen, setIsSidebarOpen] = createSignal(false);
@@ -466,6 +517,98 @@ export async function pingHostApi(host: string, count = DEFAULT_PING_COUNT): Pro
     showToast(err.message, ToastType.ERROR);
     return null;
   }
+}
+
+// ----------------------------------------------------
+// System Auto-Updater API Functions
+// ----------------------------------------------------
+
+export async function fetchUpdateCheckApi(silent = false): Promise<UpdateCheckResponse | null> {
+  if (isCheckingUpdate()) return updateInfo();
+  setIsCheckingUpdate(true);
+  try {
+    const res = await fetch(ApiEndpoint.UPDATE_CHECK);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: UpdateCheckResponse = await res.json();
+    setUpdateInfo(data);
+    if (!silent) {
+      if (data.has_update) {
+        showToast(t().update.updateFound.replace('{version}', data.latest_version), ToastType.INFO);
+      } else {
+        const ver = (data.current_version || '').replace(/^v/, '');
+        showToast(t().update.alreadyLatest.replace('{version}', ver), ToastType.SUCCESS);
+      }
+    }
+    return data;
+  } catch (err: any) {
+    if (!silent) {
+      showToast(err.message || 'Check update failed', ToastType.ERROR);
+    }
+    return null;
+  } finally {
+    setIsCheckingUpdate(false);
+  }
+}
+
+export async function applyUpdateApi(downloadUrl?: string | null): Promise<boolean> {
+  if (isApplyingUpdate()) return false;
+  setIsApplyingUpdate(true);
+  setUpdateStep('downloading');
+  try {
+    setTimeout(() => {
+      if (isApplyingUpdate() && updateStep() === 'downloading') {
+        setUpdateStep('installing');
+      }
+    }, 4000);
+
+    const res = await fetch(ApiEndpoint.UPDATE_APPLY, {
+      method: HTTP_METHODS.POST,
+      headers: { 'Content-Type': CONTENT_TYPES.JSON },
+      body: JSON.stringify({ download_url: downloadUrl || updateInfo()?.download_url }),
+    });
+
+    const data: UpdateApplyResponse = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Update failed');
+    }
+
+    setUpdateStep('restarting');
+    showToast(data.message, ToastType.SUCCESS);
+
+    // Poll for server relaunch and reload page
+    setTimeout(() => {
+      setUpdateStep('reconnecting');
+      pollForServerRestart();
+    }, 1500);
+
+    return true;
+  } catch (err: any) {
+    setIsApplyingUpdate(false);
+    setUpdateStep('idle');
+    showToast(err.message || 'Failed to apply update', ToastType.ERROR);
+    return false;
+  }
+}
+
+function pollForServerRestart() {
+  let attempts = 0;
+  const maxAttempts = 30;
+  const timer = setInterval(async () => {
+    attempts++;
+    try {
+      const res = await fetch(ApiEndpoint.STATUS, { method: 'GET', cache: 'no-store' });
+      if (res.ok) {
+        clearInterval(timer);
+        window.location.reload();
+      }
+    } catch {
+      // server is still rebooting
+    }
+    if (attempts >= maxAttempts) {
+      clearInterval(timer);
+      window.location.reload();
+    }
+  }, 1000);
 }
 
 // ----------------------------------------------------

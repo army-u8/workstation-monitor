@@ -35,14 +35,16 @@ fn main() {
     // shell wrapper isn't on PATH as an executable. Select the right binary.
     let npm = if cfg!(windows) { "npm.cmd" } else { "npm" };
 
-    // `npm ci` prefers a clean install when a lockfile exists, otherwise `npm install`.
-    let install = if frontend.join("package-lock.json").exists() {
-        (npm, vec!["ci"])
-    } else {
-        (npm, vec!["install"])
-    };
+    // Only run `npm ci` / `npm install` if `node_modules` does not exist
+    if !frontend.join("node_modules").exists() {
+        let install = if frontend.join("package-lock.json").exists() {
+            (npm, vec!["ci"])
+        } else {
+            (npm, vec!["install"])
+        };
+        run(install.0, &install.1, frontend, "npm install");
+    }
 
-    run(install.0, &install.1, frontend, "npm install");
     run(npm, &["run", "build"], frontend, "npm run build");
 }
 

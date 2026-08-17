@@ -2,16 +2,20 @@ import { Show, createSignal, onCleanup, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import { useLocation } from '@solidjs/router';
 import {
+  fetchUpdateCheckApi,
   formatUptime,
+  isCheckingUpdate,
   setIsSidebarOpen,
+  setIsUpdateModalOpen,
+  setTheme,
   stats,
   theme,
-  toggleTheme,
+  updateInfo,
   wsStatus,
 } from '../services/store';
 import { locale, setLocale, t } from '../i18n';
 import { Locale, NavSectionId, ThemeMode, WsConnectionStatus, pathToSectionMap } from '../constants';
-import { MoonIcon, SunIcon } from './Icons';
+import { MoonIcon, SunIcon, SystemThemeIcon } from './Icons';
 
 export const Header: Component = () => {
   const [timeStr, setTimeStr] = createSignal('00:00:00');
@@ -30,6 +34,17 @@ export const Header: Component = () => {
     const section = pathToSectionMap[location.pathname] || NavSectionId.OVERVIEW;
     const dict = t().header.titles;
     return (dict as any)[section] || t().common.overview;
+  };
+
+  const getThemeLabel = () => {
+    const mode = theme();
+    if (mode === ThemeMode.SYSTEM) return t().common.themeSystem;
+    if (mode === ThemeMode.DARK) return t().common.themeDark;
+    return t().common.themeLight;
+  };
+
+  const getThemeTooltip = () => {
+    return t().common.themeToggleTip.replace('{mode}', getThemeLabel());
   };
 
   return (
@@ -57,21 +72,36 @@ export const Header: Component = () => {
 
       {/* Right: Compact Vitals, Theme Switcher & Lang Switcher */}
       <div class="flex items-center gap-2">
-        {/* Theme Switcher Toggle */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label={theme() === ThemeMode.DARK ? t().common.themeLight : t().common.themeDark}
-          class="flex h-7 w-7 items-center justify-center rounded border border-border-default bg-bg-subtle text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors focus-visible:ring-2 focus-visible:ring-accent"
-          title={theme() === ThemeMode.DARK ? t().common.themeLight : t().common.themeDark}
-        >
-          <Show
-            when={theme() === ThemeMode.DARK}
-            fallback={<MoonIcon class="h-3.5 w-3.5 text-accent" />}
+        {/* Theme Select Dropdown */}
+        <div class="relative flex items-center rounded border border-border-default bg-bg-subtle px-2 py-1 text-[11px] font-mono text-text-secondary hover:border-border-hover hover:text-text-primary transition-colors">
+          <span class="mr-1.5 flex items-center pointer-events-none shrink-0">
+            <Show when={theme() === ThemeMode.SYSTEM}>
+              <SystemThemeIcon class="h-3.5 w-3.5 text-accent" />
+            </Show>
+            <Show when={theme() === ThemeMode.DARK}>
+              <MoonIcon class="h-3.5 w-3.5 text-accent" />
+            </Show>
+            <Show when={theme() === ThemeMode.LIGHT}>
+              <SunIcon class="h-3.5 w-3.5 text-status-warning" />
+            </Show>
+          </span>
+          <select
+            value={theme()}
+            onChange={(e) => setTheme(e.currentTarget.value as ThemeMode)}
+            aria-label={getThemeTooltip()}
+            class="bg-transparent text-text-primary text-[11px] font-mono outline-hidden cursor-pointer"
           >
-            <SunIcon class="h-3.5 w-3.5 text-status-warning" />
-          </Show>
-        </button>
+            <option value={ThemeMode.SYSTEM} class="bg-bg-surface text-text-primary">
+              {t().common.themeSystem}
+            </option>
+            <option value={ThemeMode.DARK} class="bg-bg-surface text-text-primary">
+              {t().common.themeDark}
+            </option>
+            <option value={ThemeMode.LIGHT} class="bg-bg-surface text-text-primary">
+              {t().common.themeLight}
+            </option>
+          </select>
+        </div>
 
         {/* Language Switcher */}
         <div class="flex items-center rounded border border-border-default bg-bg-subtle p-0.5 text-[10px] font-mono" role="group" aria-label={t().common.langToggle}>
@@ -100,6 +130,49 @@ export const Header: Component = () => {
             EN
           </button>
         </div>
+
+        {/* Update Checker Badge & Trigger */}
+        <button
+          type="button"
+          onClick={() => {
+            if (updateInfo()?.has_update) {
+              setIsUpdateModalOpen(true);
+            } else {
+              fetchUpdateCheckApi(false).then((res) => {
+                if (res?.has_update) setIsUpdateModalOpen(true);
+              });
+            }
+          }}
+          disabled={isCheckingUpdate()}
+          class="flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-mono transition-all"
+          classList={{
+            'border-status-success bg-status-success/15 text-status-success shadow-xs animate-pulse font-bold hover:brightness-110':
+              Boolean(updateInfo()?.has_update),
+            'border-border-default bg-bg-subtle text-text-muted hover:text-text-primary hover:border-border-hover':
+              !updateInfo()?.has_update,
+          }}
+          title={
+            updateInfo()?.has_update
+              ? t().update.newVersionAvailable
+              : t().update.checkUpdateBtn
+          }
+        >
+          <Show
+            when={updateInfo()?.has_update}
+            fallback={
+              <>
+                <span class="text-[10px]">{isCheckingUpdate() ? '🔄' : '🚀'}</span>
+                <span>{isCheckingUpdate() ? t().update.checking : `v${updateInfo()?.current_version || '0.1.1'}`}</span>
+              </>
+            }
+          >
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-success opacity-75" />
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-status-success" />
+            </span>
+            <span>{updateInfo()?.latest_version}</span>
+          </Show>
+        </button>
 
         <div class="h-3 w-[1px] bg-border-default" aria-hidden="true" />
 

@@ -291,6 +291,28 @@ export interface OpenObsidianPayload {
   target_app?: 'obsidian' | 'finder' | 'code' | 'terminal';
 }
 
+export interface UpdateCheckResponse {
+  has_update: boolean;
+  current_version: string;
+  latest_version: string;
+  release_notes: string;
+  download_url: string | null;
+  asset_name: string | null;
+  asset_size_bytes: number | null;
+  published_at: string | null;
+  error_msg: string | null;
+}
+
+export interface UpdateApplyRequest {
+  download_url?: string | null;
+}
+
+export interface UpdateApplyResponse {
+  success: boolean;
+  message: string;
+  new_version?: string | null;
+}
+
 export type WsEvent =
   | { type: 'TrafficUpdate'; data: TrafficSummary }
   | { type: 'SocketsUpdate'; data: SocketsPayload }
@@ -301,5 +323,6 @@ export type WsEvent =
   | { type: 'DisksUpdate'; data: DiskInfo[] }
   | { type: 'BatteryUpdate'; data: BatteryInfo | null }
   | { type: 'DevToolsUpdate'; data: DevToolInfo[] };
+
 
 

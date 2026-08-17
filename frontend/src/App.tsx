@@ -21,6 +21,7 @@ import {
   fetchHostsApi,
   fetchMachineInfoApi,
   fetchObsidianVaultApi,
+  fetchUpdateCheckApi,
   initWebSocket,
   scanCleanerApi,
   scanGitProjectsApi,
@@ -37,6 +38,11 @@ export const App: Component = () => {
     scanGitProjectsApi();
     fetchObsidianVaultApi();
     fetchHostsApi();
+
+    // 3. Silent background update check after 3 seconds
+    setTimeout(() => {
+      fetchUpdateCheckApi(true);
+    }, 3000);
   });
 
   return (

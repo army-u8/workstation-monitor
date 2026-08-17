@@ -50,6 +50,7 @@ export const RefreshIcon = FiRefreshCw;
 export const TrashIcon = FiTrash2;
 export const SunIcon = FiSun;
 export const MoonIcon = FiMoon;
+export const SystemThemeIcon = FiMonitor;
 
 export const CleanerIcon = FiTrash2;
 export const GitIcon = FiGitBranch;
