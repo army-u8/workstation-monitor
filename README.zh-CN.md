@@ -7,7 +7,7 @@
 [![Rust](https://img.shields.io/badge/rust-2021-orange)](https://www.rust-lang.org/)
 [![Axum](https://img.shields.io/badge/web-Axum%200.7-9cf)](https://github.com/tokio-rs/axum)
 [![SolidJS](https://img.shields.io/badge/frontend-SolidJS%20%2B%20Tailwind-violet)](https://www.solidjs.com/)
-[![License](https://img.shields.io/badge/license-private-red)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
@@ -216,5 +216,5 @@ xattr -cr /Applications/Workstation\ Monitor.app
 
 ## 许可证
 
-私有仓库，仅供个人使用，保留所有权利。
+本项目基于 [MIT 许可证](LICENSE) 开源。版权所有 (c) 2026 army-u8。
 
