@@ -206,6 +206,14 @@ Then double-click to open.
 
 ---
 
+## 🚀 Future Roadmap
+
+For the transformation into a dedicated **Vibe Coding & AI Creator Workbench**, please check:
+👉 **[Vibe Studio Roadmap (docs/VIBE_STUDIO_ROADMAP.md)](docs/VIBE_STUDIO_ROADMAP.md)**
+
+---
+
 ## License
 
 Private repository for personal use. All rights reserved.
+

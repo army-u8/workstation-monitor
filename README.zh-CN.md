@@ -206,6 +206,14 @@ xattr -cr /Applications/Workstation\ Monitor.app
 
 ---
 
+## 🚀 未来路线图
+
+关于向 **Vibe Coding（氛围编程）与 AI 创造者工作台** 的演进计划与功能蓝图，详见：
+👉 **[Vibe Studio 演进路线图 (docs/VIBE_STUDIO_ROADMAP.md)](docs/VIBE_STUDIO_ROADMAP.md)**
+
+---
+
 ## 许可证
 
 私有仓库，仅供个人使用，保留所有权利。
+
