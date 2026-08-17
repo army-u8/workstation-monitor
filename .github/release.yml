@@ -1,0 +1,29 @@
+changelog:
+  categories:
+    - title: '✨ 新增特性 / Features'
+      labels:
+        - 'feat'
+        - 'feature'
+        - 'enhancement'
+    - title: '🐛 问题修复 / Bug Fixes'
+      labels:
+        - 'fix'
+        - 'bug'
+    - title: '🎨 界面与体验 / UI & UX'
+      labels:
+        - 'ui'
+        - 'design'
+        - 'style'
+    - title: '⚡ 性能与打包 / Performance & Build'
+      labels:
+        - 'perf'
+        - 'build'
+        - 'ci'
+    - title: '📝 文档与规范 / Documentation'
+      labels:
+        - 'docs'
+        - 'documentation'
+    - title: '🔧 维护与重构 / Maintenance'
+      labels:
+        - 'chore'
+        - 'refactor'
