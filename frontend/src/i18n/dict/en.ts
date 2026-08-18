@@ -359,6 +359,20 @@ export const en: Dict = {
     cloudSectionTitle: '☁️ Cloud Platform & DevOps Tokens',
     allSecretsTitle: '🔐 All Detected Sensitive Variables',
     searchKeysPlaceholder: 'Search API Keys (OPENAI, DEEPSEEK, GITHUB, AWS)...',
+    detectedLocalTitle: '🎯 Detected Local API Keys & Credentials',
+    detectedLocalSubtitle:
+      'Active credentials automatically parsed from process environment and shell profiles (~/.zshrc, ~/.zshenv, ~/.aws/credentials)',
+    noDetectedKeys:
+      'No active API keys detected in current environment or shell rc files. Browse the catalog below for setup instructions.',
+    allCatalogTitle: '📚 Supported Providers Catalog & Setup Reference',
+    sourceLabel: 'Source',
+    filterAllCategories: 'All Detected',
+    filterAi: 'AI & LLMs',
+    filterCloud: 'Cloud & DevOps',
+    filterSaas: 'SaaS / Other',
+    collapseCatalog: '▲ Collapse',
+    expandCatalog: '▼ Expand View',
+    providersCount: '{count} Providers',
   },
   obsidian: {
     title: 'Obsidian Mission Control & Hub',

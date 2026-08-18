@@ -239,7 +239,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .unwrap_or(9527);
     let bind_addr = format!("0.0.0.0:{}", port);
-    let listener = tokio::net::TcpListener::bind(&bind_addr).await?;
+    let socket_addr: std::net::SocketAddr = bind_addr.parse()?;
+    let socket = socket2::Socket::new(
+        socket2::Domain::IPV4,
+        socket2::Type::STREAM,
+        Some(socket2::Protocol::TCP),
+    )?;
+    socket.set_reuse_address(true)?;
+    #[cfg(all(unix, not(target_os = "solaris"), not(target_os = "illumos")))]
+    let _ = socket.set_reuse_port(true);
+    socket.set_nonblocking(true)?;
+    socket.bind(&socket_addr.into())?;
+    socket.listen(1024)?;
+    let std_listener: std::net::TcpListener = socket.into();
+    let listener = tokio::net::TcpListener::from_std(std_listener)?;
 
     println!("\n╔══════════════════════════════════════════════════════════════╗");
     println!("║       🚀 macOS 全局本机总控台 (Mission Control Pro)          ║");

@@ -9,7 +9,7 @@ import {
 } from '../services/store';
 import { t } from '../i18n';
 import { DevToolsIcon, RefreshIcon } from './Icons';
-import type { EnvVarEntry, PathEntry } from '../types';
+import type { DetectedApiKey, EnvVarEntry, PathEntry } from '../types';
 
 interface KnownApiKeyDef {
   key: string;
@@ -230,6 +230,10 @@ export const DevToolsView: Component = () => {
   const [activeTab, setActiveTab] = createSignal<'tools' | 'api_keys' | 'path' | 'env'>('tools');
   const [searchEnv, setSearchEnv] = createSignal('');
   const [searchKeys, setSearchKeys] = createSignal('');
+  const [selectedKeyCategory, setSelectedKeyCategory] = createSignal<
+    'ALL' | 'ai' | 'cloud' | 'saas' | 'custom'
+  >('ALL');
+  const [showCatalog, setShowCatalog] = createSignal(false);
   const [selectedCategory, setSelectedCategory] = createSignal<string>('ALL');
   const [revealedSecrets, setRevealedSecrets] = createSignal<Record<string, boolean>>({});
 
@@ -253,6 +257,27 @@ export const DevToolsView: Component = () => {
     return map;
   });
 
+  // Detected API Keys from backend deep scanner
+  const detectedKeys = createMemo(() => {
+    return envVarsData()?.detected_api_keys || [];
+  });
+
+  const filteredDetectedKeys = createMemo(() => {
+    const list = detectedKeys();
+    const q = searchKeys().trim().toLowerCase();
+    const cat = selectedKeyCategory();
+
+    return list.filter((item: DetectedApiKey) => {
+      if (cat !== 'ALL' && item.category !== cat) return false;
+      if (!q) return true;
+      return (
+        item.key.toLowerCase().includes(q) ||
+        item.provider.toLowerCase().includes(q) ||
+        item.source.toLowerCase().includes(q)
+      );
+    });
+  });
+
   const toggleSecretReveal = (name: string) => {
     setRevealedSecrets((prev) => ({
       ...prev,
@@ -266,7 +291,7 @@ export const DevToolsView: Component = () => {
     return `${val.slice(0, 4)}••••••••${val.slice(-4)}`;
   };
 
-  // Known API keys with detection state
+  // Known API keys with detection state for reference catalog
   const enrichedKnownKeys = createMemo(() => {
     const map = envMap();
     const q = searchKeys().trim().toLowerCase();
@@ -287,10 +312,6 @@ export const DevToolsView: Component = () => {
         item.provider.toLowerCase().includes(q)
       );
     });
-  });
-
-  const configuredApiKeysCount = createMemo(() => {
-    return enrichedKnownKeys().filter((k) => k.isConfigured).length;
   });
 
   const filteredEnvVars = () => {
@@ -393,12 +414,12 @@ export const DevToolsView: Component = () => {
             classList={{
               'bg-white/20 text-white': activeTab() === 'api_keys',
               'bg-status-success/15 text-status-success border border-status-success/30 font-bold':
-                activeTab() !== 'api_keys' && configuredApiKeysCount() > 0,
+                activeTab() !== 'api_keys' && detectedKeys().length > 0,
               'bg-bg-subtle text-text-muted':
-                activeTab() !== 'api_keys' && configuredApiKeysCount() === 0,
+                activeTab() !== 'api_keys' && detectedKeys().length === 0,
             }}
           >
-            {configuredApiKeysCount()}/{KNOWN_API_KEYS.length}
+            {detectedKeys().length}
           </span>
         </button>
 
@@ -523,24 +544,67 @@ export const DevToolsView: Component = () => {
       <Show when={activeTab() === 'api_keys'}>
         <section class="space-y-4">
           {/* Top Overview & Filter Bar */}
-          <div class="glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
+          <div class="glass-card flex flex-col md:flex-row md:items-center justify-between gap-3 p-4">
             <div>
               <div class="flex items-center gap-2">
-                <span class="text-lg">🔑</span>
-                <h3 class="text-xs font-bold text-text-primary m-0">{t().devops.apiKeysTitle}</h3>
+                <span class="text-lg">🎯</span>
+                <h3 class="text-xs font-bold text-text-primary m-0">
+                  {t().devops.detectedLocalTitle}
+                </h3>
+                <span class="rounded-full bg-status-success/15 border border-status-success/30 px-2 py-0.2 text-[11px] font-mono font-bold text-status-success">
+                  {detectedKeys().length}
+                </span>
               </div>
-              <p class="text-xs text-text-muted m-0 mt-0.5">{t().devops.apiKeysSubtitle}</p>
+              <p class="text-xs text-text-muted m-0 mt-0.5">{t().devops.detectedLocalSubtitle}</p>
             </div>
 
-            <div class="flex items-center gap-3">
-              <div class="flex items-center gap-2 text-xs">
-                <span class="rounded bg-status-success/15 border border-status-success/30 px-2 py-0.8 text-status-success font-mono font-semibold">
-                  ✓ {configuredApiKeysCount()} {t().devops.configuredKeys}
-                </span>
-                <span class="rounded bg-bg-subtle border border-border-subtle px-2 py-0.8 text-text-muted font-mono">
-                  ⚪ {KNOWN_API_KEYS.length - configuredApiKeysCount()}{' '}
-                  {t().devops.unconfiguredKeys}
-                </span>
+            <div class="flex flex-wrap items-center gap-2.5">
+              {/* Category Pills */}
+              <div class="flex items-center gap-1 bg-bg-surface/80 p-1 rounded-lg border border-border-subtle">
+                <button
+                  type="button"
+                  onClick={() => setSelectedKeyCategory('ALL')}
+                  class="rounded px-2.5 py-0.8 text-[10.5px] font-medium transition-all"
+                  classList={{
+                    'bg-accent text-white shadow-2xs': selectedKeyCategory() === 'ALL',
+                    'text-text-muted hover:text-text-primary': selectedKeyCategory() !== 'ALL',
+                  }}
+                >
+                  {t().devops.filterAllCategories}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedKeyCategory('ai')}
+                  class="rounded px-2.5 py-0.8 text-[10.5px] font-medium transition-all"
+                  classList={{
+                    'bg-accent text-white shadow-2xs': selectedKeyCategory() === 'ai',
+                    'text-text-muted hover:text-text-primary': selectedKeyCategory() !== 'ai',
+                  }}
+                >
+                  {t().devops.filterAi}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedKeyCategory('cloud')}
+                  class="rounded px-2.5 py-0.8 text-[10.5px] font-medium transition-all"
+                  classList={{
+                    'bg-accent text-white shadow-2xs': selectedKeyCategory() === 'cloud',
+                    'text-text-muted hover:text-text-primary': selectedKeyCategory() !== 'cloud',
+                  }}
+                >
+                  {t().devops.filterCloud}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedKeyCategory('saas')}
+                  class="rounded px-2.5 py-0.8 text-[10.5px] font-medium transition-all"
+                  classList={{
+                    'bg-accent text-white shadow-2xs': selectedKeyCategory() === 'saas',
+                    'text-text-muted hover:text-text-primary': selectedKeyCategory() !== 'saas',
+                  }}
+                >
+                  {t().devops.filterSaas}
+                </button>
               </div>
 
               {/* Search Box */}
@@ -549,254 +613,185 @@ export const DevToolsView: Component = () => {
                 placeholder={t().devops.searchKeysPlaceholder}
                 value={searchKeys()}
                 onInput={(e) => setSearchKeys(e.currentTarget.value)}
-                class="w-full sm:w-64 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent"
+                class="w-full sm:w-56 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent"
               />
             </div>
           </div>
 
-          {/* Section 1: AI & LLM Keys Grid */}
-          <div class="space-y-2">
-            <div class="flex items-center justify-between px-1">
-              <h4 class="text-xs font-bold text-text-secondary m-0">{t().devops.aiSectionTitle}</h4>
-            </div>
+          {/* Hero Section 1: 本机已检测到的真实有效 API 密钥 */}
+          <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <For
+              each={filteredDetectedKeys()}
+              fallback={
+                <div class="col-span-full glass-card py-10 text-center text-xs text-text-muted space-y-2">
+                  <div class="text-2xl">🔍</div>
+                  <p class="font-medium text-text-secondary m-0">{t().devops.noDetectedKeys}</p>
+                </div>
+              }
+            >
+              {(item: DetectedApiKey) => {
+                const isRevealed = () => Boolean(revealedSecrets()[item.key]);
+                const displayValue = () => {
+                  return isRevealed() ? item.value : maskSecretValue(item.value);
+                };
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <For each={enrichedKnownKeys().filter((k) => k.category === 'ai')}>
-                {(item) => {
-                  const isRevealed = () => Boolean(revealedSecrets()[item.key]);
-                  const displayValue = () => {
-                    if (!item.isConfigured) return '';
-                    return isRevealed() ? item.value : maskSecretValue(item.value);
-                  };
-
-                  return (
-                    <div
-                      class="glass-card flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover"
-                      classList={{
-                        'border-status-success/30 bg-status-success/5': item.isConfigured,
-                        'opacity-60 bg-bg-surface/50': !item.isConfigured,
-                      }}
-                    >
-                      <div>
-                        {/* Top: Icon + Name + Badge */}
-                        <div class="flex items-center justify-between mb-2">
-                          <div class="flex items-center gap-2">
-                            <span class="text-base">{item.icon}</span>
-                            <div class="flex flex-col">
-                              <span class="font-bold text-xs text-text-primary">{item.name}</span>
-                              <span class="text-[10px] text-text-muted">{item.provider}</span>
-                            </div>
-                          </div>
-
-                          <span
-                            class="rounded px-1.5 py-0.2 font-mono text-[9.5px] font-semibold"
-                            classList={{
-                              'bg-status-success/15 text-status-success border border-status-success/30':
-                                item.isConfigured,
-                              'bg-bg-subtle text-text-muted border border-border-subtle':
-                                !item.isConfigured,
-                            }}
-                          >
-                            {item.isConfigured ? t().devops.keyConfigured : t().devops.keyNotSet}
-                          </span>
-                        </div>
-
-                        {/* Variable Name */}
-                        <div class="mb-2">
-                          <span class="font-mono text-xs font-bold text-accent">{item.key}</span>
-                        </div>
-
-                        {/* Value Box */}
-                        <div class="rounded bg-bg-base/80 p-2 border border-border-subtle text-[11px] font-mono mb-3 min-h-[32px] flex items-center justify-between">
-                          <Show
-                            when={item.isConfigured}
-                            fallback={
-                              <span class="text-text-muted/60 text-[10px]">
-                                export {item.key}="..."
-                              </span>
-                            }
-                          >
-                            <span
-                              class="text-text-secondary truncate max-w-[170px]"
-                              classList={{ 'tracking-wider text-text-muted': !isRevealed() }}
-                            >
-                              {displayValue()}
+                return (
+                  <div class="glass-card flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover border-status-success/30 bg-status-success/5 shadow-xs">
+                    <div>
+                      {/* Top: Icon + Name + Source Badge */}
+                      <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <span class="text-base shrink-0">{item.icon}</span>
+                          <div class="flex flex-col truncate">
+                            <span class="font-bold text-xs text-text-primary truncate">
+                              {item.provider}
                             </span>
-
-                            <div class="flex items-center gap-1 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => toggleSecretReveal(item.key)}
-                                class="text-[10px] text-text-muted hover:text-text-primary px-1"
-                                title={isRevealed() ? t().devops.hideSecret : t().devops.showSecret}
-                              >
-                                {isRevealed() ? '🙈' : '👁️'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => copyToClipboard(item.value, item.key)}
-                                class="text-[10px] text-text-muted hover:text-accent px-1"
-                                title={t().devops.copy}
-                              >
-                                📋
-                              </button>
-                            </div>
-                          </Show>
+                            <span class="text-[10px] text-text-muted truncate">
+                              {item.category.toUpperCase()}
+                            </span>
+                          </div>
                         </div>
+
+                        {/* Source Tag */}
+                        <span class="rounded bg-accent/15 border border-accent/25 px-1.8 py-0.2 font-mono text-[9px] font-semibold text-accent shrink-0">
+                          {item.source}
+                        </span>
                       </div>
 
-                      {/* Footer Actions */}
-                      <div class="pt-2 border-t border-border-subtle flex items-center justify-between text-[10.5px]">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const exportStr = `export ${item.key}="${item.value || ''}"`;
-                            copyToClipboard(exportStr, `export ${item.key}`);
-                          }}
-                          class="text-text-muted hover:text-accent font-mono text-[10px]"
-                        >
-                          {t().devops.copyExport} ↗
-                        </button>
+                      {/* Variable Name */}
+                      <div class="mb-2">
+                        <span class="font-mono text-xs font-bold text-accent">{item.key}</span>
+                      </div>
 
-                        <Show when={item.docsUrl}>
-                          <a
-                            href={item.docsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-text-muted hover:text-accent text-[10px] underline"
+                      {/* Masked Value Box */}
+                      <div class="rounded bg-bg-base/90 p-2 border border-border-subtle text-[11px] font-mono mb-3 min-h-[34px] flex items-center justify-between">
+                        <span
+                          class="text-text-secondary truncate max-w-[170px]"
+                          classList={{ 'tracking-wider text-text-muted': !isRevealed() }}
+                        >
+                          {displayValue()}
+                        </span>
+
+                        <div class="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => toggleSecretReveal(item.key)}
+                            class="text-[10px] text-text-muted hover:text-text-primary px-1"
+                            title={isRevealed() ? t().devops.hideSecret : t().devops.showSecret}
                           >
-                            Console ↗
-                          </a>
-                        </Show>
+                            {isRevealed() ? '🙈' : '👁️'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(item.value, item.key)}
+                            class="text-[10px] text-text-muted hover:text-accent px-1"
+                            title={t().devops.copy}
+                          >
+                            📋
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  );
-                }}
-              </For>
-            </div>
+
+                    {/* Footer Actions */}
+                    <div class="pt-2 border-t border-border-subtle flex items-center justify-between text-[10.5px]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const exportStr = `export ${item.key}="${item.value}"`;
+                          copyToClipboard(exportStr, `export ${item.key}`);
+                        }}
+                        class="text-text-muted hover:text-accent font-mono text-[10px]"
+                      >
+                        {t().devops.copyExport} ↗
+                      </button>
+
+                      <span class="text-[9.5px] text-text-muted">
+                        {t().devops.sourceLabel}: {item.source}
+                      </span>
+                    </div>
+                  </div>
+                );
+              }}
+            </For>
           </div>
 
-          {/* Section 2: Cloud & DevOps Platform Keys */}
-          <div class="space-y-2 pt-2">
-            <div class="flex items-center justify-between px-1">
-              <h4 class="text-xs font-bold text-text-secondary m-0">
-                {t().devops.cloudSectionTitle}
-              </h4>
-            </div>
+          {/* Collapsible Section 2: 常见服务商支持目录与配置指引 */}
+          <div class="pt-3">
+            <div class="glass-card p-3">
+              <button
+                type="button"
+                onClick={() => setShowCatalog(!showCatalog())}
+                class="w-full flex items-center justify-between text-left transition-colors"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">📚</span>
+                  <span class="text-xs font-bold text-text-secondary">
+                    {t().devops.allCatalogTitle}
+                  </span>
+                  <span class="text-[10.5px] text-text-muted">
+                    ({t().devops.providersCount.replace('{count}', String(KNOWN_API_KEYS.length))})
+                  </span>
+                </div>
+                <span class="text-xs text-text-muted">
+                  {showCatalog() ? t().devops.collapseCatalog : t().devops.expandCatalog}
+                </span>
+              </button>
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <For each={enrichedKnownKeys().filter((k) => k.category === 'cloud')}>
-                {(item) => {
-                  const isRevealed = () => Boolean(revealedSecrets()[item.key]);
-                  const displayValue = () => {
-                    if (!item.isConfigured) return '';
-                    return isRevealed() ? item.value : maskSecretValue(item.value);
-                  };
-
-                  return (
-                    <div
-                      class="glass-card flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover"
-                      classList={{
-                        'border-status-success/30 bg-status-success/5': item.isConfigured,
-                        'opacity-60 bg-bg-surface/50': !item.isConfigured,
-                      }}
-                    >
-                      <div>
-                        {/* Top: Icon + Name + Badge */}
-                        <div class="flex items-center justify-between mb-2">
-                          <div class="flex items-center gap-2">
-                            <span class="text-base">{item.icon}</span>
-                            <div class="flex flex-col">
+              <Show when={showCatalog()}>
+                <div class="mt-4 pt-3 border-t border-border-subtle grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <For each={enrichedKnownKeys()}>
+                    {(item) => (
+                      <div
+                        class="glass-card-subtle flex flex-col justify-between p-3 rounded-lg border border-border-subtle"
+                        classList={{
+                          'border-status-success/30 bg-status-success/5': item.isConfigured,
+                          'opacity-65': !item.isConfigured,
+                        }}
+                      >
+                        <div>
+                          <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-1.5">
+                              <span>{item.icon}</span>
                               <span class="font-bold text-xs text-text-primary">{item.name}</span>
-                              <span class="text-[10px] text-text-muted">{item.provider}</span>
                             </div>
+
+                            <span
+                              class="rounded px-1.5 py-0.2 font-mono text-[9px] font-semibold"
+                              classList={{
+                                'bg-status-success/15 text-status-success': item.isConfigured,
+                                'bg-bg-subtle text-text-muted': !item.isConfigured,
+                              }}
+                            >
+                              {item.isConfigured ? t().devops.keyConfigured : t().devops.keyNotSet}
+                            </span>
                           </div>
 
-                          <span
-                            class="rounded px-1.5 py-0.2 font-mono text-[9.5px] font-semibold"
-                            classList={{
-                              'bg-status-success/15 text-status-success border border-status-success/30':
-                                item.isConfigured,
-                              'bg-bg-subtle text-text-muted border border-border-subtle':
-                                !item.isConfigured,
-                            }}
-                          >
-                            {item.isConfigured ? t().devops.keyConfigured : t().devops.keyNotSet}
+                          <div class="font-mono text-[11px] text-accent mb-1 truncate">
+                            {item.key}
+                          </div>
+                        </div>
+
+                        <div class="mt-2 pt-2 border-t border-border-subtle flex items-center justify-between text-[10px]">
+                          <span class="text-text-muted truncate max-w-[120px]">
+                            {item.provider}
                           </span>
-                        </div>
-
-                        {/* Variable Name */}
-                        <div class="mb-2">
-                          <span class="font-mono text-xs font-bold text-accent">{item.key}</span>
-                        </div>
-
-                        {/* Value Box */}
-                        <div class="rounded bg-bg-base/80 p-2 border border-border-subtle text-[11px] font-mono mb-3 min-h-[32px] flex items-center justify-between">
-                          <Show
-                            when={item.isConfigured}
-                            fallback={
-                              <span class="text-text-muted/60 text-[10px]">
-                                export {item.key}="..."
-                              </span>
-                            }
-                          >
-                            <span
-                              class="text-text-secondary truncate max-w-[170px]"
-                              classList={{ 'tracking-wider text-text-muted': !isRevealed() }}
+                          <Show when={item.docsUrl}>
+                            <a
+                              href={item.docsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="text-text-muted hover:text-accent underline"
                             >
-                              {displayValue()}
-                            </span>
-
-                            <div class="flex items-center gap-1 shrink-0">
-                              <button
-                                type="button"
-                                onClick={() => toggleSecretReveal(item.key)}
-                                class="text-[10px] text-text-muted hover:text-text-primary px-1"
-                                title={isRevealed() ? t().devops.hideSecret : t().devops.showSecret}
-                              >
-                                {isRevealed() ? '🙈' : '👁️'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => copyToClipboard(item.value, item.key)}
-                                class="text-[10px] text-text-muted hover:text-accent px-1"
-                                title={t().devops.copy}
-                              >
-                                📋
-                              </button>
-                            </div>
+                              Console ↗
+                            </a>
                           </Show>
                         </div>
                       </div>
-
-                      {/* Footer Actions */}
-                      <div class="pt-2 border-t border-border-subtle flex items-center justify-between text-[10.5px]">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const exportStr = `export ${item.key}="${item.value || ''}"`;
-                            copyToClipboard(exportStr, `export ${item.key}`);
-                          }}
-                          class="text-text-muted hover:text-accent font-mono text-[10px]"
-                        >
-                          {t().devops.copyExport} ↗
-                        </button>
-
-                        <Show when={item.docsUrl}>
-                          <a
-                            href={item.docsUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-text-muted hover:text-accent text-[10px] underline"
-                          >
-                            Console ↗
-                          </a>
-                        </Show>
-                      </div>
-                    </div>
-                  );
-                }}
-              </For>
+                    )}
+                  </For>
+                </div>
+              </Show>
             </div>
           </div>
         </section>

@@ -355,6 +355,20 @@ export const zh = {
     cloudSectionTitle: '☁️ 云平台 & DevOps 凭证',
     allSecretsTitle: '🔐 全部已识别敏感变量',
     searchKeysPlaceholder: '检索 API Key (如 OPENAI, DEEPSEEK, GITHUB, AWS)...',
+    detectedLocalTitle: '🎯 本机已检测到的 API 密钥与凭据',
+    detectedLocalSubtitle:
+      '自动从进程环境与 Shell 配置文件 (~/.zshrc, ~/.zshenv, ~/.aws/credentials) 中深度解析的真实有效密钥',
+    noDetectedKeys:
+      '未在当前环境或 Shell 配置文件中检测到已设置的 API 密钥。可在下方查看常见服务商配置清单。',
+    allCatalogTitle: '📚 常见服务商支持目录与配置指引',
+    sourceLabel: '来源',
+    filterAllCategories: '全部已检测',
+    filterAi: 'AI 大模型',
+    filterCloud: '云平台',
+    filterSaas: 'SaaS / 其他',
+    collapseCatalog: '▲ 收起',
+    expandCatalog: '▼ 展开查看',
+    providersCount: '{count} 个服务商',
   },
   obsidian: {
     title: 'Obsidian 知识库总控台',

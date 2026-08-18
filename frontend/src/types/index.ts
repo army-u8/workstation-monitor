@@ -428,6 +428,15 @@ export interface PathEntry {
   exists: boolean;
 }
 
+export interface DetectedApiKey {
+  key: string;
+  value: string;
+  provider: string;
+  category: string;
+  source: string;
+  icon: string;
+}
+
 export interface EnvVarsPayload {
   shell: string;
   user: string;
@@ -436,6 +445,7 @@ export interface EnvVarsPayload {
   proxy_summary?: string | null;
   path_entries: PathEntry[];
   env_vars: EnvVarEntry[];
+  detected_api_keys: DetectedApiKey[];
 }
 
 export type WsEvent =
