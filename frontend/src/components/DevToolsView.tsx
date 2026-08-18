@@ -7,8 +7,16 @@ import {
   fetchEnvVarsApi,
   isLoadingEnvVars,
 } from '../services/store';
+import {
+  BrainIcon,
+  DevToolsIcon,
+  KeyIcon,
+  RefreshIcon,
+  RobotIcon,
+  SearchIcon,
+  ServerIcon,
+} from './Icons';
 import { t } from '../i18n';
-import { DevToolsIcon, RefreshIcon } from './Icons';
 import type { DetectedApiKey, EnvVarEntry, PathEntry } from '../types';
 
 interface KnownApiKeyDef {
@@ -16,7 +24,6 @@ interface KnownApiKeyDef {
   name: string;
   provider: string;
   category: 'ai' | 'cloud';
-  icon: string;
   docsUrl?: string;
 }
 
@@ -27,7 +34,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'OpenAI API Key',
     provider: 'OpenAI (GPT-4o / o3)',
     category: 'ai',
-    icon: '🤖',
     docsUrl: 'https://platform.openai.com/api-keys',
   },
   {
@@ -35,7 +41,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Anthropic Claude Key',
     provider: 'Anthropic (Claude 3.5 / 3.7)',
     category: 'ai',
-    icon: '🧠',
     docsUrl: 'https://console.anthropic.com/',
   },
   {
@@ -43,7 +48,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'DeepSeek API Key',
     provider: 'DeepSeek (V3 / R1)',
     category: 'ai',
-    icon: '⚡',
     docsUrl: 'https://platform.deepseek.com/',
   },
   {
@@ -51,7 +55,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Google Gemini Key',
     provider: 'Google AI Studio',
     category: 'ai',
-    icon: '✨',
     docsUrl: 'https://aistudio.google.com/',
   },
   {
@@ -59,7 +62,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Groq LPU Key',
     provider: 'Groq Cloud',
     category: 'ai',
-    icon: '🚀',
     docsUrl: 'https://console.groq.com/',
   },
   {
@@ -67,7 +69,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'OpenRouter Key',
     provider: 'OpenRouter Aggregator',
     category: 'ai',
-    icon: '🌌',
     docsUrl: 'https://openrouter.ai/keys',
   },
   {
@@ -75,7 +76,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'SiliconFlow Key',
     provider: 'SiliconFlow Cloud',
     category: 'ai',
-    icon: '🌊',
     docsUrl: 'https://cloud.siliconflow.cn/',
   },
   {
@@ -83,7 +83,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Mistral AI Key',
     provider: 'Mistral Platform',
     category: 'ai',
-    icon: '🌪️',
     docsUrl: 'https://console.mistral.ai/',
   },
   {
@@ -91,7 +90,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Moonshot (Kimi) Key',
     provider: 'Moonshot AI / Kimi',
     category: 'ai',
-    icon: '🌙',
     docsUrl: 'https://platform.moonshot.cn/',
   },
   {
@@ -99,7 +97,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Zhipu GLM Key',
     provider: 'Zhipu AI / GLM',
     category: 'ai',
-    icon: '🔮',
     docsUrl: 'https://open.bigmodel.cn/',
   },
   {
@@ -107,7 +104,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'ElevenLabs Voice Key',
     provider: 'ElevenLabs AI Voice',
     category: 'ai',
-    icon: '🎙️',
     docsUrl: 'https://elevenlabs.io/',
   },
   {
@@ -115,7 +111,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'HuggingFace Token',
     provider: 'HuggingFace Hub',
     category: 'ai',
-    icon: '🤗',
     docsUrl: 'https://huggingface.co/settings/tokens',
   },
   {
@@ -123,7 +118,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Tavily Search Key',
     provider: 'Tavily AI Search',
     category: 'ai',
-    icon: '🔍',
     docsUrl: 'https://tavily.com/',
   },
   {
@@ -131,7 +125,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Perplexity Key',
     provider: 'Perplexity AI',
     category: 'ai',
-    icon: '💡',
     docsUrl: 'https://www.perplexity.ai/settings/api',
   },
   {
@@ -139,7 +132,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Cohere API Key',
     provider: 'Cohere Platform',
     category: 'ai',
-    icon: '🧬',
     docsUrl: 'https://dashboard.cohere.com/api-keys',
   },
   {
@@ -147,7 +139,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Ollama Host Endpoint',
     provider: 'Local Ollama Daemon',
     category: 'ai',
-    icon: '🦙',
     docsUrl: 'https://ollama.com/',
   },
 
@@ -157,7 +148,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'GitHub Personal Token',
     provider: 'GitHub / Actions',
     category: 'cloud',
-    icon: '🐙',
     docsUrl: 'https://github.com/settings/tokens',
   },
   {
@@ -165,7 +155,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'AWS Access Key ID',
     provider: 'Amazon Web Services',
     category: 'cloud',
-    icon: '☁️',
     docsUrl: 'https://console.aws.amazon.com/',
   },
   {
@@ -173,7 +162,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'AWS Secret Access Key',
     provider: 'Amazon Web Services',
     category: 'cloud',
-    icon: '🔒',
     docsUrl: 'https://console.aws.amazon.com/',
   },
   {
@@ -181,7 +169,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Cloudflare API Token',
     provider: 'Cloudflare Workers / CDN',
     category: 'cloud',
-    icon: '🛡️',
     docsUrl: 'https://dash.cloudflare.com/profile/api-tokens',
   },
   {
@@ -189,7 +176,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Vercel Token',
     provider: 'Vercel Platform',
     category: 'cloud',
-    icon: '▲',
     docsUrl: 'https://vercel.com/account/tokens',
   },
   {
@@ -197,7 +183,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Supabase Key',
     provider: 'Supabase BaaS',
     category: 'cloud',
-    icon: '⚡',
     docsUrl: 'https://supabase.com/',
   },
   {
@@ -205,7 +190,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Stripe Secret Key',
     provider: 'Stripe Payments',
     category: 'cloud',
-    icon: '💳',
     docsUrl: 'https://dashboard.stripe.com/apikeys',
   },
   {
@@ -213,7 +197,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Sentry Auth Token',
     provider: 'Sentry Monitoring',
     category: 'cloud',
-    icon: '🎯',
     docsUrl: 'https://sentry.io/settings/auth-tokens/',
   },
   {
@@ -221,7 +204,6 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
     name: 'Resend API Key',
     provider: 'Resend Email API',
     category: 'cloud',
-    icon: '✉️',
     docsUrl: 'https://resend.com/api-keys',
   },
 ];
@@ -335,6 +317,38 @@ export const DevToolsView: Component = () => {
     const cats = new Set<string>();
     list.forEach((item) => cats.add(item.category));
     return ['ALL', ...Array.from(cats)];
+  };
+
+  const renderKeyIcon = (category: string, provider: string) => {
+    const p = (provider || '').toLowerCase();
+    if (
+      p.includes('openai') ||
+      p.includes('anthropic') ||
+      p.includes('claude') ||
+      p.includes('gemini') ||
+      p.includes('deepseek') ||
+      p.includes('groq') ||
+      p.includes('mistral') ||
+      p.includes('cohere')
+    ) {
+      return <BrainIcon class="h-4 w-4 text-purple-400 shrink-0" />;
+    }
+    if (
+      p.includes('aws') ||
+      p.includes('azure') ||
+      p.includes('google') ||
+      p.includes('cloudflare') ||
+      p.includes('vercel') ||
+      p.includes('supabase')
+    ) {
+      return <ServerIcon class="h-4 w-4 text-sky-400 shrink-0" />;
+    }
+    if (p.includes('github') || p.includes('gitlab') || p.includes('npm')) {
+      return <DevToolsIcon class="h-4 w-4 text-emerald-400 shrink-0" />;
+    }
+    if (category === 'ai') return <RobotIcon class="h-4 w-4 text-accent shrink-0" />;
+    if (category === 'cloud') return <ServerIcon class="h-4 w-4 text-sky-400 shrink-0" />;
+    return <KeyIcon class="h-4 w-4 text-accent shrink-0" />;
   };
 
   return (
@@ -624,7 +638,7 @@ export const DevToolsView: Component = () => {
               each={filteredDetectedKeys()}
               fallback={
                 <div class="col-span-full glass-card py-10 text-center text-xs text-text-muted space-y-2">
-                  <div class="text-2xl">🔍</div>
+                  <SearchIcon class="h-7 w-7 text-text-muted mx-auto" />
                   <p class="font-medium text-text-secondary m-0">{t().devops.noDetectedKeys}</p>
                 </div>
               }
@@ -641,7 +655,9 @@ export const DevToolsView: Component = () => {
                       {/* Top: Icon + Name + Source Badge */}
                       <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2 min-w-0">
-                          <span class="text-base shrink-0">{item.icon}</span>
+                          <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-bg-surface border border-border-subtle shrink-0">
+                            {renderKeyIcon(item.category, item.provider)}
+                          </div>
                           <div class="flex flex-col truncate">
                             <span class="font-bold text-xs text-text-primary truncate">
                               {item.provider}
@@ -752,7 +768,7 @@ export const DevToolsView: Component = () => {
                         <div>
                           <div class="flex items-center justify-between mb-1.5">
                             <div class="flex items-center gap-1.5">
-                              <span>{item.icon}</span>
+                              {renderKeyIcon(item.category, item.provider || item.name)}
                               <span class="font-bold text-xs text-text-primary">{item.name}</span>
                             </div>
 

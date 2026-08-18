@@ -4,6 +4,7 @@ import { A, useLocation } from '@solidjs/router';
 import {
   ActivityIcon,
   AppBoxIcon,
+  BoltIcon,
   CleanerIcon,
   DevToolsIcon,
   DiskIcon,
@@ -422,7 +423,10 @@ export const Sidebar: Component = () => {
                       'text-status-warning': bat().percentage <= 20,
                     }}
                   >
-                    {bat().percentage}% {bat().is_charging ? '⚡' : ''}
+                    {bat().percentage}%
+                    <Show when={bat().is_charging}>
+                      <BoltIcon class="inline h-3 w-3 text-status-success ml-0.5" />
+                    </Show>
                   </span>
                 </div>
               )}

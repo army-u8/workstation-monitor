@@ -16,6 +16,7 @@ import {
   GitIcon,
   GithubIcon,
   GridIcon,
+  HistoryIcon,
   ListIcon,
   RefreshIcon,
   TerminalIcon,
@@ -500,7 +501,7 @@ export const GitRadar: Component = () => {
                       class="flex items-center gap-1 rounded bg-accent/10 border border-accent/30 px-2 py-0.5 text-accent font-semibold hover:bg-accent hover:text-white transition-all active:scale-95 shadow-2xs focus-visible:ring-1 focus-visible:ring-accent"
                       title={t().snapshots.drawerSubtitle}
                     >
-                      <span>⏳</span>
+                      <HistoryIcon class="h-3.5 w-3.5" />
                       <span>{t().snapshots.viewSnapshotsBtn}</span>
                     </button>
 
@@ -668,9 +669,10 @@ export const GitRadar: Component = () => {
                             onClick={() => openSnapshotDrawer(repo.path)}
                             aria-label={`Time Machine: ${repo.name}`}
                             title={t().snapshots.viewSnapshotsBtn}
-                            class="rounded px-1.5 py-0.5 text-xs bg-accent/10 border border-accent/30 text-accent font-medium hover:bg-accent hover:text-white transition-all active:scale-95"
+                            class="rounded px-1.5 py-0.5 text-xs bg-accent/10 border border-accent/30 text-accent font-medium hover:bg-accent hover:text-white transition-all active:scale-95 flex items-center gap-1"
                           >
-                            ⏳ {t().snapshots.viewSnapshotsBtn}
+                            <HistoryIcon class="h-3 w-3" />
+                            <span>{t().snapshots.viewSnapshotsBtn}</span>
                           </button>
                           <button
                             type="button"
@@ -780,9 +782,10 @@ export const GitRadar: Component = () => {
                       onClick={() => openSnapshotDrawer(repo.path)}
                       aria-label={`Time Machine ${repo.name}`}
                       title={t().snapshots.viewSnapshotsBtn}
-                      class="rounded bg-accent/10 border border-accent/30 px-1.5 py-0.5 text-accent font-medium hover:bg-accent hover:text-white transition-colors"
+                      class="rounded bg-accent/10 border border-accent/30 px-1.5 py-0.5 text-accent font-medium hover:bg-accent hover:text-white transition-colors flex items-center gap-1"
                     >
-                      ⏳ {t().snapshots.viewSnapshotsBtn}
+                      <HistoryIcon class="h-3 w-3" />
+                      <span>{t().snapshots.viewSnapshotsBtn}</span>
                     </button>
                     <button
                       type="button"

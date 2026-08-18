@@ -1,5 +1,6 @@
 import { For, Show } from 'solid-js';
 import type { Component } from 'solid-js';
+import { BoltIcon } from './Icons';
 import { battery, disks, formatTotalBytes } from '../services/store';
 import { t } from '../i18n';
 
@@ -30,7 +31,7 @@ export const DisksHardware: Component = () => {
                   {battery()?.percentage}%
                 </span>
                 <Show when={battery()?.is_charging}>
-                  <span class="text-xs text-status-success font-bold">⚡</span>
+                  <BoltIcon class="h-4 w-4 text-status-success inline" />
                 </Show>
               </div>
               <div class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-bg-subtle border border-border-subtle">

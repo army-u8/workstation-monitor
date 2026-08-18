@@ -16,7 +16,7 @@ import {
   versionBackups,
 } from '../services/store';
 import { t } from '../i18n';
-import { RefreshIcon } from './Icons';
+import { BoltIcon, ClockIcon, PackageIcon, RefreshIcon, RocketIcon } from './Icons';
 
 export const UpdateModal: Component = () => {
   const [activeTab, setActiveTab] = createSignal<'upgrade' | 'history'>('upgrade');
@@ -98,9 +98,9 @@ export const UpdateModal: Component = () => {
           {/* Header */}
           <div class="flex items-center justify-between border-b border-border-subtle pb-4">
             <div class="flex items-center gap-2.5">
-              <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent text-lg">
-                🚀
-              </span>
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent border border-accent/20">
+                <RocketIcon class="h-5 w-5" />
+              </div>
               <div>
                 <h3 class="text-base font-semibold text-text-primary m-0">
                   {t().update.modalTitle}
@@ -245,13 +245,15 @@ export const UpdateModal: Component = () => {
                     {/* Meta details */}
                     <div class="flex items-center gap-2 text-[10px] font-mono text-text-muted">
                       <Show when={formattedSize()}>
-                        <span class="rounded bg-bg-surface px-2 py-0.5 border border-border-subtle">
-                          📦 {formattedSize()}
+                        <span class="rounded bg-bg-surface px-2 py-0.5 border border-border-subtle flex items-center gap-1">
+                          <PackageIcon class="h-3 w-3" />
+                          <span>{formattedSize()}</span>
                         </span>
                       </Show>
                       <Show when={formattedDate()}>
-                        <span class="rounded bg-bg-surface px-2 py-0.5 border border-border-subtle">
-                          🗓️ {formattedDate()}
+                        <span class="rounded bg-bg-surface px-2 py-0.5 border border-border-subtle flex items-center gap-1">
+                          <ClockIcon class="h-3 w-3" />
+                          <span>{formattedDate()}</span>
                         </span>
                       </Show>
                     </div>
@@ -261,7 +263,7 @@ export const UpdateModal: Component = () => {
                 {/* Accelerator Channel Badge */}
                 <div class="mb-3 flex items-center justify-between px-3 py-2 rounded-md bg-accent/10 border border-accent/20 text-xs text-accent">
                   <span class="flex items-center gap-1.5 font-medium">
-                    <span>⚡</span>
+                    <BoltIcon class="h-3.5 w-3.5" />
                     <span>{t().update.dualFeedBadge}</span>
                   </span>
                   <span class="text-[10px] font-mono opacity-80">
@@ -339,8 +341,9 @@ export const UpdateModal: Component = () => {
                               {(backup.size_bytes / (1024 * 1024)).toFixed(1)} MB
                             </span>
                           </div>
-                          <span class="text-[10px] text-text-muted mt-0.5 font-mono">
-                            🗓️ {backup.created_at}
+                          <span class="text-[10px] text-text-muted mt-0.5 font-mono flex items-center gap-1">
+                            <ClockIcon class="h-3 w-3" />
+                            <span>{backup.created_at}</span>
                           </span>
                         </div>
 
@@ -388,7 +391,7 @@ export const UpdateModal: Component = () => {
                     disabled={isCheckingUpdate() || isApplyingUpdate()}
                     class="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:brightness-110 active:scale-95 transition-all"
                   >
-                    <span>🚀</span>
+                    <RocketIcon class="h-4 w-4" />
                     <span>{t().update.updateNowBtn}</span>
                   </button>
                 </Show>

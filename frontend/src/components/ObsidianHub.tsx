@@ -9,9 +9,9 @@ import {
   quickCaptureObsidianApi,
   searchObsidianApi,
 } from '../services/store';
-import type { ObsidianNoteDetail, ObsidianSearchResponse } from '../types';
-import { RefreshIcon } from './Icons';
+import { FolderIcon, RefreshIcon, SearchIcon } from './Icons';
 import { t } from '../i18n';
+import type { ObsidianNoteDetail, ObsidianSearchResponse } from '../types';
 
 export const ObsidianHub: Component = () => {
   const [isRefreshing, setIsRefreshing] = createSignal(false);
@@ -171,10 +171,11 @@ export const ObsidianHub: Component = () => {
                 <button
                   type="button"
                   onClick={() => copyToClipboard(obsidianSummary()?.vault_path || '', 'Vault Path')}
-                  class="mt-1 block max-w-lg truncate text-left mono text-[10.5px] text-text-muted hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded transition-colors"
+                  class="mt-1 flex items-center gap-1.5 max-w-lg truncate text-left mono text-[10.5px] text-text-muted hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded transition-colors"
                   title={obsidianSummary()?.vault_path}
                 >
-                  📁 {obsidianSummary()?.vault_path}
+                  <FolderIcon class="h-3.5 w-3.5 shrink-0" />
+                  <span class="truncate">{obsidianSummary()?.vault_path}</span>
                 </button>
               </Show>
             </div>
@@ -387,8 +388,8 @@ export const ObsidianHub: Component = () => {
                 placeholder={t().obsidian.searchPlaceholder}
                 class="h-8.5 w-full rounded-lg border border-border-default bg-bg-surface pl-8 pr-7 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors"
               />
-              <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted text-xs">
-                🔍
+              <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted">
+                <SearchIcon class="h-3.5 w-3.5" />
               </span>
               <Show when={isSearching()}>
                 <span class="absolute right-7 top-1/2 -translate-y-1/2 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-accent border-t-transparent" />

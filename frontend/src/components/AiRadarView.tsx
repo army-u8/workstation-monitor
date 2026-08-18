@@ -10,7 +10,17 @@ import {
   ollamaStatus,
   unloadOllamaModelApi,
 } from '../services/store';
-import { RefreshIcon } from './Icons';
+import {
+  AlertWarningIcon,
+  AntennaIcon,
+  BoltIcon,
+  BrainIcon,
+  FlameIcon,
+  LayersIntersectIcon,
+  RefreshIcon,
+  RobotIcon,
+  SparklesIcon,
+} from './Icons';
 import { t } from '../i18n';
 import type { LlmApiLatency, OllamaModelInfo } from '../types';
 
@@ -20,24 +30,24 @@ export const AiRadarView: Component = () => {
     fetchOllamaStatusApi();
   });
 
-  const getProviderIcon = (id: string) => {
+  const renderProviderIcon = (id: string) => {
     switch (id) {
       case 'deepseek':
-        return '🐋';
+        return <LayersIntersectIcon class="h-4 w-4 text-sky-400" />;
       case 'claude':
-        return '🎭';
+        return <SparklesIcon class="h-4 w-4 text-amber-400" />;
       case 'openai':
-        return '🧠';
+        return <BrainIcon class="h-4 w-4 text-emerald-400" />;
       case 'gemini':
-        return '✨';
+        return <SparklesIcon class="h-4 w-4 text-indigo-400" />;
       case 'openrouter':
-        return '🔀';
+        return <FlameIcon class="h-4 w-4 text-rose-400" />;
       case 'siliconflow':
-        return '⚡';
+        return <BoltIcon class="h-4 w-4 text-accent" />;
       case 'ollama':
-        return '🦙';
+        return <RobotIcon class="h-4 w-4 text-teal-400" />;
       default:
-        return '🤖';
+        return <RobotIcon class="h-4 w-4 text-text-muted" />;
     }
   };
 
@@ -61,18 +71,17 @@ export const AiRadarView: Component = () => {
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div class="flex items-center gap-2.5">
-            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent text-base border border-accent/20">
-              📡
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent border border-accent/20">
+              <AntennaIcon class="h-4.5 w-4.5" />
             </span>
             <h1 class="text-base font-bold text-text-primary m-0 tracking-tight">
               {t().aiRadar.title}
             </h1>
           </div>
-          <p class="text-xs text-text-muted mt-1 m-0">{t().aiRadar.subtitle}</p>
+          <p class="text-xs text-text-muted mt-1 leading-relaxed">{t().aiRadar.subtitle}</p>
         </div>
 
-        {/* Action Controls */}
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <button
             type="button"
             onClick={() => {
@@ -80,71 +89,69 @@ export const AiRadarView: Component = () => {
               fetchOllamaStatusApi();
             }}
             disabled={isTestingLlmLatency()}
-            class="flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.8 text-xs font-semibold text-white shadow-sm hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+            aria-busy={isTestingLlmLatency()}
+            class="flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-surface px-3 py-1.8 text-xs font-semibold text-text-primary transition-all hover:bg-bg-hover hover:border-border-hover disabled:opacity-50"
           >
-            <RefreshIcon
-              class="h-3.5 w-3.5"
-              classList={{ 'animate-spin': isTestingLlmLatency() }}
-            />
+            <RefreshIcon class={`h-3.5 w-3.5 ${isTestingLlmLatency() ? 'animate-spin' : ''}`} />
             <span>{isTestingLlmLatency() ? t().aiRadar.testing : t().aiRadar.testLatencyBtn}</span>
           </button>
         </div>
       </div>
 
-      {/* Section 1: Global LLM API Latency Diagnostic Grid */}
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-text-muted m-0 flex items-center gap-2">
-            <span>{t().aiRadar.latencySection}</span>
-            <span class="rounded bg-bg-subtle/80 px-1.5 py-0.2 text-[10px] text-text-muted mono border border-border-subtle">
+      {/* Section 1: Global LLM API Latency Matrix */}
+      <div class="glass-card p-5">
+        <div class="flex items-center justify-between border-b border-border-subtle pb-3 mb-4">
+          <div>
+            <h2 class="text-sm font-bold text-text-primary m-0">{t().aiRadar.latencySection}</h2>
+            <p class="text-xs text-text-muted mt-0.5">{t().aiRadar.probingGlobal}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="rounded bg-bg-subtle border border-border-subtle px-2 py-0.5 mono text-[10px] text-text-muted">
               {t().aiRadar.probesCount.replace('{count}', llmLatencies().length.toString())}
             </span>
-          </h2>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <For
             each={llmLatencies()}
             fallback={
-              <div class="col-span-full py-12 text-center text-xs text-text-muted font-mono animate-pulse">
-                {t().aiRadar.probingGlobal}
+              <div class="col-span-full py-10 text-center text-xs text-text-muted mono">
+                {t().common.loading}
               </div>
             }
           >
-            {(item: LlmApiLatency) => (
-              <div
-                class="glass-card flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px]"
-                classList={{
-                  'border-status-danger/40 bg-status-danger/5': !item.is_reachable,
-                }}
-              >
+            {(item) => (
+              <div class="glass-card-subtle flex flex-col justify-between p-3.5 transition-all hover:border-border-hover">
                 <div>
-                  <div class="flex items-center justify-between mb-2">
+                  {/* Provider Top Header */}
+                  <div class="flex items-center justify-between pb-2 border-b border-border-subtle/60">
                     <div class="flex items-center gap-2">
-                      <span class="text-xl">{getProviderIcon(item.provider_id)}</span>
+                      <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-bg-surface border border-border-subtle">
+                        {renderProviderIcon(item.provider_id)}
+                      </div>
                       <div>
-                        <h3
-                          class="text-xs font-bold text-text-primary m-0 truncate"
-                          title={item.name}
-                        >
-                          {item.name}
-                        </h3>
-                        <span class="text-[10px] text-text-muted mono truncate block max-w-[130px]">
+                        <div class="font-bold text-xs text-text-primary">{item.name}</div>
+                        <div class="mono text-[9.5px] text-text-muted truncate max-w-[120px]">
                           {item.provider_id}
-                        </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Latency / Reachability Badge */}
+                    {/* Latency Pill Badge */}
                     <span
-                      class="rounded-full border px-2 py-0.5 text-[10px] font-bold mono tabular-nums"
+                      class="rounded-full border px-2 py-0.5 text-[10px] font-bold mono tabular-nums flex items-center gap-1"
                       classList={{
                         [getLatencyBadgeClass(item)]: true,
                       }}
                     >
-                      {item.is_reachable
-                        ? `⚡ ${item.latency_ms} ms`
-                        : `✕ ${t().aiRadar.unreachable}`}
+                      <Show
+                        when={item.is_reachable}
+                        fallback={<span>✕ {t().aiRadar.unreachable}</span>}
+                      >
+                        <BoltIcon class="h-3 w-3" />
+                        <span>{item.latency_ms} ms</span>
+                      </Show>
                     </span>
                   </div>
 
@@ -169,10 +176,11 @@ export const AiRadarView: Component = () => {
 
                     <Show when={item.error_message}>
                       <div
-                        class="text-[10px] text-status-danger leading-tight truncate"
+                        class="text-[10px] text-status-danger leading-tight truncate flex items-center gap-1"
                         title={item.error_message || ''}
                       >
-                        ⚠️ {item.error_message}
+                        <AlertWarningIcon class="h-3 w-3 shrink-0" />
+                        <span class="truncate">{item.error_message}</span>
                       </div>
                     </Show>
                   </div>
@@ -187,7 +195,9 @@ export const AiRadarView: Component = () => {
       <div class="glass-card p-5">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border-subtle pb-4 mb-4">
           <div class="flex items-center gap-2.5">
-            <span class="text-2xl">🦙</span>
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 border border-accent/25 text-accent">
+              <RobotIcon class="h-4.5 w-4.5" />
+            </div>
             <div>
               <div class="flex items-center gap-2">
                 <h2 class="text-sm font-bold text-text-primary m-0">{t().aiRadar.ollamaSection}</h2>
@@ -208,85 +218,82 @@ export const AiRadarView: Component = () => {
                   </span>
                 </Show>
               </div>
-              <p class="text-xs text-text-muted m-0 mt-0.5">{t().aiRadar.ollamaDesc}</p>
+              <p class="text-xs text-text-muted mt-0.5">{t().aiRadar.ollamaDesc}</p>
             </div>
           </div>
-
-          <Show when={ollamaStatus()?.is_running}>
-            <div class="flex items-center gap-3">
-              <div class="rounded-lg bg-bg-subtle border border-border-subtle px-3 py-1.5 text-right">
-                <div class="text-[10px] text-text-muted">{t().aiRadar.totalVramUsage}</div>
-                <div class="mono text-xs font-bold text-accent tabular-nums">
-                  {formatTotalBytes(ollamaStatus()?.total_vram_used_bytes || 0)}
-                </div>
-              </div>
-            </div>
-          </Show>
         </div>
 
-        {/* Model Cards */}
+        {/* Ollama Loaded Models Sub-Grid */}
         <Show
           when={ollamaStatus()?.is_running}
           fallback={
-            <div class="py-8 text-center text-xs text-text-muted">
-              {t().aiRadar.ollamaNotRunning}
+            <div class="py-10 text-center text-xs text-text-muted">
+              <p class="font-medium text-text-secondary">{t().aiRadar.ollamaNotRunning}</p>
             </div>
           }
         >
-          <Show
-            when={(ollamaStatus()?.loaded_models?.length || 0) > 0}
-            fallback={
-              <div class="py-8 text-center text-xs text-text-muted">
-                {t().aiRadar.ollamaEmptyLoaded}
-              </div>
-            }
-          >
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <For each={ollamaStatus()?.loaded_models}>
-                {(model: OllamaModelInfo) => (
-                  <div class="glass-card-subtle p-3.5 flex flex-col justify-between">
-                    <div>
-                      <div class="flex items-center justify-between mb-2">
-                        <span
-                          class="font-mono text-xs font-bold text-text-primary truncate"
-                          title={model.name}
-                        >
-                          {model.name}
-                        </span>
-                        <span class="rounded bg-accent/15 px-1.5 py-0.2 text-[10px] font-mono text-accent">
-                          {model.parameter_size || 'LLM'}
-                        </span>
-                      </div>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-text-secondary">{t().aiRadar.loadedModels}</span>
+              <span class="mono text-text-muted text-[11px]">
+                {t().aiRadar.totalVramUsage}:{' '}
+                <strong class="text-text-primary">
+                  {formatTotalBytes(ollamaStatus()?.total_vram_used_bytes || 0)}
+                </strong>
+              </span>
+            </div>
 
-                      <div class="space-y-1 text-[11px] text-text-muted font-mono mb-3">
-                        <div class="flex justify-between">
-                          <span>{t().aiRadar.quantizationLabel}</span>
-                          <span class="text-text-secondary">
-                            {model.quantization_level || 'Native'}
-                          </span>
-                        </div>
-                        <div class="flex justify-between">
-                          <span>{t().aiRadar.vramUsageLabel}</span>
-                          <span class="text-text-secondary font-bold text-accent tabular-nums">
-                            {formatTotalBytes(model.vram_bytes || model.size_bytes)}
-                          </span>
-                        </div>
-                      </div>
+            <For
+              each={ollamaStatus()?.loaded_models || []}
+              fallback={
+                <div class="rounded-lg border border-dashed border-border-default bg-bg-surface/50 p-6 text-center text-xs text-text-muted">
+                  {t().aiRadar.ollamaEmptyLoaded}
+                </div>
+              }
+            >
+              {(model: OllamaModelInfo) => (
+                <div class="glass-card-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-bold text-xs text-text-primary">{model.name}</span>
+                      <span class="rounded bg-accent/15 border border-accent/30 px-1.8 py-0.2 mono text-[10px] text-accent font-bold">
+                        {model.parameter_size || 'Unknown'}
+                      </span>
+                      <span class="rounded bg-bg-subtle border border-border-subtle px-1.8 py-0.2 mono text-[10px] text-text-muted">
+                        {model.quantization_level || 'Q4'}
+                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => unloadOllamaModelApi(model.name)}
-                      disabled={isUnloadingOllama()}
-                      class="w-full rounded-md border border-status-danger/30 bg-status-danger/10 py-1.5 text-center text-xs font-medium text-status-danger hover:bg-status-danger/20 transition-colors"
-                    >
-                      {t().aiRadar.unloadBtn}
-                    </button>
+                    <div class="mt-1.5 flex flex-wrap items-center gap-3 text-[10.5px] text-text-muted mono">
+                      <span>
+                        {t().aiRadar.vramUsage}:{' '}
+                        <strong class="text-status-success">
+                          {formatTotalBytes(model.vram_bytes)}
+                        </strong>
+                      </span>
+                      <span>
+                        {t().aiRadar.vramUsageLabel} {formatTotalBytes(model.size_bytes)}
+                      </span>
+                      <Show when={model.expires_at}>
+                        <span class="text-text-tertiary">
+                          {t().aiRadar.expiresAt}: {model.expires_at?.split('T')[1]?.split('.')[0]}
+                        </span>
+                      </Show>
+                    </div>
                   </div>
-                )}
-              </For>
-            </div>
-          </Show>
+
+                  <button
+                    type="button"
+                    onClick={() => unloadOllamaModelApi(model.name)}
+                    disabled={isUnloadingOllama()}
+                    class="rounded-lg bg-status-danger/15 border border-status-danger/30 px-3 py-1 text-xs font-semibold text-status-danger hover:bg-status-danger hover:text-white transition-all shadow-2xs self-start sm:self-auto disabled:opacity-50"
+                  >
+                    {isUnloadingOllama() ? t().aiRadar.unloading : t().aiRadar.unloadBtn}
+                  </button>
+                </div>
+              )}
+            </For>
+          </div>
         </Show>
       </div>
     </div>

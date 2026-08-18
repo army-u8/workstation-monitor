@@ -2,9 +2,9 @@ import { Show, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
 import { flushDnsApi, killPortApi, openConfirmDialog, pingHostApi } from '../services/store';
 import { DEFAULT_PROBE_HOST } from '../constants';
-import type { PingResponse } from '../types';
 import { t } from '../i18n';
-import { OpsIcon } from './Icons';
+import { BoltIcon, GlobeIcon, OpsIcon, PlugIcon } from './Icons';
+import type { PingResponse } from '../types';
 
 export const OpsView: Component = () => {
   // Free Port State
@@ -85,7 +85,9 @@ export const OpsView: Component = () => {
         <div class="glass-card flex flex-col justify-between p-4 shadow-xs">
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-lg">🌐</span>
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 border border-accent/20 text-accent">
+                <GlobeIcon class="h-4 w-4" />
+              </div>
               <h3 class="text-xs font-bold text-text-primary m-0">{t().devops.dnsTitle}</h3>
             </div>
             <p class="mt-2 text-xs text-text-muted leading-relaxed">{t().devops.dnsDesc}</p>
@@ -107,7 +109,9 @@ export const OpsView: Component = () => {
         <div class="glass-card flex flex-col justify-between p-4 shadow-xs">
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-lg">🔌</span>
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-status-danger/10 border border-status-danger/20 text-status-danger">
+                <PlugIcon class="h-4 w-4" />
+              </div>
               <h3 class="text-xs font-bold text-text-primary m-0">{t().devops.portTitle}</h3>
             </div>
             <p class="mt-2 text-xs text-text-muted leading-relaxed">{t().devops.portDesc}</p>
@@ -137,7 +141,9 @@ export const OpsView: Component = () => {
         <div class="glass-card flex flex-col justify-between p-4 shadow-xs">
           <div>
             <div class="flex items-center gap-2">
-              <span class="text-lg">⚡</span>
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 border border-accent/20 text-accent">
+                <BoltIcon class="h-4 w-4" />
+              </div>
               <h3 class="text-xs font-bold text-text-primary m-0">{t().devops.pingTitle}</h3>
             </div>
             <p class="mt-2 text-xs text-text-muted leading-relaxed">{t().devops.pingDesc}</p>

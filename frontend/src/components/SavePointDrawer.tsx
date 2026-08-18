@@ -12,6 +12,7 @@ import {
   rollbackSnapshotApi,
   snapshotsData,
 } from '../services/store';
+import { AlertWarningIcon, HistoryIcon, TbBranchIcon } from './Icons';
 import { t } from '../i18n';
 import type { SavePointSnapshot } from '../types';
 
@@ -60,9 +61,9 @@ export const SavePointDrawer: Component = () => {
           {/* Header */}
           <div class="flex items-center justify-between border-b border-border-default px-5 py-4 bg-bg-surface/95 backdrop-blur-xs">
             <div class="flex items-center gap-3">
-              <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent text-lg">
-                ⏳
-              </span>
+              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent border border-accent/20">
+                <HistoryIcon class="h-5 w-5" />
+              </div>
               <div>
                 <div class="flex items-center gap-2">
                   <h2 class="text-sm font-bold text-text-primary m-0">
@@ -70,8 +71,9 @@ export const SavePointDrawer: Component = () => {
                   </h2>
                   <Show when={snapshotsData()}>
                     {(data) => (
-                      <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 mono text-[10px] text-text-muted">
-                        🌿 {data().current_branch}
+                      <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 mono text-[10px] text-text-muted flex items-center gap-1">
+                        <TbBranchIcon class="h-3 w-3 text-accent" />
+                        <span>{data().current_branch}</span>
                       </span>
                     )}
                   </Show>
@@ -96,7 +98,7 @@ export const SavePointDrawer: Component = () => {
             <Show when={snapshotsData()?.is_dirty}>
               <div class="rounded-lg border border-status-warning/40 bg-status-warning/10 p-3 flex items-center justify-between">
                 <div class="flex items-center gap-2 text-xs text-status-warning font-medium">
-                  <span>⚠️</span>
+                  <AlertWarningIcon class="h-4 w-4 shrink-0" />
                   <span>
                     {t().snapshots.uncommittedNotice.replace(
                       '{count}',

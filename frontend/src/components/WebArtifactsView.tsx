@@ -7,7 +7,7 @@ import {
   isLoadingArtifacts,
   webArtifacts,
 } from '../services/store';
-import { CompactIcon, GridIcon, ListIcon, RefreshIcon } from './Icons';
+import { BoltIcon, CompactIcon, GlobeIcon, GridIcon, ListIcon, RefreshIcon } from './Icons';
 import { ArtifactsLayoutMode, ArtifactsSortBy, StorageKey } from '../constants';
 import { t } from '../i18n';
 import type { WebArtifactInfo } from '../types';
@@ -180,7 +180,7 @@ export const WebArtifactsView: Component = () => {
             <div class="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div class="flex items-center gap-2">
                 <div class="flex h-6 w-6 items-center justify-center rounded bg-status-info/15 text-status-info text-xs">
-                  ⚡
+                  <BoltIcon class="h-3.5 w-3.5" />
                 </div>
                 <h3 class="text-xs font-bold text-text-primary">{t().artifacts.title}</h3>
               </div>
@@ -370,47 +370,97 @@ export const WebArtifactsView: Component = () => {
             </button>
           </div>
 
-          {/* Search Box */}
-          <div class="relative min-w-[160px] sm:w-48">
+          {/* Search Input */}
+          <div class="relative flex items-center">
             <input
               type="text"
               placeholder={t().artifacts.searchPlaceholder}
               value={searchQuery()}
               onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-full rounded border border-border-subtle bg-bg-input px-2.5 py-1 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent"
+              class="w-48 rounded-lg border border-border-default bg-bg-surface py-1 pl-2.5 pr-6 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
             />
             <Show when={searchQuery()}>
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-text-muted hover:text-text-primary"
-                aria-label={t().artifacts.clearSearch}
+                aria-label={t().common.cancel}
+                class="absolute right-2 text-xs text-text-muted hover:text-text-primary"
               >
                 ✕
               </button>
             </Show>
           </div>
+        </div>
 
-          {/* Refresh Action */}
-          <button
-            type="button"
-            onClick={() => fetchWebArtifactsApi()}
-            disabled={isLoadingArtifacts()}
-            class="flex items-center gap-1 rounded bg-bg-input border border-border-subtle px-2 py-1 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors disabled:opacity-50"
-            title={t().artifacts.refreshBtn}
-          >
-            <RefreshIcon class="h-3.5 w-3.5" classList={{ 'animate-spin': isLoadingArtifacts() }} />
-            <span class="hidden sm:inline">
-              {isLoadingArtifacts() ? t().artifacts.scanning : t().artifacts.refreshBtn}
-            </span>
-          </button>
+        {/* Right: Sort Dropdown + Layout Toggles */}
+        <div class="flex items-center gap-2.5 self-end sm:self-auto">
+          {/* Sort Selector */}
+          <div class="flex items-center gap-1.5 text-xs text-text-muted">
+            <select
+              value={sortBy()}
+              onChange={(e) => setSortBy(e.currentTarget.value as ArtifactsSortBy)}
+              class="rounded-lg border border-border-default bg-bg-surface px-2 py-1 text-xs font-medium text-text-primary outline-none transition-all focus:border-accent"
+            >
+              <option value={ArtifactsSortBy.PORT}>{t().artifacts.sortPort}</option>
+              <option value={ArtifactsSortBy.LATENCY}>{t().artifacts.sortLatency}</option>
+              <option value={ArtifactsSortBy.FRAMEWORK}>{t().artifacts.sortFramework}</option>
+            </select>
+          </div>
+
+          {/* Layout Mode Segmented Control */}
+          <div class="flex items-center rounded-lg border border-border-default bg-bg-surface p-0.5">
+            <button
+              type="button"
+              onClick={() => setLayoutMode(ArtifactsLayoutMode.GRID)}
+              aria-label={t().gitRadar.layoutGrid}
+              title={t().gitRadar.layoutGrid}
+              class="flex h-6 w-6 items-center justify-center rounded-md transition-all"
+              classList={{
+                'bg-bg-subtle text-accent shadow-2xs': layoutMode() === ArtifactsLayoutMode.GRID,
+                'text-text-muted hover:text-text-primary':
+                  layoutMode() !== ArtifactsLayoutMode.GRID,
+              }}
+            >
+              <GridIcon class="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setLayoutMode(ArtifactsLayoutMode.TABLE)}
+              aria-label={t().gitRadar.layoutTable}
+              title={t().gitRadar.layoutTable}
+              class="flex h-6 w-6 items-center justify-center rounded-md transition-all"
+              classList={{
+                'bg-bg-subtle text-accent shadow-2xs': layoutMode() === ArtifactsLayoutMode.TABLE,
+                'text-text-muted hover:text-text-primary':
+                  layoutMode() !== ArtifactsLayoutMode.TABLE,
+              }}
+            >
+              <ListIcon class="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setLayoutMode(ArtifactsLayoutMode.COMPACT)}
+              aria-label={t().gitRadar.layoutCompact}
+              title={t().gitRadar.layoutCompact}
+              class="flex h-6 w-6 items-center justify-center rounded-md transition-all"
+              classList={{
+                'bg-bg-subtle text-accent shadow-2xs': layoutMode() === ArtifactsLayoutMode.COMPACT,
+                'text-text-muted hover:text-text-primary':
+                  layoutMode() !== ArtifactsLayoutMode.COMPACT,
+              }}
+            >
+              <CompactIcon class="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </section>
 
-      {/* 3. Multi-Layout Artifacts Container */}
+      {/* ============================================================ */}
+      {/* 3. MAIN GALLERY VIEWS (SWITCH LAYOUT)                        */}
+      {/* ============================================================ */}
       <Switch>
         {/* ======================================================== */}
-        {/* 1. GRID / CARD LAYOUT MODE                               */}
+        {/* 1. GRID CARDS LAYOUT MODE                                */}
         {/* ======================================================== */}
         <Match when={layoutMode() === ArtifactsLayoutMode.GRID}>
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -418,8 +468,8 @@ export const WebArtifactsView: Component = () => {
               each={filteredAndSortedArtifacts()}
               fallback={
                 <div class="col-span-full rounded-2xl border border-dashed border-border-default bg-bg-surface/50 p-12 text-center">
-                  <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-bg-subtle text-2xl shadow-inner mb-4">
-                    🌐
+                  <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-bg-subtle shadow-inner mb-4 text-accent">
+                    <GlobeIcon class="h-7 w-7" />
                   </div>
                   <h3 class="text-sm font-semibold text-text-primary mb-1">
                     {t().artifacts.empty}
@@ -512,8 +562,9 @@ export const WebArtifactsView: Component = () => {
                       >
                         <div class="flex items-center justify-between">
                           <span class="text-text-muted">{t().artifacts.responseTime}:</span>
-                          <span class="mono text-status-success font-medium tabular-nums">
-                            ⚡ {artifact.response_time_ms} ms
+                          <span class="mono text-status-success font-medium tabular-nums flex items-center gap-1">
+                            <BoltIcon class="h-3 w-3" />
+                            <span>{artifact.response_time_ms} ms</span>
                           </span>
                         </div>
                       </Show>
@@ -630,8 +681,9 @@ export const WebArtifactsView: Component = () => {
                             {artifact.status_code ? `HTTP ${artifact.status_code}` : 'Down'}
                           </span>
                           <Show when={typeof artifact.response_time_ms === 'number'}>
-                            <span class="text-status-success tabular-nums">
-                              ⚡ {artifact.response_time_ms}ms
+                            <span class="text-status-success tabular-nums flex items-center gap-0.5">
+                              <BoltIcon class="h-3 w-3" />
+                              <span>{artifact.response_time_ms}ms</span>
                             </span>
                           </Show>
                         </div>
@@ -718,8 +770,9 @@ export const WebArtifactsView: Component = () => {
                     </span>
 
                     <Show when={typeof artifact.response_time_ms === 'number'}>
-                      <span class="mono text-[9.5px] text-status-success shrink-0 hidden sm:inline tabular-nums">
-                        ⚡ {artifact.response_time_ms}ms
+                      <span class="mono text-[9.5px] text-status-success shrink-0 hidden sm:inline-flex items-center gap-0.5 tabular-nums">
+                        <BoltIcon class="h-2.5 w-2.5" />
+                        <span>{artifact.response_time_ms}ms</span>
                       </span>
                     </Show>
                   </div>

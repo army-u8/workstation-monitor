@@ -21,7 +21,7 @@ import {
   WsConnectionStatus,
   pathToSectionMap,
 } from '../constants';
-import { MoonIcon, SunIcon, SystemThemeIcon } from './Icons';
+import { MoonIcon, RefreshIcon, RocketIcon, SunIcon, SystemThemeIcon } from './Icons';
 
 export const Header: Component = () => {
   const [timeStr, setTimeStr] = createSignal('00:00:00');
@@ -169,7 +169,12 @@ export const Header: Component = () => {
             when={updateInfo()?.has_update}
             fallback={
               <>
-                <span class="text-[10px]">{isCheckingUpdate() ? '🔄' : '🚀'}</span>
+                <Show
+                  when={isCheckingUpdate()}
+                  fallback={<RocketIcon class="h-3 w-3 text-text-muted" />}
+                >
+                  <RefreshIcon class="h-3 w-3 animate-spin text-accent" />
+                </Show>
                 <span>
                   {isCheckingUpdate()
                     ? t().update.checking

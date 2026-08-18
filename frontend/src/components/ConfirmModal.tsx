@@ -1,6 +1,7 @@
 import { Show, createSignal, onCleanup, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import { closeConfirmDialog, confirmModal } from '../services/store';
+import { AlertWarningIcon } from './Icons';
 import { t } from '../i18n';
 
 export const ConfirmModal: Component = () => {
@@ -20,12 +21,11 @@ export const ConfirmModal: Component = () => {
   });
 
   const handleConfirm = async () => {
-    const config = confirmModal();
-    if (!config) return;
-
+    const modal = confirmModal();
+    if (!modal) return;
+    setIsProcessing(true);
     try {
-      setIsProcessing(true);
-      await config.onConfirm();
+      await modal.onConfirm();
     } finally {
       setIsProcessing(false);
       closeConfirmDialog();
@@ -36,7 +36,7 @@ export const ConfirmModal: Component = () => {
     <Show when={confirmModal()}>
       {(modal) => (
         <div
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs transition-opacity duration-150"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
@@ -58,7 +58,7 @@ export const ConfirmModal: Component = () => {
               >
                 <Show
                   when={modal().isDestructive !== false}
-                  fallback={<span aria-hidden="true">⚠️</span>}
+                  fallback={<AlertWarningIcon class="h-5 w-5" />}
                 >
                   <svg
                     class="h-5 w-5 text-status-danger"
