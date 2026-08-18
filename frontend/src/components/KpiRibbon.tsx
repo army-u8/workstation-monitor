@@ -12,7 +12,7 @@ export const KpiRibbon: Component = () => {
     <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {/* RX Metric */}
       <div class="glass-card flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px] group relative overflow-hidden">
-        <div class="absolute top-0 right-0 h-16 w-16 bg-status-success/5 rounded-full blur-xl pointer-events-none -mr-4 -mt-4 transition-opacity group-hover:opacity-100 opacity-60" />
+        <div class="absolute top-0 right-0 h-14 w-14 bg-status-success/5 rounded-full blur-lg pointer-events-none transition-opacity group-hover:opacity-100 opacity-60" />
         <div class="flex items-center justify-between text-[11px] relative z-10">
           <div class="flex items-center gap-2">
             <span class="h-2 w-2 rounded-full bg-status-success shadow-[0_0_8px_rgba(52,211,153,0.7)] animate-pulse-dot" />
@@ -34,7 +34,7 @@ export const KpiRibbon: Component = () => {
 
       {/* TX Metric */}
       <div class="glass-card flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px] group relative overflow-hidden">
-        <div class="absolute top-0 right-0 h-16 w-16 bg-accent/5 rounded-full blur-xl pointer-events-none -mr-4 -mt-4 transition-opacity group-hover:opacity-100 opacity-60" />
+        <div class="absolute top-0 right-0 h-14 w-14 bg-accent/5 rounded-full blur-lg pointer-events-none transition-opacity group-hover:opacity-100 opacity-60" />
         <div class="flex items-center justify-between text-[11px] relative z-10">
           <div class="flex items-center gap-2">
             <span class="h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_rgba(56,189,248,0.7)] animate-pulse-dot" />
