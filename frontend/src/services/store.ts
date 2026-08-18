@@ -621,14 +621,22 @@ export async function applyUpdateApi(downloadUrl?: string | null): Promise<boole
 
 function pollForServerRestart() {
   let attempts = 0;
-  const maxAttempts = 30;
+  const maxAttempts = 45;
   const timer = setInterval(async () => {
     attempts++;
     try {
-      const res = await fetch(ApiEndpoint.STATUS, { method: 'GET', cache: 'no-store' });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const res = await fetch(ApiEndpoint.STATUS, {
+        method: 'GET',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
       if (res.ok) {
         clearInterval(timer);
         window.location.reload();
+        return;
       }
     } catch {
       // server is still rebooting

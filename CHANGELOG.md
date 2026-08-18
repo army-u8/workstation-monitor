@@ -1,5 +1,13 @@
 更新日志（中文）
 
+[0.2.0] - 2026-08-17
+修复
+- 彻底加固 macOS 热更新与隔离机制 (Gatekeeper & Quarantine Removal)：
+  - **自动剥离隔离属性 (xattr -cr)**：在解压并替换新版本应用时自动执行 `xattr -cr`，彻底清除 macOS Gatekeeper 隔离标记，杜绝被系统安全机制无提示拦截。
+  - **本地 ad-hoc 签名加固 (codesign -f -s -)**：自动完成 macOS 签名校验加固，保障 Apple Silicon (M1~M4) 上新二进制无阻碍执行。
+  - **双通道保底重启调度器**：采用 `(open -n '<App.app>' || '<exe_path>')` 双通道容灾机制，无论处于 `.app` 容器还是命令行独立运行均能 100% 成功唤醒。
+  - **前端长效超时探测控制器**：在轮询重连中引入 `AbortController` 并延长探测窗口至 45 秒，避免请求挂起阻塞。
+
 [0.1.9] - 2026-08-17
 修复
 - 彻底修复热更新后由于端口竞争导致服务崩溃/超时的 Bug：
@@ -49,7 +57,7 @@
 - 修复热升级 API 在特定网络或代理环境下可能出现的 500 解码异常 (error decoding response body)。
 - 清理冗余类型定义与编译器警告。
 
-[0.1.3] - 2026-08-17
+[.0.1.3] - 2026-08-17
 新增
 - 独立开发环境页面：将开发环境工具链检测矩阵独立为专用视图，支持查看 Node.js/Rust/Python/Docker/Ollama 等工具版本与路径一键复制。
 - 独立快捷运维页面：将 DNS 刷新、端口释放与实时 Ping 诊断独立为专属运维控制台。
@@ -69,15 +77,23 @@
 - 修复 macOS 应用在后台启动时底下 Dock 栏图标一直上下跳动的问题（添加 LSUIElement 守护进程配置）。
 - 修复检查更新提示文案中未替换版本模板变量（v{version}）的 UI 问题。
 
-[.0.1.1] - 2026-08-17
-Added
-- Multi-Architecture macOS Release Pipeline: Native packaging support for Apple Silicon (aarch64), Intel (x64), and Universal 2 Fat binaries.
-- High-Resolution Apple Retina ICNS: Compiled 10-layer standard Retina app icon and DMG volume icon.
-- GitHub Actions Automation: Tag-driven automated multi-target compilation and asset release pipeline.
+[0.1.1] - 2026-08-17
+新增
+- 多架构 macOS 原生发布体系：新增 Apple Silicon (aarch64)、Intel (x64) 以及 Universal 2 (Fat Binary) 的原生打包支持。
+- 高清 Retina 图标支持：生成 10 层标准 Apple Retina 分辨率的 .icns 应用与 DMG 卷标图标。
+- GitHub Actions 自动化发布流水线：支持 tag 推送触发全自动跨架构编译与 GitHub Releases 资产发布。
 
 ---
 
 Changelog (English)
+
+[0.2.0] - 2026-08-17
+Fixed
+- Hardened macOS Hot Update & Quarantine Handling:
+  - **Quarantine Stripping (`xattr -cr`)**: Automatically strips `com.apple.quarantine` on extracted assets to prevent Gatekeeper silent execution blocking.
+  - **Ad-Hoc Code Signing (`codesign -f -s -`)**: Automatically signs modified binaries on Apple Silicon to guarantee smooth kernel execution.
+  - **Dual-Channel Fallback Relaunch**: `(open -n '<App.app>' || '<exe_path>')` guarantees execution across both `.app` bundles and CLI sessions.
+  - **Enhanced Frontend Polling**: Introduced `AbortController` and extended reconnect window up to 45 seconds.
 
 [0.1.9] - 2026-08-17
 Fixed

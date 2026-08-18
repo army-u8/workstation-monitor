@@ -383,12 +383,20 @@ impl AutoUpdater {
             return Err(format!("Failed to copy new binary to destination: {}", e));
         }
 
-        // Ensure executable permissions
+        // Ensure executable permissions and strip macOS quarantine
         #[cfg(target_family = "unix")]
-        if let Ok(metadata) = std::fs::metadata(&current_exe) {
-            let mut perms = metadata.permissions();
-            perms.set_mode(0o755);
-            let _ = std::fs::set_permissions(&current_exe, perms);
+        {
+            if let Ok(metadata) = std::fs::metadata(&current_exe) {
+                let mut perms = metadata.permissions();
+                perms.set_mode(0o755);
+                let _ = std::fs::set_permissions(&current_exe, perms);
+            }
+            let _ = Command::new("/usr/bin/xattr")
+                .args(["-cr", current_exe.to_str().unwrap()])
+                .status();
+            let _ = Command::new("/usr/bin/codesign")
+                .args(["-f", "-s", "-", current_exe.to_str().unwrap()])
+                .status();
         }
 
         // 5. Clean up temporary files
@@ -402,7 +410,10 @@ impl AutoUpdater {
             let mut app_path = current_exe.clone();
             app_path.pop(); // MacOS
             app_path.pop(); // Contents
-            format!("sleep 1.2 && open -n '{}'", app_path.display())
+            let _ = Command::new("/usr/bin/xattr")
+                .args(["-cr", app_path.to_str().unwrap()])
+                .status();
+            format!("sleep 1.2 && (open -n '{}' || '{}')", app_path.display(), current_exe.display())
         } else {
             format!("sleep 1.2 && '{}'", current_exe.display())
         };
