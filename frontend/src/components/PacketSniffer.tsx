@@ -34,32 +34,35 @@ export const PacketSniffer: Component = () => {
 
   const getProtoBadge = (proto: string) => {
     const p = proto.toLowerCase();
-    if (p.includes('dns')) return 'text-purple-500 bg-purple-500/10';
-    if (p.includes('tls') || p.includes('https')) return 'text-status-warning bg-status-warning-bg';
-    if (p.includes('http')) return 'text-status-success bg-status-success-bg';
-    if (p.includes('udp')) return 'text-accent bg-accent-subtle';
-    if (p.includes('icmp')) return 'text-status-danger bg-status-danger-bg';
-    return 'text-text-secondary bg-bg-subtle';
+    if (p.includes('dns')) return 'text-purple-400 bg-purple-500/15 border border-purple-500/30';
+    if (p.includes('tls') || p.includes('https'))
+      return 'text-status-warning bg-status-warning-bg border border-status-warning/30';
+    if (p.includes('http'))
+      return 'text-status-success bg-status-success-bg border border-status-success/30';
+    if (p.includes('udp')) return 'text-accent bg-accent-subtle border border-accent/30';
+    if (p.includes('icmp'))
+      return 'text-status-danger bg-status-danger-bg border border-status-danger/30';
+    return 'text-text-secondary bg-bg-subtle border border-border-subtle';
   };
 
   return (
-    <section
-      aria-label={t().sniffer.title}
-      class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5"
-    >
+    <section aria-label={t().sniffer.title} class="glass-card flex flex-col p-4 shadow-xs">
       {/* Header & Controls */}
-      <div class="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2.5">
         <div class="flex items-center gap-2">
-          <h2 class="text-xs font-semibold text-text-primary">{t().sniffer.title}</h2>
-          <span class="text-[10px] text-text-muted mono">/dev/bpf</span>
+          <span class="h-2 w-2 rounded-full bg-purple-400 animate-pulse-dot" />
+          <h2 class="text-xs font-bold text-text-primary m-0">{t().sniffer.title}</h2>
+          <span class="text-[10px] font-mono text-text-muted bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
+            /dev/bpf
+          </span>
         </div>
 
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-2">
           <select
             aria-label={t().sniffer.filterAll}
             value={packetFilter()}
             onChange={(e) => setPacketFilter(e.currentTarget.value as PacketProtocolFilter)}
-            class="rounded border border-border-default bg-bg-input px-2 py-0.5 text-[10px] text-text-secondary outline-none focus-visible:ring-1 focus-visible:ring-accent"
+            class="rounded-lg border border-border-default bg-bg-input px-2.5 py-1 text-[10.5px] font-mono text-text-secondary outline-none focus-visible:ring-1 focus-visible:ring-accent cursor-pointer"
           >
             <option value={PacketProtocolFilter.ALL}>{t().sniffer.filterAll}</option>
             <option value={PacketProtocolFilter.TCP}>{t().sniffer.filterTcp}</option>
@@ -74,7 +77,7 @@ export const PacketSniffer: Component = () => {
             onClick={togglePause}
             aria-pressed={isSnifferPaused()}
             aria-label={isSnifferPaused() ? t().sniffer.resume : t().sniffer.pause}
-            class="rounded border border-border-default bg-bg-input px-2 py-0.5 text-[10px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-accent"
+            class="rounded-lg border border-border-default bg-bg-subtle px-2.5 py-1 text-[10.5px] font-mono text-text-secondary transition-all hover:bg-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-accent"
           >
             <span>{isSnifferPaused() ? t().sniffer.resume : t().sniffer.pause}</span>
           </button>
@@ -83,83 +86,57 @@ export const PacketSniffer: Component = () => {
             type="button"
             onClick={clearStream}
             aria-label={t().sniffer.clear}
-            class="rounded px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary focus-visible:ring-1 focus-visible:ring-accent"
+            class="rounded-lg border border-border-subtle bg-bg-subtle px-2.5 py-1 text-[10.5px] font-mono text-text-muted hover:text-text-primary transition-all"
           >
             {t().sniffer.clear}
           </button>
         </div>
       </div>
 
-      {/* Permission tip if unprivileged with SolidJS Show */}
+      {/* Permission tip if unprivileged */}
       <Show when={!stats()?.sniffer_active && stats()?.sniffer_error}>
         <div
-          class="mb-2 rounded border border-status-warning/20 bg-status-warning-bg p-2 text-[10px] text-status-warning font-mono"
+          class="mb-3 rounded-lg border border-status-warning/30 bg-status-warning-bg p-2.5 text-[10.5px] text-status-warning font-mono"
           role="alert"
         >
           {t().sniffer.sudoTip}
         </div>
       </Show>
 
-      {/* Terminal table stream */}
+      {/* Packet Stream List */}
       <div
-        class="overflow-hidden rounded-md border border-border-subtle bg-bg-input font-mono text-[9.5px]"
+        class="h-64 overflow-y-auto space-y-1.5 font-mono text-[11px] rounded-lg border border-border-subtle bg-bg-base/80 p-2"
         role="log"
         aria-live="polite"
       >
-        {/* Table Header */}
-        <div class="grid grid-cols-[50px_60px_110px_14px_110px_35px_1fr] border-b border-border-default bg-bg-subtle px-2 py-1 font-sans text-[9px] font-medium text-text-muted">
-          <span>{t().sniffer.thTime}</span>
-          <span>{t().sniffer.thProto}</span>
-          <span>{t().sniffer.thSrc}</span>
-          <span aria-hidden="true" />
-          <span>{t().sniffer.thDst}</span>
-          <span>{t().sniffer.thSize}</span>
-          <span>{t().sniffer.thSummary}</span>
-        </div>
-
-        {/* Table Body */}
-        <div class="max-h-[200px] overflow-y-auto divide-y divide-border-subtle">
-          <For
-            each={filteredPackets()}
-            fallback={
-              <div class="py-6 text-center text-xs text-text-muted font-sans">
-                {t().sniffer.waiting}
+        <For
+          each={filteredPackets()}
+          fallback={
+            <div class="flex h-full flex-col items-center justify-center text-text-muted">
+              <span class="text-xs">{t().sniffer.waiting}</span>
+              <span class="text-[10px] text-text-muted/60 mt-0.5">{t().sniffer.sudoTip}</span>
+            </div>
+          }
+        >
+          {(pkt) => (
+            <div class="flex items-center justify-between gap-2 rounded bg-bg-surface/90 px-2 py-1 transition-colors hover:bg-bg-hover border border-border-subtle/40">
+              <div class="flex items-center gap-2 truncate">
+                <span class="text-[9.5px] text-text-muted">
+                  {new Date(pkt.timestamp).toTimeString().split(' ')[0]}
+                </span>
+                <span
+                  class={`rounded px-1.5 py-0.2 text-[9.5px] font-bold uppercase ${getProtoBadge(pkt.protocol)}`}
+                >
+                  {pkt.protocol}
+                </span>
+                <span class="truncate text-text-primary text-[10.5px]">
+                  {pkt.src_ip}:{pkt.src_port || '-'} ➔ {pkt.dst_ip}:{pkt.dst_port || '-'}
+                </span>
               </div>
-            }
-          >
-            {(p) => {
-              const timeStr = new Date(p.timestamp).toTimeString().split(' ')[0];
-              const src = p.src_port ? `${p.src_ip}:${p.src_port}` : p.src_ip;
-              const dst = p.dst_port ? `${p.dst_ip}:${p.dst_port}` : p.dst_ip;
-
-              return (
-                <div class="grid grid-cols-[50px_60px_110px_14px_110px_35px_1fr] items-center px-2 py-0.5 hover:bg-bg-hover">
-                  <span class="text-text-muted">{timeStr}</span>
-                  <span>
-                    <span
-                      class={`rounded px-1 py-0.2 text-[8.5px] font-medium ${getProtoBadge(p.protocol)}`}
-                    >
-                      {p.protocol}
-                    </span>
-                  </span>
-                  <span class="truncate text-text-secondary" title={src}>
-                    {src}
-                  </span>
-                  <span class="text-text-muted" aria-hidden="true">
-                    →
-                  </span>
-                  <span class="truncate text-text-secondary" title={dst}>
-                    {dst}
-                  </span>
-                  <span class="text-text-muted">{p.length}B</span>
-                  <span class="truncate text-text-primary" title={p.info}>
-                    {p.info}
-                  </span>
-                </div>
-              );
-            }}
-          </For>
-        </div>
+              <span class="shrink-0 text-text-muted text-[10px] font-medium">{pkt.length} B</span>
+            </div>
+          )}
+        </For>
       </div>
     </section>
   );

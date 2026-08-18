@@ -109,11 +109,11 @@ export const GitRadar: Component = () => {
       {/* 1. Git & GitHub Account Identity Card Banner */}
       <section class="grid grid-cols-1 gap-3 md:grid-cols-2">
         {/* Left: Local Git Global Identity */}
-        <div class="flex flex-col justify-between rounded-lg border border-border-default bg-bg-surface p-3.5 shadow-xs">
+        <div class="glass-card flex flex-col justify-between p-4 shadow-xs">
           <div>
             <div class="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div class="flex items-center gap-2">
-                <div class="flex h-6 w-6 items-center justify-center rounded bg-accent/10 text-accent">
+                <div class="flex h-6.5 w-6.5 items-center justify-center rounded-lg bg-accent/10 text-accent border border-accent/20">
                   <GitIcon class="h-3.5 w-3.5" />
                 </div>
                 <h3 class="text-xs font-bold text-text-primary">{t().gitRadar.globalConfig}</h3>
@@ -123,26 +123,26 @@ export const GitRadar: Component = () => {
                 onClick={() =>
                   copyToClipboard(gitAccount()?.git.config_path || '~/.gitconfig', 'Config Path')
                 }
-                class="mono text-[9px] text-text-muted hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded"
+                class="mono text-[9.5px] text-text-muted hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded px-1.5 py-0.5 bg-bg-subtle border border-border-subtle"
                 title={gitAccount()?.git.config_path}
               >
                 {gitAccount()?.git.config_path}
               </button>
             </div>
 
-            <div class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
+            <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span class="text-[10px] text-text-muted">{t().gitRadar.user}</span>
+                <span class="text-[10px] font-semibold text-text-muted">{t().gitRadar.user}</span>
                 <div class="flex items-center gap-1.5 mt-0.5">
                   <UserIcon class="h-3 w-3 text-text-muted" />
-                  <span class="font-semibold text-text-primary text-[11.5px] truncate">
+                  <span class="font-bold text-text-primary text-[12px] truncate">
                     {gitAccount()?.git.user_name || t().gitRadar.notConfigured}
                   </span>
                 </div>
               </div>
 
               <div>
-                <span class="text-[10px] text-text-muted">{t().gitRadar.email}</span>
+                <span class="text-[10px] font-semibold text-text-muted">{t().gitRadar.email}</span>
                 <div class="mt-0.5">
                   <button
                     type="button"
@@ -157,7 +157,7 @@ export const GitRadar: Component = () => {
             </div>
           </div>
 
-          <div class="mt-2.5 flex items-center justify-between border-t border-border-subtle pt-2 text-[10px] text-text-muted mono">
+          <div class="mt-3 flex items-center justify-between border-t border-border-subtle pt-2.5 text-[10px] text-text-muted mono">
             <span class="truncate">
               {t().gitRadar.defaultBranch}:{' '}
               <strong class="text-text-primary">
@@ -166,17 +166,19 @@ export const GitRadar: Component = () => {
             </span>
             <span class="truncate">
               {t().gitRadar.editor}:{' '}
-              <span class="text-text-secondary">{gitAccount()?.git.editor || 'vim'}</span>
+              <span class="text-text-secondary font-medium">
+                {gitAccount()?.git.editor || 'vim'}
+              </span>
             </span>
           </div>
         </div>
 
         {/* Right: GitHub CLI & Remote Account Info */}
-        <div class="flex flex-col justify-between rounded-lg border border-border-default bg-bg-surface p-3.5 shadow-xs">
+        <div class="glass-card flex flex-col justify-between p-4 shadow-xs">
           <div>
             <div class="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div class="flex items-center gap-2">
-                <div class="flex h-6 w-6 items-center justify-center rounded bg-text-primary/10 text-text-primary">
+                <div class="flex h-6.5 w-6.5 items-center justify-center rounded-lg bg-text-primary/10 text-text-primary border border-border-default">
                   <GithubIcon class="h-3.5 w-3.5" />
                 </div>
                 <h3 class="text-xs font-bold text-text-primary">{t().gitRadar.githubAccount}</h3>
@@ -188,7 +190,7 @@ export const GitRadar: Component = () => {
                     href={`https://github.com/${uname()}`}
                     target="_blank"
                     rel="noreferrer"
-                    class="mono text-[10px] text-accent hover:underline flex items-center gap-1 focus-visible:ring-1 focus-visible:ring-accent rounded"
+                    class="mono text-[10px] font-semibold text-accent hover:underline flex items-center gap-1 focus-visible:ring-1 focus-visible:ring-accent rounded px-1.5 py-0.5 bg-bg-subtle border border-border-subtle"
                   >
                     github.com/{uname()}
                   </a>
@@ -196,39 +198,44 @@ export const GitRadar: Component = () => {
               </Show>
             </div>
 
-            <div class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
+            <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span class="text-[10px] text-text-muted">{t().gitRadar.user}</span>
+                <span class="text-[10px] font-semibold text-text-muted">{t().gitRadar.user}</span>
                 <div class="flex items-center gap-1.5 mt-0.5">
-                  <span class="font-bold text-text-primary text-xs mono">
+                  <UserIcon class="h-3 w-3 text-text-muted" />
+                  <span class="font-bold text-text-primary text-[12px] truncate">
                     {gitAccount()?.github?.username || t().gitRadar.notLoggedIn}
                   </span>
                 </div>
               </div>
 
               <div>
-                <span class="text-[10px] text-text-muted">{t().gitRadar.protocol}</span>
+                <span class="text-[10px] font-semibold text-text-muted">
+                  {t().gitRadar.protocol}
+                </span>
                 <div class="mt-0.5">
-                  <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 mono text-[10px] text-text-secondary uppercase">
-                    {gitAccount()?.github?.git_protocol || 'ssh'}
+                  <span class="mono text-[11px] text-text-secondary uppercase">
+                    {gitAccount()?.github?.git_protocol || 'https'}
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="mt-2.5 flex items-center justify-between border-t border-border-subtle pt-2 text-[10px]">
-            <span class="text-text-muted">{t().gitRadar.authState}:</span>
+          <div class="mt-3 flex items-center justify-between border-t border-border-subtle pt-2.5 text-[10px]">
+            <span class="text-text-muted font-mono">{t().gitRadar.authState}:</span>
             <span
-              class="mono rounded px-1.5 py-0.2 font-medium text-[9.5px]"
+              class="mono rounded-md px-2 py-0.5 font-bold text-[9.5px]"
               classList={{
-                'bg-status-success/15 text-status-success': Boolean(
+                'bg-status-success/15 text-status-success border border-status-success/30': Boolean(
                   gitAccount()?.github?.is_authenticated,
                 ),
-                'bg-status-warning/15 text-status-warning': Boolean(
+                'bg-status-warning/15 text-status-warning border border-status-warning/30': Boolean(
                   !gitAccount()?.github?.is_authenticated && gitAccount()?.github?.username,
                 ),
-                'bg-bg-subtle text-text-muted': Boolean(!gitAccount()?.github?.username),
+                'bg-bg-subtle text-text-muted border border-border-subtle': Boolean(
+                  !gitAccount()?.github?.username,
+                ),
               }}
             >
               {gitAccount()?.github?.status_text || t().gitRadar.notLoggedIn}
@@ -238,18 +245,18 @@ export const GitRadar: Component = () => {
       </section>
 
       {/* 2. Controls Toolbar */}
-      <section class="flex flex-col gap-2.5 rounded-lg border border-border-default bg-bg-surface p-3.5 sm:flex-row sm:items-center sm:justify-between">
+      <section class="glass-card flex flex-col gap-3 p-3.5 sm:flex-row sm:items-center sm:justify-between shadow-xs">
         {/* Left: Title and Dirty Count Badge */}
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2.5">
           <div class="flex items-center gap-2">
-            <h2 class="text-xs font-semibold text-text-primary">{t().gitRadar.title}</h2>
-            <span class="mono text-[10px] text-text-muted">
+            <h2 class="text-xs font-bold text-text-primary m-0">{t().gitRadar.title}</h2>
+            <span class="mono text-[10px] font-bold text-text-muted bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
               {gitProjects().length} {t().gitRadar.reposUnit}
             </span>
           </div>
 
           <Show when={dirtyCount() > 0}>
-            <span class="rounded bg-status-warning/15 px-1.5 py-0.2 mono text-[9.5px] text-status-warning font-medium">
+            <span class="rounded-full bg-status-warning/15 border border-status-warning/30 px-2 py-0.2 mono text-[10px] text-status-warning font-bold animate-pulse">
               {dirtyCount()} {t().gitRadar.dirty}
             </span>
           </Show>

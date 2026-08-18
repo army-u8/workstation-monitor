@@ -82,15 +82,17 @@ export const MachineInfo: Component = () => {
   return (
     <div class="flex flex-col gap-4" aria-label={t().machineInfo.hardwareTitle}>
       {/* 1. Hardware & System Specs Board */}
-      <section class="rounded-lg border border-border-default bg-bg-surface p-4 shadow-xs">
+      <section class="glass-card p-4 shadow-xs">
         <div class="flex items-center justify-between border-b border-border-subtle pb-3">
           <div class="flex items-center gap-2.5">
-            <div class="flex h-8 w-8 items-center justify-center rounded-md bg-accent/10 text-accent">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent border border-accent/20">
               <MonitorIcon class="h-4 w-4" />
             </div>
             <div>
-              <h2 class="text-sm font-bold text-text-primary">{t().machineInfo.hardwareTitle}</h2>
-              <p class="text-[11px] text-text-muted">{t().machineInfo.hardwareSubtitle}</p>
+              <h2 class="text-sm font-bold text-text-primary m-0">
+                {t().machineInfo.hardwareTitle}
+              </h2>
+              <p class="text-[11px] text-text-muted mt-0.5">{t().machineInfo.hardwareSubtitle}</p>
             </div>
           </div>
 
@@ -101,7 +103,7 @@ export const MachineInfo: Component = () => {
               disabled={isRefreshing()}
               aria-busy={isRefreshing()}
               aria-label={t().common.refresh}
-              class="flex items-center gap-1.5 rounded border border-border-default bg-bg-subtle px-2.5 py-1 text-xs font-medium text-text-primary transition-colors hover:bg-bg-hover disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent"
+              class="flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs font-semibold text-text-primary transition-all hover:bg-bg-hover hover:border-border-hover disabled:opacity-50"
             >
               <RefreshIcon class={`h-3.5 w-3.5 ${isRefreshing() ? 'animate-spin' : ''}`} />
               <span>{t().common.refresh}</span>
@@ -112,89 +114,122 @@ export const MachineInfo: Component = () => {
         <Show
           when={machineInfo()}
           fallback={
-            <div class="py-6 text-center text-xs text-text-muted mono">{t().common.loading}</div>
+            <div class="py-10 text-center text-xs text-text-muted mono">{t().common.loading}</div>
           }
         >
           {(info) => (
             <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 text-xs">
               {/* Chip / CPU */}
-              <div class="rounded-md border border-border-subtle bg-bg-input p-3">
-                <span class="text-[10.5px] text-text-muted">{t().machineInfo.chip}</span>
-                <div class="mt-1 font-bold text-text-primary text-sm truncate">
+              <div class="glass-card-subtle p-3">
+                <span class="text-[10px] text-text-muted font-bold block">
+                  {t().machineInfo.chip}
+                </span>
+                <span
+                  class="font-bold text-text-primary text-xs mt-1 block truncate"
+                  title={info().hardware.chip_name}
+                >
                   {info().hardware.chip_name}
-                </div>
-                <div class="mt-0.5 text-[10px] text-text-muted mono">
+                </span>
+                <span class="mono text-[10px] text-accent mt-1 block">
                   {info().hardware.cpu_cores} {t().machineInfo.cores} ({info().hardware.arch})
-                </div>
+                </span>
               </div>
 
               {/* Memory */}
-              <div class="rounded-md border border-border-subtle bg-bg-input p-3">
-                <span class="text-[10.5px] text-text-muted">{t().machineInfo.memory}</span>
-                <div class="mt-1 font-bold text-text-primary text-sm truncate">
+              <div class="glass-card-subtle p-3">
+                <span class="text-[10px] text-text-muted font-bold block">
+                  {t().machineInfo.memory}
+                </span>
+                <span class="font-bold text-text-primary text-sm mt-1 block mono">
                   {info().hardware.memory_total_human}
-                </div>
-                <div class="mt-0.5 text-[10px] text-status-success mono font-medium">
-                  Apple Silicon Unified
-                </div>
+                </span>
+                <span class="mono text-[10px] text-status-success mt-1 block font-semibold">
+                  Unified Memory
+                </span>
               </div>
 
               {/* macOS Version */}
-              <div class="rounded-md border border-border-subtle bg-bg-input p-3">
-                <span class="text-[10.5px] text-text-muted">{t().machineInfo.osVersion}</span>
-                <div class="mt-1 font-bold text-text-primary text-sm truncate">
+              <div class="glass-card-subtle p-3">
+                <span class="text-[10px] text-text-muted font-bold block">
+                  {t().machineInfo.osVersion}
+                </span>
+                <span
+                  class="font-bold text-text-primary text-xs mt-1 block truncate"
+                  title={`${info().hardware.os_name} ${info().hardware.os_version}`}
+                >
                   {info().hardware.os_name} {info().hardware.os_version}
-                </div>
-                <div class="mt-0.5 text-[10px] text-text-muted mono">
+                </span>
+                <span
+                  class="mono text-[10px] text-text-muted mt-1 block truncate"
+                  title={`Build: ${info().hardware.build_version}`}
+                >
                   Build: {info().hardware.build_version || '24F74'}
-                </div>
+                </span>
               </div>
 
               {/* Hardware Model */}
-              <div class="rounded-md border border-border-subtle bg-bg-input p-3">
-                <span class="text-[10.5px] text-text-muted">{t().machineInfo.model}</span>
-                <div class="mt-1 font-bold text-text-primary text-sm truncate">
+              <div class="glass-card-subtle p-3">
+                <span class="text-[10px] text-text-muted font-bold block">
+                  {t().machineInfo.model}
+                </span>
+                <span
+                  class="font-bold text-text-primary text-xs mt-1 block truncate"
+                  title={info().hardware.model_name}
+                >
                   {info().hardware.model_name}
-                </div>
-                <div class="mt-0.5 text-[10px] text-text-muted mono">
+                </span>
+                <span
+                  class="mono text-[10px] text-text-muted mt-1 block truncate"
+                  title={info().hardware.kernel_version}
+                >
                   {info().hardware.kernel_version}
-                </div>
+                </span>
               </div>
 
               {/* Default Shell */}
-              <div class="rounded-md border border-border-subtle bg-bg-input p-3">
-                <span class="text-[10.5px] text-text-muted">{t().machineInfo.shell}</span>
-                <div class="mt-1 font-bold text-text-primary text-xs mono truncate">
+              <div class="glass-card-subtle p-3">
+                <span class="text-[10px] text-text-muted font-bold block">
+                  {t().machineInfo.shell}
+                </span>
+                <span
+                  class="font-bold text-text-primary text-xs mono mt-1 block truncate"
+                  title={info().hardware.default_shell}
+                >
                   {info().hardware.default_shell}
-                </div>
-                <div class="mt-0.5 text-[10px] text-text-muted">
+                </span>
+                <span class="text-[10px] text-text-muted mt-1 block">
                   User: <strong class="text-text-primary">{info().hardware.current_user}</strong>
-                </div>
+                </span>
               </div>
 
               {/* Host & SIP */}
-              <div class="rounded-md border border-border-subtle bg-bg-input p-3">
-                <span class="text-[10.5px] text-text-muted">{t().machineInfo.sip}</span>
-                <div class="mt-1 font-bold text-status-success text-xs mono truncate">
+              <div class="glass-card-subtle p-3">
+                <span class="text-[10px] text-text-muted font-bold block">
+                  {t().machineInfo.sip}
+                </span>
+                <span class="font-bold text-status-success text-xs mono mt-1 block truncate">
                   {info().hardware.sip_status}
-                </div>
-                <div class="mt-0.5 text-[10px] text-text-muted mono truncate">
+                </span>
+                <span
+                  class="mono text-[10px] text-text-muted mt-1 block truncate"
+                  title={`Host: ${info().hardware.host_name}`}
+                >
                   Host: {info().hardware.host_name}
-                </div>
+                </span>
               </div>
 
               {/* Spotlight Safari Quick Banner */}
               <Show when={safariApp()}>
                 {(safari) => (
-                  <div class="col-span-2 rounded-md border border-accent/30 bg-accent/5 p-3 flex items-center justify-between">
+                  <div class="col-span-2 glass-card-subtle p-3 flex items-center justify-between border-accent/30 bg-accent/5">
                     <div class="flex items-center gap-2.5">
-                      <div class="flex h-8 w-8 items-center justify-center rounded bg-accent/20 text-accent">
+                      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/20 text-accent border border-accent/25">
                         <SafariIcon class="h-5 w-5" />
                       </div>
                       <div>
                         <div class="flex items-center gap-2">
                           <span class="font-bold text-text-primary text-xs">Apple Safari</span>
-                          <span class="rounded bg-accent/15 px-1.5 py-0.2 mono text-[10px] text-accent font-bold">
+                          <span class="rounded bg-accent/15 px-1.8 py-0.2 mono text-[10px] text-accent font-bold">
                             v{safari().version || '18.5'}
                           </span>
                         </div>
@@ -205,7 +240,7 @@ export const MachineInfo: Component = () => {
                     <button
                       type="button"
                       onClick={() => openAppApi(safari().path, 'finder')}
-                      class="rounded bg-accent px-2.5 py-1 text-[11px] font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-1 focus-visible:ring-accent"
+                      class="rounded-lg bg-accent px-3 py-1 text-xs font-bold text-white transition-all hover:brightness-110 active:scale-95 shadow-2xs"
                     >
                       {t().machineInfo.openApp}
                     </button>
@@ -218,17 +253,20 @@ export const MachineInfo: Component = () => {
       </section>
 
       {/* 2. Core & Default Applications Matrix */}
-      <section class="rounded-lg border border-border-default bg-bg-surface p-4 shadow-xs">
+      <section class="glass-card p-4 shadow-xs">
         <div class="flex flex-col gap-2.5 border-b border-border-subtle pb-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div class="flex items-center gap-2">
-              <h2 class="text-sm font-bold text-text-primary">{t().machineInfo.coreAppsTitle}</h2>
-              <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 mono text-[10px] text-text-muted">
+              <span class="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
+              <h2 class="text-sm font-bold text-text-primary m-0">
+                {t().machineInfo.coreAppsTitle}
+              </h2>
+              <span class="rounded-md bg-bg-subtle border border-border-subtle px-2 py-0.5 mono text-[10px] font-bold text-text-muted">
                 {installedCount()} / {(machineInfo()?.core_apps || []).length}{' '}
                 {t().machineInfo.installedCount}
               </span>
             </div>
-            <p class="text-[11px] text-text-muted mt-0.5">{t().machineInfo.coreAppsSubtitle}</p>
+            <p class="text-[11px] text-text-muted mt-1">{t().machineInfo.coreAppsSubtitle}</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
@@ -237,10 +275,10 @@ export const MachineInfo: Component = () => {
               type="button"
               onClick={() => setInstalledOnly(!installedOnly())}
               aria-pressed={installedOnly()}
-              class="rounded border px-2.5 py-1 text-[11px] transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+              class="rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all focus-visible:ring-1 focus-visible:ring-accent"
               classList={{
-                'bg-accent/15 border-accent/40 text-accent font-medium': installedOnly(),
-                'bg-bg-input border-border-subtle text-text-muted hover:text-text-primary':
+                'bg-accent text-white border-accent shadow-2xs': installedOnly(),
+                'bg-bg-surface border-border-default text-text-muted hover:text-text-primary':
                   !installedOnly(),
               }}
             >
@@ -255,14 +293,14 @@ export const MachineInfo: Component = () => {
                 placeholder={t().machineInfo.searchPlaceholder}
                 value={searchQuery()}
                 onInput={(e) => setSearchQuery(e.currentTarget.value)}
-                class="w-52 rounded border border-border-default bg-bg-input py-1 pl-2.5 pr-6 text-[11px] text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-border-strong focus-visible:ring-1 focus-visible:ring-accent"
+                class="w-56 rounded-lg border border-border-default bg-bg-surface py-1.5 pl-3 pr-6 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
               />
               <Show when={searchQuery()}>
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
                   aria-label={t().common.cancel}
-                  class="absolute right-1.5 text-[10px] text-text-muted hover:text-text-primary"
+                  class="absolute right-2 text-xs text-text-muted hover:text-text-primary"
                 >
                   ✕
                 </button>
@@ -272,34 +310,34 @@ export const MachineInfo: Component = () => {
         </div>
 
         {/* Applications Grid */}
-        <div class="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <For
             each={filteredApps()}
             fallback={
-              <div class="col-span-full py-10 text-center text-xs text-text-muted mono">
+              <div class="col-span-full py-12 text-center text-xs text-text-muted mono">
                 {t().common.all} {t().common.status}
               </div>
             }
           >
             {(app: AppVersionInfo) => (
               <div
-                class="flex flex-col justify-between rounded-md border p-3 transition-colors"
+                class="glass-card-subtle flex flex-col justify-between p-3.5 transition-all duration-200"
                 classList={{
-                  'border-border-subtle bg-bg-input hover:border-border-default': app.is_installed,
-                  'border-border-subtle/50 bg-bg-input/40 opacity-60': !app.is_installed,
+                  'hover:border-border-hover hover:translate-y-[-1px]': app.is_installed,
+                  'opacity-50 grayscale': !app.is_installed,
                 }}
               >
                 <div>
                   <div class="flex items-start justify-between">
-                    <div class="flex items-center gap-2">
-                      <div class="flex h-7 w-7 items-center justify-center rounded bg-bg-subtle border border-border-subtle">
+                    <div class="flex items-center gap-2.5">
+                      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-bg-surface border border-border-subtle shadow-2xs">
                         {renderAppIcon(app.icon_type)}
                       </div>
                       <div class="truncate">
                         <div class="font-bold text-xs text-text-primary truncate" title={app.name}>
                           {app.name}
                         </div>
-                        <span class="rounded bg-bg-subtle px-1.5 py-0.2 text-[9.5px] text-text-muted border border-border-subtle">
+                        <span class="rounded bg-bg-surface px-1.8 py-0.2 text-[9.5px] font-semibold text-text-muted border border-border-subtle">
                           {app.category}
                         </span>
                       </div>
@@ -311,10 +349,11 @@ export const MachineInfo: Component = () => {
                         when={app.is_installed && app.version}
                         fallback={
                           <span
-                            class="rounded px-1.5 py-0.2 mono text-[9px] font-medium"
+                            class="rounded-md px-2 py-0.5 mono text-[9.5px] font-bold"
                             classList={{
-                              'bg-status-success/15 text-status-success': app.is_installed,
-                              'bg-bg-subtle text-text-muted border border-border-subtle':
+                              'bg-status-success/15 text-status-success border border-status-success/30':
+                                app.is_installed,
+                              'bg-bg-surface text-text-muted border border-border-subtle':
                                 !app.is_installed,
                             }}
                           >
@@ -324,7 +363,7 @@ export const MachineInfo: Component = () => {
                           </span>
                         }
                       >
-                        <span class="rounded bg-status-success/15 px-1.5 py-0.2 mono text-[9.5px] text-status-success font-bold">
+                        <span class="rounded-md bg-status-success/15 border border-status-success/30 px-2 py-0.5 mono text-[9.5px] text-status-success font-bold">
                           v{app.version}
                         </span>
                       </Show>
@@ -335,7 +374,7 @@ export const MachineInfo: Component = () => {
                   <button
                     type="button"
                     onClick={() => copyToClipboard(app.path, 'App Path')}
-                    class="mt-2.5 mono text-[9.5px] text-text-muted truncate hover:text-accent text-left block w-full focus-visible:ring-1 focus-visible:ring-accent rounded"
+                    class="mt-3 mono text-[10px] text-text-muted truncate hover:text-accent text-left block w-full focus-visible:ring-1 focus-visible:ring-accent rounded px-1.5 py-0.5 bg-bg-base/60 border border-border-subtle/50"
                     title={app.path}
                   >
                     {app.path}
@@ -343,16 +382,16 @@ export const MachineInfo: Component = () => {
                 </div>
 
                 {/* Bottom Action */}
-                <div class="mt-3 flex items-center justify-between border-t border-border-subtle pt-2 text-[10px]">
-                  <span class="text-text-muted mono">
-                    {app.is_installed ? 'Ready' : 'Not installed'}
+                <div class="mt-3.5 flex items-center justify-between border-t border-border-subtle pt-2.5 text-[10.5px]">
+                  <span class="text-text-muted mono font-semibold">
+                    {app.is_installed ? '✓ Ready' : '✗ Not installed'}
                   </span>
 
                   <Show when={app.is_installed}>
                     <button
                       type="button"
                       onClick={() => openAppApi(app.path, 'finder')}
-                      class="rounded bg-bg-subtle border border-border-subtle px-2 py-0.5 text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+                      class="rounded-md bg-bg-surface border border-border-default px-2.5 py-1 text-xs font-semibold text-text-secondary hover:text-text-primary hover:border-border-hover transition-all"
                     >
                       {t().machineInfo.openApp}
                     </button>

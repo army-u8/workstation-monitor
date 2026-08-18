@@ -107,12 +107,12 @@ export const ObsidianHub: Component = () => {
   };
 
   return (
-    <div class="flex flex-col gap-3.5" aria-label={t().obsidian.title}>
+    <div class="flex flex-col gap-4" aria-label={t().obsidian.title}>
       {/* 1. Vault Cockpit Overview Card */}
-      <section class="rounded-xl border border-border-default bg-bg-surface p-4 shadow-xs">
+      <section class="glass-card p-4 shadow-xs">
         <div class="flex flex-col justify-between gap-3 md:flex-row md:items-center">
           <div class="flex items-start gap-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-accent/25 bg-accent/10 text-accent">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent shadow-2xs">
               {/* Obsidian Diamond/Gem Icon */}
               <svg
                 class="h-5 w-5"
@@ -132,11 +132,11 @@ export const ObsidianHub: Component = () => {
 
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <h1 class="text-sm font-bold text-text-primary">
+                <h1 class="text-sm font-bold text-text-primary m-0">
                   {obsidianSummary()?.vault_name || 'Obsidian Vault'}
                 </h1>
                 <Show when={obsidianSummary()?.git_branch}>
-                  <span class="rounded bg-bg-subtle border border-border-subtle px-2 py-0.5 mono text-[10px] text-text-secondary flex items-center gap-1">
+                  <span class="rounded-md bg-bg-subtle border border-border-subtle px-2 py-0.5 mono text-[10px] text-text-secondary flex items-center gap-1 font-semibold">
                     <svg
                       class="h-3 w-3"
                       viewBox="0 0 24 24"
@@ -156,12 +156,12 @@ export const ObsidianHub: Component = () => {
                 <Show
                   when={obsidianSummary()?.git_dirty}
                   fallback={
-                    <span class="rounded bg-status-success-bg border border-status-success/20 px-2 py-0.5 text-[9.5px] font-medium text-status-success">
+                    <span class="rounded-md bg-status-success/15 border border-status-success/30 px-2 py-0.5 text-[9.5px] font-bold text-status-success">
                       ✓ {t().obsidian.clean}
                     </span>
                   }
                 >
-                  <span class="rounded bg-status-warning-bg border border-status-warning/20 px-2 py-0.5 text-[9.5px] font-medium text-status-warning">
+                  <span class="rounded-md bg-status-warning/15 border border-status-warning/30 px-2 py-0.5 text-[9.5px] font-bold text-status-warning animate-pulse">
                     ● {obsidianSummary()?.git_uncommitted_count} {t().obsidian.dirty}
                   </span>
                 </Show>
@@ -186,7 +186,7 @@ export const ObsidianHub: Component = () => {
               type="button"
               onClick={() => openObsidianApi({ target_app: 'obsidian' })}
               aria-label={t().obsidian.openApp}
-              class="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-accent-hover transition-colors focus-visible:ring-2 focus-visible:ring-accent"
+              class="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:brightness-110 active:scale-95 transition-all"
             >
               <svg
                 class="h-3.5 w-3.5"
@@ -206,7 +206,7 @@ export const ObsidianHub: Component = () => {
               type="button"
               onClick={() => openObsidianApi({ target_app: 'finder' })}
               aria-label={t().obsidian.openFinder}
-              class="rounded-lg border border-border-default bg-bg-subtle px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors focus-visible:ring-2 focus-visible:ring-accent"
+              class="rounded-lg border border-border-default bg-bg-surface px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all shadow-2xs"
             >
               {t().obsidian.openFinder}
             </button>
@@ -215,7 +215,7 @@ export const ObsidianHub: Component = () => {
               type="button"
               onClick={() => openObsidianApi({ target_app: 'code' })}
               aria-label={t().obsidian.openCode}
-              class="rounded-lg border border-border-default bg-bg-subtle px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors focus-visible:ring-2 focus-visible:ring-accent"
+              class="rounded-lg border border-border-default bg-bg-surface px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all shadow-2xs"
             >
               {t().obsidian.openCode}
             </button>
@@ -224,7 +224,7 @@ export const ObsidianHub: Component = () => {
               type="button"
               onClick={() => openObsidianApi({ target_app: 'terminal' })}
               aria-label={t().obsidian.openTerminal}
-              class="rounded-lg border border-border-default bg-bg-subtle px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors focus-visible:ring-2 focus-visible:ring-accent"
+              class="rounded-lg border border-border-default bg-bg-surface px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all shadow-2xs"
             >
               {t().obsidian.openTerminal}
             </button>
@@ -234,7 +234,7 @@ export const ObsidianHub: Component = () => {
               onClick={handleRefresh}
               disabled={isRefreshing()}
               aria-label={t().common.refresh}
-              class="rounded-lg border border-border-default bg-bg-subtle p-1.5 text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent"
+              class="rounded-lg border border-border-default bg-bg-surface p-1.8 text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all disabled:opacity-50"
             >
               <RefreshIcon class={`h-3.5 w-3.5 ${isRefreshing() ? 'animate-spin' : ''}`} />
             </button>
@@ -242,38 +242,48 @@ export const ObsidianHub: Component = () => {
         </div>
 
         {/* Metric Badges Grid */}
-        <div class="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-5 border-t border-border-subtle pt-3">
-          <div class="rounded-lg bg-bg-input p-2.5 border border-border-subtle/60">
-            <span class="text-[10px] text-text-muted block">{t().obsidian.totalNotes}</span>
-            <span class="mono text-base font-bold text-text-primary mt-0.5 block">
+        <div class="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-5 border-t border-border-subtle pt-3.5">
+          <div class="glass-card-subtle p-2.5">
+            <span class="text-[10px] text-text-muted block font-semibold">
+              {t().obsidian.totalNotes}
+            </span>
+            <span class="mono text-base font-bold text-text-primary mt-0.5 block tabular-nums">
               {obsidianSummary()?.total_notes ?? '-'}
             </span>
           </div>
 
-          <div class="rounded-lg bg-bg-input p-2.5 border border-border-subtle/60">
-            <span class="text-[10px] text-text-muted block">{t().obsidian.totalWords}</span>
-            <span class="mono text-base font-bold text-accent mt-0.5 block">
+          <div class="glass-card-subtle p-2.5">
+            <span class="text-[10px] text-text-muted block font-semibold">
+              {t().obsidian.totalWords}
+            </span>
+            <span class="mono text-base font-bold text-accent mt-0.5 block tabular-nums">
               {obsidianSummary()?.total_words?.toLocaleString() ?? '-'}
             </span>
           </div>
 
-          <div class="rounded-lg bg-bg-input p-2.5 border border-border-subtle/60">
-            <span class="text-[10px] text-text-muted block">{t().obsidian.totalAttachments}</span>
-            <span class="mono text-base font-bold text-text-primary mt-0.5 block">
+          <div class="glass-card-subtle p-2.5">
+            <span class="text-[10px] text-text-muted block font-semibold">
+              {t().obsidian.totalAttachments}
+            </span>
+            <span class="mono text-base font-bold text-text-primary mt-0.5 block tabular-nums">
               {obsidianSummary()?.total_attachments ?? '-'}
             </span>
           </div>
 
-          <div class="rounded-lg bg-bg-input p-2.5 border border-border-subtle/60">
-            <span class="text-[10px] text-text-muted block">{t().obsidian.totalFolders}</span>
-            <span class="mono text-base font-bold text-text-primary mt-0.5 block">
+          <div class="glass-card-subtle p-2.5">
+            <span class="text-[10px] text-text-muted block font-semibold">
+              {t().obsidian.totalFolders}
+            </span>
+            <span class="mono text-base font-bold text-text-primary mt-0.5 block tabular-nums">
               {obsidianSummary()?.total_folders ?? '-'}
             </span>
           </div>
 
-          <div class="rounded-lg bg-bg-input p-2.5 border border-border-subtle/60">
-            <span class="text-[10px] text-text-muted block">{t().obsidian.vaultSize}</span>
-            <span class="mono text-base font-bold text-status-success mt-0.5 block">
+          <div class="glass-card-subtle p-2.5">
+            <span class="text-[10px] text-text-muted block font-semibold">
+              {t().obsidian.vaultSize}
+            </span>
+            <span class="mono text-base font-bold text-status-success mt-0.5 block tabular-nums">
               {obsidianSummary()?.disk_size_human ?? '-'}
             </span>
           </div>
@@ -281,7 +291,7 @@ export const ObsidianHub: Component = () => {
       </section>
 
       {/* 2. Quick Capture (灵感闪念盒) */}
-      <section class="rounded-xl border border-border-default bg-bg-surface p-4 shadow-xs">
+      <section class="glass-card p-4 shadow-xs">
         <div class="flex items-center justify-between mb-2.5">
           <div class="flex items-center gap-2">
             <h2 class="text-xs font-semibold text-text-primary">
@@ -366,7 +376,7 @@ export const ObsidianHub: Component = () => {
       </section>
 
       {/* 3. Search & Tag Radar Filter */}
-      <section class="rounded-xl border border-border-default bg-bg-surface p-4 shadow-xs">
+      <section class="glass-card p-4 shadow-xs">
         <div class="flex flex-col gap-3">
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
             <div class="relative flex-1">
@@ -375,19 +385,19 @@ export const ObsidianHub: Component = () => {
                 value={searchQuery()}
                 onInput={(e) => handleSearch(e.currentTarget.value)}
                 placeholder={t().obsidian.searchPlaceholder}
-                class="h-8 w-full rounded-lg border border-border-default bg-bg-input pl-8 pr-7 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors"
+                class="h-8.5 w-full rounded-lg border border-border-default bg-bg-surface pl-8 pr-7 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors"
               />
               <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted text-xs">
                 🔍
               </span>
               <Show when={isSearching()}>
-                <span class="absolute right-7 top-1/2 -translate-y-1/2 inline-block h-3 w-3 animate-spin rounded-full border border-accent border-t-transparent" />
+                <span class="absolute right-7 top-1/2 -translate-y-1/2 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
               </Show>
               <Show when={searchQuery()}>
                 <button
                   type="button"
                   onClick={() => handleSearch('')}
-                  class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-text-muted hover:text-text-primary"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-text-muted hover:text-text-primary"
                 >
                   ✕
                 </button>
@@ -395,9 +405,9 @@ export const ObsidianHub: Component = () => {
             </div>
 
             <Show when={selectedTag()}>
-              <div class="flex items-center gap-1 text-xs">
-                <span class="text-text-muted text-[11px]">Tag:</span>
-                <span class="rounded bg-accent/15 text-accent border border-accent/25 px-2 py-0.5 mono text-[10.5px] font-semibold flex items-center gap-1">
+              <div class="flex items-center gap-1.5 text-xs">
+                <span class="text-text-muted text-[11px] font-semibold">Tag:</span>
+                <span class="rounded-md bg-accent/15 text-accent border border-accent/30 px-2 py-0.5 mono text-[11px] font-bold flex items-center gap-1">
                   #{selectedTag()}
                   <button
                     type="button"
@@ -414,7 +424,7 @@ export const ObsidianHub: Component = () => {
           {/* Popular Tag Radar Pills */}
           <Show when={obsidianSummary()?.top_tags?.length}>
             <div class="flex flex-wrap items-center gap-1.5 pt-1">
-              <span class="text-[10px] text-text-muted font-medium mr-1">
+              <span class="text-[10px] text-text-muted font-bold mr-1">
                 {t().obsidian.tagFilter}:
               </span>
               <For each={obsidianSummary()?.top_tags}>
@@ -422,14 +432,14 @@ export const ObsidianHub: Component = () => {
                   <button
                     type="button"
                     onClick={() => handleSelectTag(tag.name)}
-                    class="rounded-md border px-2 py-0.5 mono text-[10px] font-medium transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+                    class="rounded-md border px-2 py-0.5 mono text-[10px] font-bold transition-all focus-visible:ring-1 focus-visible:ring-accent"
                     classList={{
-                      'bg-accent text-white border-accent shadow-xs': selectedTag() === tag.name,
+                      'bg-accent text-white border-accent shadow-2xs': selectedTag() === tag.name,
                       'bg-bg-subtle text-text-secondary border-border-subtle hover:bg-bg-hover hover:text-text-primary':
                         selectedTag() !== tag.name,
                     }}
                   >
-                    #{tag.name} <span class="opacity-70 text-[9px]">({tag.count})</span>
+                    #{tag.name} <span class="opacity-75 text-[9px]">({tag.count})</span>
                   </button>
                 )}
               </For>
@@ -439,15 +449,15 @@ export const ObsidianHub: Component = () => {
 
         {/* Search Results Dropdown List (if any) */}
         <Show when={searchQuery().trim() && searchResult()}>
-          <div class="mt-3 rounded-lg border border-border-default bg-bg-input p-3 animate-in fade-in duration-150">
-            <div class="flex items-center justify-between text-[11px] text-text-muted mb-2 border-b border-border-subtle pb-1.5">
-              <span>
+          <div class="mt-3.5 rounded-lg border border-border-default bg-bg-base/80 p-3.5 animate-in fade-in duration-150">
+            <div class="flex items-center justify-between text-[11px] text-text-muted mb-2.5 border-b border-border-subtle pb-2">
+              <span class="font-bold">
                 {t().obsidian.searchMatches.replace(
                   '{count}',
                   searchResult()?.total_matches.toString() || '0',
                 )}
               </span>
-              <span class="mono text-[10px] text-accent">"{searchQuery()}"</span>
+              <span class="mono text-[10.5px] text-accent font-bold">"{searchQuery()}"</span>
             </div>
 
             <div class="max-h-60 overflow-y-auto divide-y divide-border-subtle/50">
@@ -462,10 +472,10 @@ export const ObsidianHub: Component = () => {
                 {(match) => (
                   <div
                     onClick={() => handleOpenNote(match.rel_path)}
-                    class="py-2 px-1.5 hover:bg-bg-hover/60 rounded cursor-pointer transition-colors group"
+                    class="py-2.5 px-2 hover:bg-bg-hover/60 rounded-lg cursor-pointer transition-colors group"
                   >
                     <div class="flex items-center justify-between text-xs">
-                      <span class="font-semibold text-text-primary group-hover:text-accent truncate">
+                      <span class="font-bold text-text-primary group-hover:text-accent truncate">
                         {match.title}
                       </span>
                       <span class="mono text-[10px] text-text-muted">Line {match.line_number}</span>
@@ -482,17 +492,18 @@ export const ObsidianHub: Component = () => {
       </section>
 
       {/* 4. Recent Notes Grid */}
-      <section class="rounded-xl border border-border-default bg-bg-surface p-4 shadow-xs">
+      <section class="glass-card p-4 shadow-xs">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <h2 class="text-xs font-semibold text-text-primary">{t().obsidian.recentNotes}</h2>
-            <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 mono text-[9.5px] text-text-muted">
+            <span class="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
+            <h2 class="text-xs font-bold text-text-primary m-0">{t().obsidian.recentNotes}</h2>
+            <span class="rounded-md bg-bg-subtle border border-border-subtle px-1.8 py-0.2 mono text-[10px] font-bold text-text-muted">
               {filteredNotes().length}
             </span>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <For
             each={filteredNotes()}
             fallback={
@@ -504,36 +515,36 @@ export const ObsidianHub: Component = () => {
             {(note) => (
               <div
                 onClick={() => handleOpenNote(note.rel_path)}
-                class="flex flex-col justify-between rounded-lg border border-border-subtle bg-bg-input p-3 hover:border-border-default hover:bg-bg-surface cursor-pointer transition-all duration-150 group shadow-xs hover:shadow-sm"
+                class="glass-card-subtle flex flex-col justify-between p-3.5 hover:border-border-hover cursor-pointer transition-all duration-150 group shadow-xs hover:translate-y-[-1px]"
               >
                 <div>
                   <div class="flex items-start justify-between gap-2">
-                    <h3 class="text-xs font-bold text-text-primary group-hover:text-accent transition-colors line-clamp-1">
+                    <h3 class="text-xs font-bold text-text-primary group-hover:text-accent transition-colors line-clamp-1 m-0">
                       {note.title}
                     </h3>
-                    <span class="mono text-[9.5px] text-text-muted shrink-0">
+                    <span class="mono text-[9.5px] text-text-muted shrink-0 font-medium">
                       {note.modified_human}
                     </span>
                   </div>
 
-                  <p class="mt-1.5 text-[11px] text-text-secondary line-clamp-2 leading-relaxed">
+                  <p class="mt-2 text-[11px] text-text-secondary line-clamp-2 leading-relaxed">
                     {note.preview_snippet || '...'}
                   </p>
                 </div>
 
-                <div class="mt-3 flex items-center justify-between border-t border-border-subtle/60 pt-2 text-[10px]">
+                <div class="mt-3.5 flex items-center justify-between border-t border-border-subtle/60 pt-2.5 text-[10px]">
                   <div class="flex items-center gap-1 overflow-hidden truncate">
                     <Show
                       when={note.tags.length > 0}
                       fallback={
-                        <span class="mono text-[9px] text-text-muted truncate">
+                        <span class="mono text-[9.5px] text-text-muted truncate">
                           {note.rel_path}
                         </span>
                       }
                     >
                       <For each={note.tags.slice(0, 2)}>
                         {(tag) => (
-                          <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 mono text-[9px] text-accent truncate">
+                          <span class="rounded bg-bg-surface border border-border-subtle px-1.8 py-0.2 mono text-[9.5px] font-bold text-accent truncate">
                             #{tag}
                           </span>
                         )}
@@ -541,7 +552,7 @@ export const ObsidianHub: Component = () => {
                     </Show>
                   </div>
 
-                  <span class="mono text-text-muted shrink-0 text-[9.5px]">
+                  <span class="mono text-text-muted shrink-0 text-[10px] font-semibold">
                     {note.word_count} {t().obsidian.words}
                   </span>
                 </div>

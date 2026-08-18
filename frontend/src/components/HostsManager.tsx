@@ -40,17 +40,20 @@ export const HostsManager: Component = () => {
   };
 
   return (
-    <div class="flex flex-col gap-3" aria-label={t().hosts.title}>
+    <div class="flex flex-col gap-4" aria-label={t().hosts.title}>
       {/* Header with Search and Reload */}
-      <section class="flex flex-col gap-2 rounded-lg border border-border-default bg-bg-surface p-3.5 sm:flex-row sm:items-center sm:justify-between">
+      <section class="glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between shadow-xs">
         <div>
-          <h2 class="text-xs font-semibold text-text-primary">{t().hosts.title}</h2>
-          <span class="mono text-[10px] text-text-muted">
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
+            <h2 class="text-xs font-bold text-text-primary m-0">{t().hosts.title}</h2>
+          </div>
+          <span class="mono text-[10.5px] text-text-muted mt-0.5 block">
             /etc/hosts · {hostsList().length} {t().hosts.totalEntries}
           </span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2.5">
           {/* Search box */}
           <div class="relative flex items-center">
             <input
@@ -59,14 +62,14 @@ export const HostsManager: Component = () => {
               placeholder={t().hosts.searchPlaceholder}
               value={searchQuery()}
               onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-56 rounded border border-border-default bg-bg-input py-1 pl-2.5 pr-6 text-[11px] text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-border-strong focus-visible:ring-1 focus-visible:ring-accent"
+              class="w-60 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
             />
             <Show when={searchQuery()}>
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label={t().common.cancel}
-                class="absolute right-1.5 text-[10px] text-text-muted hover:text-text-primary"
+                class="absolute right-2 text-xs text-text-muted hover:text-text-primary"
               >
                 ✕
               </button>
@@ -79,7 +82,7 @@ export const HostsManager: Component = () => {
             disabled={isReloading()}
             aria-busy={isReloading()}
             aria-label={t().hosts.reload}
-            class="flex items-center justify-center gap-1.5 rounded border border-border-default bg-bg-subtle px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-bg-hover disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent"
+            class="flex items-center justify-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.8 text-xs font-bold text-white shadow-2xs hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
           >
             <RefreshIcon class={`h-3.5 w-3.5 ${isReloading() ? 'animate-spin' : ''}`} />
             <span>{isReloading() ? t().common.loading : t().hosts.reload}</span>
@@ -88,24 +91,21 @@ export const HostsManager: Component = () => {
       </section>
 
       {/* Hosts Table */}
-      <div class="max-h-[550px] overflow-y-auto rounded-md border border-border-subtle bg-bg-input">
+      <div class="max-h-[580px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
         <table class="w-full text-left text-xs border-collapse">
           <thead>
-            <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle text-[10.5px] text-text-muted">
-              <th scope="col" class="py-2 px-3 font-medium w-16 text-center">
+            <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle/90 text-[10.5px] font-bold text-text-muted uppercase tracking-wider backdrop-blur-xs">
+              <th scope="col" class="py-2.5 px-3.5 w-16 text-center">
                 {t().hosts.thLine}
               </th>
-              <th scope="col" class="py-2 px-3 font-medium w-36">
+              <th scope="col" class="py-2.5 px-3.5 w-40">
                 {t().hosts.thIp}
               </th>
-              <th scope="col" class="py-2 px-3 font-medium">
+              <th scope="col" class="py-2.5 px-3.5">
                 {t().hosts.thDomain}
               </th>
-              <th scope="col" class="py-2 px-3 font-medium w-24 text-center">
-                {t().hosts.thStatus}
-              </th>
-              <th scope="col" class="py-2 px-3 font-medium w-24 text-right">
-                {t().common.actions}
+              <th scope="col" class="py-2.5 px-3.5 text-right w-36">
+                {t().gitRadar.thActions}
               </th>
             </tr>
           </thead>
@@ -114,70 +114,41 @@ export const HostsManager: Component = () => {
               each={filteredHosts()}
               fallback={
                 <tr>
-                  <td colspan="5" class="py-12 text-center text-xs text-text-muted font-sans">
+                  <td colspan={4} class="py-12 text-center text-text-muted font-sans text-xs">
                     {t().hosts.empty}
                   </td>
                 </tr>
               }
             >
-              {(entry) => (
-                <tr class="hover:bg-bg-hover transition-colors">
-                  {/* Line Number */}
-                  <td class="py-2 px-3 text-center text-text-muted text-[10px]">
-                    #{entry.line_number}
+              {(host) => (
+                <tr class="hover:bg-bg-subtle/50 transition-colors group">
+                  <td class="py-2 px-3.5 text-center text-text-muted text-[10px]">
+                    #{host.line_number}
                   </td>
-
-                  {/* IP */}
-                  <td class="py-2 px-3">
-                    <button
-                      type="button"
-                      aria-label={`IP: ${entry.ip}`}
-                      onClick={() => copyToClipboard(entry.ip, 'IP')}
-                      class="font-semibold text-text-primary hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded text-left"
-                    >
-                      {entry.ip}
-                    </button>
+                  <td class="py-2 px-3.5">
+                    <span class="rounded bg-bg-surface px-1.8 py-0.5 text-accent font-bold border border-border-subtle">
+                      {host.ip}
+                    </span>
                   </td>
-
-                  {/* Domain */}
-                  <td class="py-2 px-3 text-text-secondary">
-                    <button
-                      type="button"
-                      aria-label={`Domain: ${entry.domain}`}
-                      onClick={() => copyToClipboard(entry.domain, 'Domain')}
-                      class="hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded text-left"
-                    >
-                      {entry.domain}
-                    </button>
-                  </td>
-
-                  {/* Status Badge */}
-                  <td class="py-2 px-3 text-center">
-                    <Show
-                      when={entry.is_enabled}
-                      fallback={
-                        <span class="rounded bg-bg-subtle px-1.5 py-0.2 text-[9.5px] text-text-muted font-sans font-medium">
-                          {t().hosts.commented}
-                        </span>
-                      }
-                    >
-                      <span class="rounded bg-status-success/10 px-1.5 py-0.2 text-[9.5px] text-status-success font-sans font-medium">
-                        {t().hosts.active}
-                      </span>
-                    </Show>
-                  </td>
-
-                  {/* Action */}
-                  <td class="py-2 px-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => handleTestPing(entry.domain)}
-                      disabled={pingingDomain() === entry.domain}
-                      aria-label={`Ping ${entry.domain}`}
-                      class="rounded bg-bg-subtle border border-border-subtle px-2 py-0.5 text-[10px] text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors disabled:opacity-50 focus-visible:ring-1 focus-visible:ring-accent"
-                    >
-                      {pingingDomain() === entry.domain ? 'Ping...' : 'Ping'}
-                    </button>
+                  <td class="py-2 px-3.5 text-text-primary font-semibold">{host.domain}</td>
+                  <td class="py-2 px-3.5 text-right whitespace-nowrap">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleTestPing(host.domain)}
+                        disabled={pingingDomain() === host.domain}
+                        class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-all"
+                      >
+                        {pingingDomain() === host.domain ? '...' : t().devops.pingBtn}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(`${host.ip} ${host.domain}`, 'Host mapping')}
+                        class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-all"
+                      >
+                        {t().devops.copy}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )}

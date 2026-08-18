@@ -1,7 +1,6 @@
 import { For, Show, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
 import { Tabs } from '@kobalte/core/tabs';
-import { Tooltip } from '@kobalte/core/tooltip';
 import { copyToClipboard, killPortApi, openConfirmDialog, sockets } from '../services/store';
 import { SocketCategoryFilter, SocketState, SocketTab } from '../constants';
 import type { SocketEntry } from '../types';
@@ -97,10 +96,7 @@ export const SocketInspector: Component = () => {
   };
 
   return (
-    <section
-      aria-label={t().sockets.listeningTab}
-      class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5"
-    >
+    <section aria-label={t().sockets.listeningTab} class="glass-card flex flex-col p-4 shadow-xs">
       {/* Kobalte Tabs Component for Accessible Tab Switching */}
       <Tabs
         value={activeTab()}
@@ -108,22 +104,22 @@ export const SocketInspector: Component = () => {
         class="w-full flex flex-col"
       >
         {/* Controls Toolbar with TabList */}
-        <div class="mb-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+        <div class="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Tabs.List
-            class="flex rounded-md bg-bg-input p-0.5 border border-border-subtle text-[11px]"
+            class="flex rounded-lg bg-bg-base/80 p-1 border border-border-subtle text-[11px] shadow-2xs"
             aria-label="Sockets tab navigation"
           >
             <Tabs.Trigger
               value={SocketTab.LISTENING}
-              class="rounded px-2.5 py-0.5 font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-accent"
+              class="rounded-md px-3 py-1 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent"
               classList={{
-                'bg-bg-active text-text-primary': activeTab() === SocketTab.LISTENING,
+                'bg-bg-active text-text-primary shadow-2xs': activeTab() === SocketTab.LISTENING,
                 'text-text-muted hover:text-text-primary': activeTab() !== SocketTab.LISTENING,
               }}
             >
               {t().sockets.listeningTab}
               <Show when={sockets()?.listening_ports?.length}>
-                <span class="ml-1.5 mono text-[9.5px] text-text-muted">
+                <span class="ml-1.5 mono text-[10px] font-bold text-accent">
                   {sockets()?.listening_ports?.length}
                 </span>
               </Show>
@@ -131,15 +127,15 @@ export const SocketInspector: Component = () => {
 
             <Tabs.Trigger
               value={SocketTab.ACTIVE}
-              class="rounded px-2.5 py-0.5 font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-accent"
+              class="rounded-md px-3 py-1 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent"
               classList={{
-                'bg-bg-active text-text-primary': activeTab() === SocketTab.ACTIVE,
+                'bg-bg-active text-text-primary shadow-2xs': activeTab() === SocketTab.ACTIVE,
                 'text-text-muted hover:text-text-primary': activeTab() !== SocketTab.ACTIVE,
               }}
             >
               {t().sockets.activeTab}
               <Show when={sockets()?.active_connections?.length}>
-                <span class="ml-1.5 mono text-[9.5px] text-text-muted">
+                <span class="ml-1.5 mono text-[10px] font-bold text-teal-400">
                   {sockets()?.active_connections?.length}
                 </span>
               </Show>
@@ -155,14 +151,14 @@ export const SocketInspector: Component = () => {
                 placeholder={t().sockets.searchPlaceholder}
                 value={searchQuery()}
                 onInput={(e) => setSearchQuery(e.currentTarget.value)}
-                class="w-48 rounded border border-border-default bg-bg-input py-1 pl-2.5 pr-6 text-[11px] text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-border-strong focus-visible:ring-1 focus-visible:ring-accent"
+                class="w-52 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
               />
               <Show when={searchQuery()}>
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
                   aria-label={t().common.cancel}
-                  class="absolute right-1.5 text-[10px] text-text-muted hover:text-text-primary"
+                  class="absolute right-2 text-xs text-text-muted hover:text-text-primary"
                 >
                   ✕
                 </button>
@@ -172,16 +168,16 @@ export const SocketInspector: Component = () => {
             {/* Category Filter Pills (Only on Listening Tab) */}
             <Show when={activeTab() === SocketTab.LISTENING}>
               <div
-                class="flex items-center rounded-md border border-border-subtle bg-bg-input p-0.5 text-[10px]"
+                class="flex items-center rounded-lg border border-border-subtle bg-bg-base/80 p-0.5 text-[10.5px]"
                 role="group"
                 aria-label="Category filter"
               >
                 <button
                   type="button"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.ALL)}
-                  class="rounded px-1.5 py-0.2 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
                   classList={{
-                    'bg-bg-active text-text-primary font-medium':
+                    'bg-accent text-white font-bold shadow-2xs':
                       categoryFilter() === SocketCategoryFilter.ALL,
                     'text-text-muted hover:text-text-primary':
                       categoryFilter() !== SocketCategoryFilter.ALL,
@@ -192,9 +188,9 @@ export const SocketInspector: Component = () => {
                 <button
                   type="button"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.WEB)}
-                  class="rounded px-1.5 py-0.2 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
                   classList={{
-                    'bg-bg-active text-text-primary font-medium':
+                    'bg-accent text-white font-bold shadow-2xs':
                       categoryFilter() === SocketCategoryFilter.WEB,
                     'text-text-muted hover:text-text-primary':
                       categoryFilter() !== SocketCategoryFilter.WEB,
@@ -205,9 +201,9 @@ export const SocketInspector: Component = () => {
                 <button
                   type="button"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.DB)}
-                  class="rounded px-1.5 py-0.2 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
                   classList={{
-                    'bg-bg-active text-text-primary font-medium':
+                    'bg-accent text-white font-bold shadow-2xs':
                       categoryFilter() === SocketCategoryFilter.DB,
                     'text-text-muted hover:text-text-primary':
                       categoryFilter() !== SocketCategoryFilter.DB,
@@ -218,9 +214,9 @@ export const SocketInspector: Component = () => {
                 <button
                   type="button"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.DEV)}
-                  class="rounded px-1.5 py-0.2 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
                   classList={{
-                    'bg-bg-active text-text-primary font-medium':
+                    'bg-accent text-white font-bold shadow-2xs':
                       categoryFilter() === SocketCategoryFilter.DEV,
                     'text-text-muted hover:text-text-primary':
                       categoryFilter() !== SocketCategoryFilter.DEV,
@@ -235,111 +231,80 @@ export const SocketInspector: Component = () => {
 
         {/* Tab 1: Listening Ports Table */}
         <Tabs.Content value={SocketTab.LISTENING} class="outline-none">
-          <div class="max-h-[460px] overflow-y-auto rounded-md border border-border-subtle bg-bg-input">
+          <div class="max-h-[480px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle text-[10.5px] text-text-muted">
-                  <th scope="col" class="py-1.5 px-3 font-medium w-16">
+                <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle/90 text-[10.5px] font-bold text-text-muted uppercase tracking-wider backdrop-blur-xs">
+                  <th scope="col" class="py-2 px-3.5 w-16">
                     {t().sockets.thProto}
                   </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-24">
+                  <th scope="col" class="py-2 px-3.5 w-24">
                     {t().sockets.thLocalPort}
                   </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">
+                  <th scope="col" class="py-2 px-3.5">
                     {t().sockets.thBindAddr}
                   </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">
+                  <th scope="col" class="py-2 px-3.5">
                     {t().sockets.thProcess}
                   </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">
-                    {t().sockets.thPid}
-                  </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">
-                    {t().common.actions}
+                  <th scope="col" class="py-2 px-3.5 text-right w-24">
+                    {t().processes.thAction}
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-border-subtle">
+              <tbody class="divide-y divide-border-subtle font-mono text-[11px]">
                 <For
                   each={filteredListeningPorts()}
                   fallback={
                     <tr>
-                      <td colspan="6" class="py-8 text-center text-xs text-text-muted font-mono">
+                      <td colspan={5} class="py-10 text-center text-text-muted font-sans text-xs">
                         {t().sockets.empty}
                       </td>
                     </tr>
                   }
                 >
-                  {(item) => (
-                    <tr class="hover:bg-bg-hover transition-colors">
-                      <td class="py-1.5 px-3 font-mono">
-                        <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 text-[9.5px] text-accent">
+                  {(item: SocketEntry) => (
+                    <tr class="hover:bg-bg-subtle/50 transition-colors group">
+                      <td class="py-2 px-3.5">
+                        <span class="rounded bg-bg-surface px-1.8 py-0.5 text-[10px] font-bold text-text-secondary border border-border-subtle uppercase">
                           {item.protocol}
                         </span>
                       </td>
-
-                      {/* Port with Tooltip */}
-                      <td class="py-1.5 px-3 font-mono">
-                        <Tooltip>
-                          <Tooltip.Trigger
-                            as="button"
-                            type="button"
-                            aria-label={`Port ${item.local_port}`}
-                            onClick={() => copyToClipboard(item.local_port.toString(), 'Port')}
-                            class="font-semibold text-text-primary hover:text-accent outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
-                          >
-                            :{item.local_port}
-                          </Tooltip.Trigger>
-                          <Tooltip.Portal>
-                            <Tooltip.Content class="z-50 rounded bg-bg-modal px-2 py-1 text-[10px] text-text-primary shadow-md border border-border-default animate-in fade-in duration-100 font-sans">
-                              <span>
-                                {t().sockets.copyPortTooltip.replace(
-                                  '{port}',
-                                  item.local_port.toString(),
-                                )}
-                              </span>
-                            </Tooltip.Content>
-                          </Tooltip.Portal>
-                        </Tooltip>
-                      </td>
-
-                      <td class="py-1.5 px-3 font-mono text-[11px] text-text-muted">
+                      <td class="py-2 px-3.5 font-bold text-accent">:{item.local_port}</td>
+                      <td
+                        class="py-2 px-3.5 text-text-secondary truncate max-w-[160px]"
+                        title={item.local_ip}
+                      >
                         {item.local_ip}
                       </td>
-
-                      <td class="py-1.5 px-3 font-medium text-text-primary truncate max-w-[200px]">
-                        {item.process_name || (
-                          <span class="text-text-muted font-normal italic">
-                            {t().sockets.kernel}
+                      <td class="py-2 px-3.5 truncate max-w-[200px]">
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="font-bold text-text-primary truncate">
+                            {item.process_name || '-'}
                           </span>
-                        )}
+                          <Show when={item.pid}>
+                            <span class="text-text-muted text-[10px]">({item.pid})</span>
+                          </Show>
+                        </div>
                       </td>
-
-                      <td class="py-1.5 px-3 font-mono text-right text-text-muted text-[11px]">
-                        {item.pid ? (
+                      <td class="py-2 px-3.5 text-right whitespace-nowrap">
+                        <div class="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
-                            onClick={() => copyToClipboard(item.pid?.toString() || '', 'PID')}
-                            class="hover:text-accent outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
-                            title="PID"
+                            onClick={() => copyToClipboard(item.local_port.toString(), 'Port')}
+                            class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-all"
+                            title={t().devops.copy}
                           >
-                            {item.pid}
+                            {t().devops.copy}
                           </button>
-                        ) : (
-                          '-'
-                        )}
-                      </td>
-
-                      {/* Kill Port Action with Secondary Confirmation */}
-                      <td class="py-1.5 px-3 text-right">
-                        <button
-                          type="button"
-                          aria-label={`Kill port ${item.local_port}`}
-                          onClick={() => confirmKillPort(item)}
-                          class="rounded px-2 py-0.5 text-[10px] text-status-danger bg-status-danger/10 hover:bg-status-danger hover:text-white transition-colors focus-visible:ring-1 focus-visible:ring-status-danger font-medium"
-                        >
-                          {t().devops.portBtn}
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => confirmKillPort(item)}
+                            class="rounded border border-status-danger/30 bg-status-danger/10 px-2 py-0.5 text-[10px] font-bold text-status-danger hover:bg-status-danger hover:text-white transition-all"
+                          >
+                            {t().confirmDialog.killPortConfirmBtn}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )}
@@ -351,100 +316,81 @@ export const SocketInspector: Component = () => {
 
         {/* Tab 2: Active Connections Table */}
         <Tabs.Content value={SocketTab.ACTIVE} class="outline-none">
-          <div class="max-h-[460px] overflow-y-auto rounded-md border border-border-subtle bg-bg-input">
+          <div class="max-h-[480px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle text-[10.5px] text-text-muted">
-                  <th scope="col" class="py-1.5 px-3 font-medium w-16">
+                <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle/90 text-[10.5px] font-bold text-text-muted uppercase tracking-wider backdrop-blur-xs">
+                  <th scope="col" class="py-2 px-3.5 w-16">
                     {t().sockets.thProto}
                   </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">
+                  <th scope="col" class="py-2 px-3.5">
                     {t().sockets.thLocalAddr}
                   </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">
+                  <th scope="col" class="py-2 px-3.5">
                     {t().sockets.thRemoteAddr}
                   </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-24">
+                  <th scope="col" class="py-2 px-3.5 w-24">
                     {t().sockets.thState}
                   </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">
+                  <th scope="col" class="py-2 px-3.5">
                     {t().sockets.thProcess}
-                  </th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">
-                    {t().sockets.thPid}
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-border-subtle">
+              <tbody class="divide-y divide-border-subtle font-mono text-[11px]">
                 <For
                   each={filteredActiveConnections()}
                   fallback={
                     <tr>
-                      <td colspan="6" class="py-8 text-center text-xs text-text-muted font-mono">
+                      <td colspan={5} class="py-10 text-center text-text-muted font-sans text-xs">
                         {t().sockets.empty}
                       </td>
                     </tr>
                   }
                 >
-                  {(item) => {
-                    const remote =
-                      item.remote_ip && item.remote_port
-                        ? `${item.remote_ip}:${item.remote_port}`
-                        : '-';
-                    return (
-                      <tr class="hover:bg-bg-hover transition-colors">
-                        <td class="py-1.5 px-3 font-mono">
-                          <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 text-[9.5px] text-accent">
-                            {item.protocol}
+                  {(item: SocketEntry) => (
+                    <tr class="hover:bg-bg-subtle/50 transition-colors group">
+                      <td class="py-2 px-3.5">
+                        <span class="rounded bg-bg-surface px-1.8 py-0.5 text-[10px] font-bold text-text-secondary border border-border-subtle uppercase">
+                          {item.protocol}
+                        </span>
+                      </td>
+                      <td class="py-2 px-3.5 text-text-primary truncate max-w-[150px]">
+                        {item.local_ip}:{item.local_port}
+                      </td>
+                      <td class="py-2 px-3.5 text-text-secondary truncate max-w-[180px]">
+                        {item.remote_ip ? `${item.remote_ip}:${item.remote_port}` : '-'}
+                      </td>
+                      <td class="py-2 px-3.5">
+                        <span
+                          class="rounded px-1.8 py-0.5 text-[9.5px] font-bold uppercase"
+                          classList={{
+                            'bg-status-success/15 text-status-success border border-status-success/30':
+                              item.state === SocketState.ESTABLISHED,
+                            'bg-status-warning/15 text-status-warning border border-status-warning/30':
+                              item.state === SocketState.TIME_WAIT ||
+                              item.state === SocketState.CLOSE_WAIT,
+                            'bg-bg-surface text-text-muted border border-border-subtle':
+                              item.state !== SocketState.ESTABLISHED &&
+                              item.state !== SocketState.TIME_WAIT &&
+                              item.state !== SocketState.CLOSE_WAIT,
+                          }}
+                        >
+                          {item.state}
+                        </span>
+                      </td>
+                      <td class="py-2 px-3.5 truncate max-w-[180px]">
+                        <div class="flex items-center gap-1.5 truncate">
+                          <span class="font-bold text-text-primary truncate">
+                            {item.process_name || '-'}
                           </span>
-                        </td>
-
-                        <td class="py-1.5 px-3 font-mono text-[11px] text-text-primary">
-                          {item.local_ip}:{item.local_port}
-                        </td>
-
-                        <td class="py-1.5 px-3 font-mono text-[11px] text-text-muted">{remote}</td>
-
-                        <td class="py-1.5 px-3 font-mono">
-                          <span
-                            class="rounded px-1.5 py-0.2 text-[9px] font-medium"
-                            classList={{
-                              'bg-status-success-bg text-status-success':
-                                item.state === SocketState.ESTABLISHED,
-                              'bg-status-warning-bg text-status-warning':
-                                item.state === SocketState.TIME_WAIT ||
-                                item.state === SocketState.CLOSE_WAIT,
-                              'bg-bg-subtle text-text-muted':
-                                item.state !== SocketState.ESTABLISHED &&
-                                item.state !== SocketState.TIME_WAIT &&
-                                item.state !== SocketState.CLOSE_WAIT,
-                            }}
-                          >
-                            {item.state}
-                          </span>
-                        </td>
-
-                        <td class="py-1.5 px-3 font-medium text-text-primary truncate max-w-[200px]">
-                          {item.process_name || '-'}
-                        </td>
-
-                        <td class="py-1.5 px-3 font-mono text-right text-text-muted text-[11px]">
-                          {item.pid ? (
-                            <button
-                              type="button"
-                              onClick={() => copyToClipboard(item.pid?.toString() || '', 'PID')}
-                              class="hover:text-accent outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
-                              title="PID"
-                            >
-                              {item.pid}
-                            </button>
-                          ) : (
-                            '-'
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  }}
+                          <Show when={item.pid}>
+                            <span class="text-text-muted text-[10px]">({item.pid})</span>
+                          </Show>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </For>
               </tbody>
             </table>

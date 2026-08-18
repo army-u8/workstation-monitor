@@ -1,6 +1,5 @@
 import { For, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
-import { Tooltip } from '@kobalte/core/tooltip';
 import { copyToClipboard, killProcessApi, openConfirmDialog, processes } from '../services/store';
 import { ProcessSortBy } from '../constants';
 import type { ProcessInfo } from '../types';
@@ -57,18 +56,18 @@ export const ProcessManager: Component = () => {
   };
 
   return (
-    <section
-      aria-label={t().processes.title}
-      class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5"
-    >
+    <section aria-label={t().processes.title} class="glass-card flex flex-col p-4 shadow-xs">
       {/* Header & Controls */}
-      <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div class="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-2">
-          <h2 class="text-xs font-semibold text-text-primary">{t().processes.title}</h2>
-          <span class="text-[10px] text-text-muted mono">{t().processes.top50}</span>
+          <span class="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
+          <h2 class="text-xs font-bold text-text-primary m-0">{t().processes.title}</h2>
+          <span class="text-[10px] font-mono text-text-muted bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
+            {t().processes.top50}
+          </span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           {/* Search Box */}
           <input
             type="text"
@@ -76,12 +75,12 @@ export const ProcessManager: Component = () => {
             value={filterQuery()}
             onInput={(e) => setFilterQuery(e.currentTarget.value)}
             aria-label={t().processes.searchPlaceholder}
-            class="h-7 w-48 rounded border border-border-default bg-bg-input px-2 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors"
+            class="h-7.5 w-52 rounded-lg border border-border-default bg-bg-surface px-3 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors"
           />
 
           {/* Sort Toggles */}
           <div
-            class="flex items-center rounded border border-border-default bg-bg-subtle p-0.5"
+            class="flex items-center rounded-lg border border-border-subtle bg-bg-base/80 p-0.5"
             role="group"
             aria-label="Sort Processes"
           >
@@ -89,10 +88,9 @@ export const ProcessManager: Component = () => {
               type="button"
               onClick={() => setSortBy(ProcessSortBy.CPU)}
               aria-pressed={sortBy() === ProcessSortBy.CPU}
-              class="rounded px-2 py-0.5 text-[10px] transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+              class="rounded-md px-2.5 py-1 text-[10.5px] transition-all focus-visible:ring-1 focus-visible:ring-accent font-mono"
               classList={{
-                'bg-bg-active text-text-primary font-semibold shadow-xs':
-                  sortBy() === ProcessSortBy.CPU,
+                'bg-accent text-white font-bold shadow-2xs': sortBy() === ProcessSortBy.CPU,
                 'text-text-muted hover:text-text-primary': sortBy() !== ProcessSortBy.CPU,
               }}
             >
@@ -102,10 +100,9 @@ export const ProcessManager: Component = () => {
               type="button"
               onClick={() => setSortBy(ProcessSortBy.MEM)}
               aria-pressed={sortBy() === ProcessSortBy.MEM}
-              class="rounded px-2 py-0.5 text-[10px] transition-colors focus-visible:ring-1 focus-visible:ring-accent"
+              class="rounded-md px-2.5 py-1 text-[10.5px] transition-all focus-visible:ring-1 focus-visible:ring-accent font-mono"
               classList={{
-                'bg-bg-active text-text-primary font-semibold shadow-xs':
-                  sortBy() === ProcessSortBy.MEM,
+                'bg-accent text-white font-bold shadow-2xs': sortBy() === ProcessSortBy.MEM,
                 'text-text-muted hover:text-text-primary': sortBy() !== ProcessSortBy.MEM,
               }}
             >
@@ -116,25 +113,36 @@ export const ProcessManager: Component = () => {
       </div>
 
       {/* Process Table */}
-      <div class="overflow-x-auto rounded border border-border-subtle">
-        <table class="w-full text-left text-xs" aria-label="Process List">
+      <div class="max-h-[520px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
+        <table class="w-full text-left text-xs border-collapse" aria-label="Process List">
           <thead>
-            <tr class="border-b border-border-subtle bg-bg-subtle/50 text-[10px] uppercase tracking-wider text-text-muted">
-              <th class="py-2 px-3 font-medium">{t().processes.thPid}</th>
-              <th class="py-2 px-3 font-medium">{t().processes.thName}</th>
-              <th class="py-2 px-3 font-medium">{t().processes.thCpu}</th>
-              <th class="py-2 px-3 font-medium">{t().processes.thMem}</th>
-              <th class="py-2 px-3 font-medium">{t().processes.thDiskIo}</th>
-              <th class="py-2 px-3 font-medium text-center">{t().processes.thStatus}</th>
-              <th class="py-2 px-3 font-medium text-right">{t().common.actions}</th>
+            <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle/90 text-[10.5px] font-bold text-text-muted uppercase tracking-wider backdrop-blur-xs">
+              <th scope="col" class="py-2 px-3.5 w-16">
+                PID
+              </th>
+              <th scope="col" class="py-2 px-3.5">
+                {t().processes.thName}
+              </th>
+              <th scope="col" class="py-2 px-3.5 w-36">
+                CPU %
+              </th>
+              <th scope="col" class="py-2 px-3.5 w-28">
+                {t().processes.thMem}
+              </th>
+              <th scope="col" class="py-2 px-3.5 w-32 hidden md:table-cell">
+                {t().processes.thDiskIo}
+              </th>
+              <th scope="col" class="py-2 px-3.5 text-right w-24">
+                {t().processes.thAction}
+              </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-border-subtle/60">
+          <tbody class="divide-y divide-border-subtle font-mono text-[11px]">
             <For
               each={filteredProcesses()}
               fallback={
                 <tr>
-                  <td colspan="7" class="py-8 text-center text-xs text-text-muted font-mono">
+                  <td colspan={6} class="py-10 text-center text-text-muted font-sans text-xs">
                     {t().processes.empty}
                   </td>
                 </tr>
@@ -142,91 +150,64 @@ export const ProcessManager: Component = () => {
             >
               {(proc) => {
                 const cpu = proc.cpu_usage;
+                let cpuColor = 'text-status-success';
+                let barColor = 'bg-status-success';
+                if (cpu >= 80) {
+                  cpuColor = 'text-status-danger';
+                  barColor = 'bg-status-danger';
+                } else if (cpu >= 40) {
+                  cpuColor = 'text-status-warning';
+                  barColor = 'bg-status-warning';
+                } else if (cpu >= 15) {
+                  cpuColor = 'text-accent';
+                  barColor = 'bg-accent';
+                }
 
                 return (
-                  <tr class="hover:bg-bg-hover/40 transition-colors group">
-                    {/* PID */}
-                    <td class="py-1.5 px-3 mono text-[11px] text-text-muted">
-                      <Tooltip>
-                        <Tooltip.Trigger
-                          type="button"
-                          onClick={() => copyToClipboard(proc.pid.toString(), 'PID')}
-                          class="hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded transition-colors"
-                          aria-label={`Copy PID ${proc.pid}`}
-                        >
-                          {proc.pid}
-                        </Tooltip.Trigger>
-                        <Tooltip.Portal>
-                          <Tooltip.Content class="rounded bg-bg-modal px-2 py-1 text-[10px] text-text-primary border border-border-default shadow-lg">
-                            Copy PID
-                          </Tooltip.Content>
-                        </Tooltip.Portal>
-                      </Tooltip>
-                    </td>
-
-                    {/* Process Name */}
-                    <td class="py-1.5 px-3 max-w-[200px] sm:max-w-[280px]">
-                      <div class="flex items-center gap-1.5">
-                        <span class="font-medium text-text-primary truncate" title={proc.name}>
-                          {proc.name}
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* CPU Usage & Progress */}
-                    <td class="py-1.5 px-3">
-                      <div class="flex items-center gap-2">
-                        <div class="w-12 h-1.5 rounded-full bg-bg-subtle overflow-hidden">
-                          <div
-                            class="h-full transition-all duration-300 rounded-full"
-                            classList={{
-                              'bg-status-danger': cpu > 80,
-                              'bg-status-warning': cpu <= 80 && cpu > 30,
-                              'bg-accent': cpu <= 30,
-                            }}
-                            style={{
-                              width: `${Math.min(cpu, 100)}%`,
-                            }}
-                          />
-                        </div>
-                        <span class="mono text-[11px] text-text-secondary">{cpu.toFixed(1)}%</span>
-                      </div>
-                    </td>
-
-                    {/* Memory */}
-                    <td class="py-1.5 px-3">
-                      <div class="flex items-baseline gap-1">
-                        <span class="mono text-[11px] text-text-primary">
-                          {formatMem(proc.memory_bytes)}
-                        </span>
-                        <span class="mono text-[9px] text-text-muted">
-                          {proc.memory_percent.toFixed(0)}%
-                        </span>
-                      </div>
-                    </td>
-
-                    {/* Disk I/O */}
-                    <td class="py-1.5 px-3 font-mono text-[9.5px] text-text-muted">
-                      <span>
-                        ↓{formatIO(proc.disk_read_bytes)} ↑{formatIO(proc.disk_written_bytes)}
+                  <tr class="hover:bg-bg-subtle/50 transition-colors group">
+                    <td class="py-2 px-3.5 text-text-muted font-mono">{proc.pid}</td>
+                    <td class="py-2 px-3.5 truncate max-w-[240px]">
+                      <span class="font-bold text-text-primary truncate block" title={proc.name}>
+                        {proc.name}
                       </span>
                     </td>
-
-                    {/* Status */}
-                    <td class="py-1.5 px-3 text-center">
-                      <span class="text-[9.5px] text-text-muted font-mono">{proc.status}</span>
+                    <td class="py-2 px-3.5">
+                      <div class="flex items-center gap-2">
+                        <span class={`font-bold tabular-nums w-12 shrink-0 ${cpuColor}`}>
+                          {cpu.toFixed(1)}%
+                        </span>
+                        <div class="h-1.5 w-16 rounded-full bg-bg-subtle overflow-hidden border border-border-subtle/60 shrink-0">
+                          <div
+                            class={`h-full ${barColor} transition-all duration-300 rounded-full`}
+                            style={{ width: `${Math.min(cpu, 100)}%` }}
+                          />
+                        </div>
+                      </div>
                     </td>
-
-                    {/* Actions with Secondary Confirmation */}
-                    <td class="py-1.5 px-3 text-right">
-                      <button
-                        type="button"
-                        aria-label={`${t().processes.killBtn} ${proc.name} (PID: ${proc.pid})`}
-                        onClick={() => confirmKill(proc)}
-                        class="rounded px-2 py-0.5 text-[10px] text-status-danger bg-status-danger/10 hover:bg-status-danger hover:text-white transition-colors focus-visible:ring-1 focus-visible:ring-status-danger font-medium"
-                      >
-                        {t().processes.killBtn}
-                      </button>
+                    <td class="py-2 px-3.5 text-text-secondary font-medium tabular-nums">
+                      {formatMem(proc.memory_bytes)}
+                    </td>
+                    <td class="py-2 px-3.5 text-text-muted text-[10px] hidden md:table-cell tabular-nums">
+                      R: {formatIO(proc.disk_read_bytes)} / W: {formatIO(proc.disk_written_bytes)}
+                    </td>
+                    <td class="py-2 px-3.5 text-right whitespace-nowrap">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(proc.pid.toString(), 'PID')}
+                          class="rounded border border-border-default bg-bg-surface px-1.8 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-all"
+                          title={t().devops.copy}
+                        >
+                          {t().devops.copy}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => confirmKill(proc)}
+                          class="rounded border border-status-danger/30 bg-status-danger/10 px-2 py-0.5 text-[10px] font-bold text-status-danger hover:bg-status-danger hover:text-white transition-all"
+                        >
+                          {t().processes.killBtn}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );

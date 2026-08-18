@@ -5,86 +5,102 @@ import { t } from '../i18n';
 
 export const DisksHardware: Component = () => {
   return (
-    <div class="flex flex-col gap-3">
-      {/* Battery & Power Card with SolidJS Show */}
+    <div class="flex flex-col gap-4">
+      {/* Battery & Power Card */}
       <Show when={battery()}>
-        <section class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5">
-          <div class="mb-2.5 flex items-center justify-between">
+        <section class="glass-card flex flex-col p-4 shadow-xs">
+          <div class="mb-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <h2 class="text-xs font-semibold text-text-primary">{t().disks.batteryTitle}</h2>
-              <span class="text-[10px] text-text-muted mono">pmset</span>
+              <span class="h-2 w-2 rounded-full bg-status-success animate-pulse-dot" />
+              <h2 class="text-xs font-bold text-text-primary m-0">{t().disks.batteryTitle}</h2>
+              <span class="text-[10px] text-text-muted mono bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
+                pmset
+              </span>
             </div>
-            <span class="rounded bg-bg-subtle border border-border-subtle px-2 py-0.5 text-[10px] text-text-secondary font-mono">
+            <span class="rounded-full bg-status-success/15 border border-status-success/30 px-2.5 py-0.5 text-[10.5px] text-status-success font-mono font-bold">
               {battery()?.is_charging ? t().disks.acCharging : t().disks.batteryPower}
             </span>
           </div>
 
-          <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-            <div class="flex flex-col justify-between rounded border border-border-subtle bg-bg-input p-2.5">
-              <span class="text-[10.5px] text-text-muted">{t().disks.batteryPct}</span>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div class="glass-card-subtle flex flex-col justify-between p-3">
+              <span class="text-[10.5px] font-bold text-text-muted">{t().disks.batteryPct}</span>
               <div class="mt-1 flex items-baseline gap-1">
-                <span class="mono text-xl font-bold text-text-primary">
+                <span class="mono text-2xl font-bold text-text-primary">
                   {battery()?.percentage}%
                 </span>
+                <Show when={battery()?.is_charging}>
+                  <span class="text-xs text-status-success font-bold">⚡</span>
+                </Show>
               </div>
-              <div class="mt-2 h-1 w-full overflow-hidden rounded-full bg-bg-subtle border border-border-subtle">
+              <div class="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-bg-subtle border border-border-subtle">
                 <div
-                  class="h-full bg-status-success transition-all duration-300 rounded-full"
+                  class="h-full bg-linear-to-r from-teal-400 to-status-success transition-all duration-300 rounded-full"
                   style={{ width: `${battery()?.percentage || 0}%` }}
                 />
               </div>
             </div>
 
-            <div class="flex flex-col justify-between rounded border border-border-subtle bg-bg-input p-2.5">
-              <span class="text-[10.5px] text-text-muted">{t().disks.powerState}</span>
-              <div class="mt-1 mono text-sm font-semibold text-text-primary">
-                {battery()?.state}
-              </div>
-              <span class="text-[9.5px] text-text-muted">{t().disks.policyReady}</span>
+            <div class="glass-card-subtle flex flex-col justify-between p-3">
+              <span class="text-[10.5px] font-bold text-text-muted">{t().disks.powerState}</span>
+              <div class="mt-1 mono text-sm font-bold text-text-primary">{battery()?.state}</div>
+              <span class="text-[10px] text-text-muted mt-2">{t().disks.policyReady}</span>
             </div>
 
-            <div class="flex flex-col justify-between rounded border border-border-subtle bg-bg-input p-2.5">
-              <span class="text-[10.5px] text-text-muted">{t().disks.estimatedRemaining}</span>
-              <div class="mt-1 mono text-sm font-semibold text-text-primary">
+            <div class="glass-card-subtle flex flex-col justify-between p-3">
+              <span class="text-[10.5px] font-bold text-text-muted">
+                {t().disks.estimatedRemaining}
+              </span>
+              <div class="mt-1 mono text-sm font-bold text-text-primary">
                 {battery()?.time_remaining || t().disks.calculating}
               </div>
-              <span class="text-[9.5px] text-text-muted">{t().disks.estHours}</span>
+              <span class="text-[10px] text-text-muted mt-2">{t().disks.estHours}</span>
             </div>
           </div>
         </section>
       </Show>
 
       {/* Disks & APFS Storage Section */}
-      <section class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5">
-        <div class="mb-2.5 flex items-center justify-between">
+      <section class="glass-card flex flex-col p-4 shadow-xs">
+        <div class="mb-3 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <h2 class="text-xs font-semibold text-text-primary">{t().disks.disksTitle}</h2>
-            <span class="text-[10px] text-text-muted mono">
+            <span class="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
+            <h2 class="text-xs font-bold text-text-primary m-0">{t().disks.disksTitle}</h2>
+            <span class="text-[10px] font-mono text-text-muted bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
               {disks().length} {t().disks.volumesCount}
             </span>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           <For
             each={disks()}
             fallback={
-              <div class="col-span-full py-8 text-center text-xs text-text-muted font-mono">
+              <div class="col-span-full py-10 text-center text-xs text-text-muted font-mono">
                 {t().disks.scanning}
               </div>
             }
           >
             {(disk) => {
               const usedPct = disk.used_percent;
+              let barColor = 'bg-accent';
+              let textColor = 'text-accent';
+              if (usedPct >= 90) {
+                barColor = 'bg-status-danger';
+                textColor = 'text-status-danger';
+              } else if (usedPct >= 75) {
+                barColor = 'bg-status-warning';
+                textColor = 'text-status-warning';
+              }
 
               return (
-                <div class="flex flex-col justify-between rounded border border-border-subtle bg-bg-input p-3 transition-colors hover:border-border-default">
+                <div class="glass-card-subtle flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover">
                   <div>
                     <div class="flex items-start justify-between">
-                      <div class="font-medium text-text-primary truncate text-xs" title={disk.name}>
+                      <div class="font-bold text-text-primary truncate text-xs" title={disk.name}>
                         {disk.name}
                       </div>
-                      <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 mono text-[9px] text-text-muted">
+                      <span class="rounded bg-bg-surface border border-border-subtle px-2 py-0.5 mono text-[9.5px] font-bold text-text-secondary uppercase">
                         {disk.file_system}
                       </span>
                     </div>
@@ -96,39 +112,24 @@ export const DisksHardware: Component = () => {
                     </div>
                   </div>
 
-                  <div class="mt-3 flex flex-col gap-1.5">
-                    <div class="flex items-baseline justify-between text-[10.5px]">
-                      <span class="text-text-muted">
-                        {t().disks.used}{' '}
-                        <strong class="text-text-primary">
-                          {formatTotalBytes(disk.used_bytes)}
-                        </strong>{' '}
-                        / {formatTotalBytes(disk.total_bytes)}
-                      </span>
-                      <span class="mono font-semibold text-text-primary">
-                        {usedPct.toFixed(1)}%
-                      </span>
+                  <div class="mt-3.5 flex flex-col gap-1.5">
+                    <div class="flex items-baseline justify-between text-[11px]">
+                      <span class="text-text-muted font-medium">{t().disks.used}</span>
+                      <span class={`mono font-bold ${textColor}`}>{usedPct.toFixed(1)}%</span>
                     </div>
 
-                    <div class="h-1 w-full overflow-hidden rounded-full bg-bg-subtle border border-border-subtle">
+                    <div class="h-2 w-full overflow-hidden rounded-full bg-bg-subtle border border-border-subtle/80">
                       <div
-                        class="h-full transition-all duration-300 rounded-full"
-                        classList={{
-                          'bg-status-danger': usedPct > 90,
-                          'bg-status-warning': usedPct <= 90 && usedPct > 75,
-                          'bg-accent': usedPct <= 75,
-                        }}
-                        style={{
-                          width: `${Math.min(usedPct, 100)}%`,
-                        }}
+                        class={`h-full ${barColor} transition-all duration-300 rounded-full`}
+                        style={{ width: `${Math.min(usedPct, 100)}%` }}
                       />
                     </div>
 
-                    <div class="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-border-subtle">
-                      <span>{t().disks.remainingAvailable}</span>
-                      <span class="mono text-text-primary font-medium">
-                        {formatTotalBytes(disk.available_bytes)}
+                    <div class="mt-1 flex justify-between text-[10px] text-text-muted mono">
+                      <span>
+                        {t().disks.remainingAvailable}: {formatTotalBytes(disk.available_bytes)}
                       </span>
+                      <span>{formatTotalBytes(disk.total_bytes)}</span>
                     </div>
                   </div>
                 </div>
