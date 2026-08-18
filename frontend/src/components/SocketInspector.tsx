@@ -1,6 +1,6 @@
 import { For, Show, createMemo, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
-import { Input, Tabs, TabsContent, TabsList, TabsTrigger } from './ui';
+import { Button, Input, Tabs, TabsContent, TabsList, TabsTrigger } from './ui';
 import { copyToClipboard, killPortApi, openConfirmDialog, sockets } from '../services/store';
 import {
   AppBoxIcon,
@@ -400,22 +400,24 @@ export const SocketInspector: Component = () => {
                       </td>
                       <td class="py-2.5 px-3.5 text-right whitespace-nowrap">
                         <div class="flex items-center justify-end gap-1.5">
-                          <button
+                          <Button
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() => copyToClipboard(item.local_port.toString(), 'Port')}
-                            class="rounded border border-border-default bg-bg-surface px-2 py-0.8 text-[10px] text-text-muted hover:text-text-primary transition-all flex items-center gap-1"
                             title={t().devops.copy}
                           >
                             <CopyIcon class="h-3 w-3" />
                             <span>{t().devops.copy}</span>
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="destructive"
+                            size="sm"
                             onClick={() => confirmKillPort(item)}
-                            class="rounded border border-status-danger/30 bg-status-danger/10 px-2 py-0.8 text-[10px] font-bold text-status-danger hover:bg-status-danger hover:text-white transition-all"
                           >
                             {t().confirmDialog.killPortConfirmBtn}
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>

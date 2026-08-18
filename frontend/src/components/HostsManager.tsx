@@ -134,21 +134,24 @@ export const HostsManager: Component = () => {
                   <td class="py-2 px-3.5 text-text-primary font-semibold">{host.domain}</td>
                   <td class="py-2 px-3.5 text-right whitespace-nowrap">
                     <div class="flex items-center justify-end gap-1.5">
-                      <button
+                      <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => handleTestPing(host.domain)}
                         disabled={pingingDomain() === host.domain}
-                        class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-all"
+                        loading={pingingDomain() === host.domain}
                       >
                         {pingingDomain() === host.domain ? '...' : t().devops.pingBtn}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => copyToClipboard(`${host.ip} ${host.domain}`, 'Host mapping')}
-                        class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-all"
                       >
                         {t().devops.copy}
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>

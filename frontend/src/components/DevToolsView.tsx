@@ -21,9 +21,9 @@ import {
   ServerIcon,
   TargetIcon,
 } from './Icons';
-import { Badge, Button } from './ui';
+import { Badge, Button, Input } from './ui';
 import { t } from '../i18n';
-import type { DetectedApiKey, EnvVarEntry, PathEntry } from '../types';
+import type { DetectedApiKey, EnvVarEntry } from '../types';
 
 interface KnownApiKeyDef {
   key: string;
@@ -627,12 +627,12 @@ export const DevToolsView: Component = () => {
               </div>
 
               {/* Search Box */}
-              <input
+              <Input
                 type="text"
                 placeholder={t().devops.searchKeysPlaceholder}
                 value={searchKeys()}
                 onInput={(e) => setSearchKeys(e.currentTarget.value)}
-                class="w-full sm:w-56 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent"
+                class="w-full sm:w-48"
               />
             </div>
           </div>
@@ -834,8 +834,10 @@ export const DevToolsView: Component = () => {
               <p class="text-xs text-text-muted mt-0.5 m-0">{t().devops.pathPriorityHint}</p>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={() =>
                 copyToClipboard(
                   envVarsData()
@@ -844,57 +846,60 @@ export const DevToolsView: Component = () => {
                   '$PATH',
                 )
               }
-              class="rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors"
             >
               {t().devops.copy} $PATH
-            </button>
+            </Button>
           </div>
 
-          <div class="space-y-2">
-            <For
-              each={envVarsData()?.path_entries || []}
-              fallback={
-                <div class="py-8 text-center text-xs text-text-muted font-mono">
-                  {t().devops.noMatchEnv}
-                </div>
-              }
-            >
-              {(entry: PathEntry) => (
-                <div class="glass-card-subtle flex items-center justify-between p-2.5 transition-colors hover:border-border-hover">
-                  <div class="flex items-center gap-3 min-w-0">
-                    <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-bg-subtle mono text-[10px] font-bold text-text-muted">
-                      {entry.index}
-                    </span>
-                    <span class="mono text-xs text-text-primary truncate" title={entry.path}>
-                      {entry.path}
-                    </span>
-                  </div>
-
-                  <div class="flex items-center gap-2 shrink-0">
-                    <Show
-                      when={entry.exists}
-                      fallback={
-                        <span class="rounded bg-status-danger/15 px-2 py-0.5 text-[10px] font-semibold text-status-danger">
-                          {t().devops.pathInvalid}
+          {/* Table */}
+          <div class="overflow-x-auto rounded-lg border border-border-subtle">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-bg-subtle/50 text-[10.5px] uppercase tracking-wider text-text-muted border-b border-border-subtle font-mono">
+                <tr>
+                  <th class="py-2 px-3 text-center w-12">#</th>
+                  <th class="py-2 px-3">{t().devops.tabPath}</th>
+                  <th class="py-2 px-3">{t().common.status}</th>
+                  <th class="py-2 px-3 text-right">{t().common.actions}</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-subtle">
+                <For each={envVarsData()?.path_entries}>
+                  {(entry) => (
+                    <tr class="hover:bg-bg-subtle/30 transition-colors">
+                      <td class="py-2 px-3 text-center mono text-text-muted text-[10px]">
+                        #{entry.index + 1}
+                      </td>
+                      <td class="py-2 px-3 mono text-[11px] text-text-primary">
+                        <span class="break-all">{entry.path}</span>
+                      </td>
+                      <td class="py-2 px-3">
+                        <span
+                          class="rounded px-1.5 py-0.5 text-[9.5px] font-bold"
+                          classList={{
+                            'bg-status-success/15 text-status-success border border-status-success/30':
+                              entry.exists,
+                            'bg-status-danger/15 text-status-danger border border-status-danger/30':
+                              !entry.exists,
+                          }}
+                        >
+                          {entry.exists ? 'OK' : 'Missing'}
                         </span>
-                      }
-                    >
-                      <span class="rounded bg-status-success/15 px-2 py-0.5 text-[10px] font-semibold text-status-success">
-                        {t().devops.pathValid}
-                      </span>
-                    </Show>
-
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(entry.path, '$PATH Entry')}
-                      class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
-                    >
-                      {t().devops.copy}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </For>
+                      </td>
+                      <td class="py-2 px-3 text-right whitespace-nowrap">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => copyToClipboard(entry.path, 'Path entry')}
+                        >
+                          {t().devops.copy}
+                        </Button>
+                      </td>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
           </div>
         </section>
       </Show>
@@ -904,12 +909,12 @@ export const DevToolsView: Component = () => {
         <section class="glass-card p-4 space-y-4">
           {/* Filter Bar */}
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <input
+            <Input
               type="text"
               placeholder={t().devops.searchEnvPlaceholder}
               value={searchEnv()}
               onInput={(e) => setSearchEnv(e.currentTarget.value)}
-              class="w-full max-w-md rounded-lg border border-border-default bg-bg-surface px-3 py-2 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent focus-visible:ring-1 focus-visible:ring-accent transition-colors"
+              class="w-full max-w-md"
             />
 
             {/* Category Filter Pills */}
@@ -985,21 +990,23 @@ export const DevToolsView: Component = () => {
                         <td class="px-3.5 py-2 text-right whitespace-nowrap">
                           <div class="flex items-center justify-end gap-1.5">
                             <Show when={isSecret}>
-                              <button
+                              <Button
                                 type="button"
+                                variant="secondary"
+                                size="sm"
                                 onClick={() => toggleSecretReveal(entry.name)}
-                                class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
                               >
                                 {isRevealed() ? t().devops.hideSecret : t().devops.showSecret}
-                              </button>
+                              </Button>
                             </Show>
-                            <button
+                            <Button
                               type="button"
+                              variant="secondary"
+                              size="sm"
                               onClick={() => copyToClipboard(entry.value, entry.name)}
-                              class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
                             >
                               {t().devops.copy}
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>

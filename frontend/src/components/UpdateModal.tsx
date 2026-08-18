@@ -121,14 +121,15 @@ export const UpdateModal: Component = () => {
             </div>
 
             <Show when={!isApplyingUpdate()}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={handleClose}
-                class="flex h-7 w-7 items-center justify-center rounded-md border border-border-subtle bg-bg-subtle text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
                 aria-label={t().update.dismissBtn}
               >
                 <CloseIcon class="h-4 w-4" />
-              </button>
+              </Button>
             </Show>
           </div>
 
@@ -350,14 +351,15 @@ export const UpdateModal: Component = () => {
                           </span>
                         </div>
 
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={() => handleRollback(backup.version)}
                           disabled={isApplyingUpdate()}
-                          class="px-2.5 py-1 text-xs font-medium rounded-md border border-border-subtle bg-bg-surface hover:bg-status-warning/15 hover:border-status-warning/30 hover:text-status-warning transition-colors"
                         >
                           {t().update.rollbackBtn}
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </For>

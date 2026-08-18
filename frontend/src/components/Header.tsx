@@ -22,6 +22,7 @@ import {
   pathToSectionMap,
 } from '../constants';
 import { CompactIcon, MoonIcon, RefreshIcon, RocketIcon, SunIcon, SystemThemeIcon } from './Icons';
+import { Button } from './ui';
 
 export const Header: Component = () => {
   const [timeStr, setTimeStr] = createSignal('00:00:00');
@@ -57,14 +58,16 @@ export const Header: Component = () => {
     <header class="sticky top-0 z-30 flex h-13 w-full items-center justify-between border-b border-border-default bg-bg-surface/85 px-4 sm:px-5 backdrop-blur-md select-none transition-colors">
       {/* Left: Mobile Toggle & Breadcrumb */}
       <div class="flex items-center gap-3">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           onClick={() => setIsSidebarOpen(true)}
           aria-label={t().common.openSidebar}
-          class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-border-default bg-bg-subtle text-text-secondary hover:text-text-primary hover:border-border-hover transition-all active:scale-95 lg:hidden"
+          class="h-7.5 w-7.5 lg:hidden"
         >
           <CompactIcon class="h-4 w-4" />
-        </button>
+        </Button>
 
         <div class="flex items-center gap-2 text-xs">
           <div class="flex items-center gap-1.5 text-text-muted font-medium">

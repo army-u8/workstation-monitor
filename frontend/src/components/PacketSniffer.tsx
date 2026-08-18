@@ -11,6 +11,7 @@ import {
   stats,
 } from '../services/store';
 import { PacketProtocolFilter, ToastType } from '../constants';
+import { Badge, Button } from './ui';
 import { t } from '../i18n';
 
 export const PacketSniffer: Component = () => {
@@ -52,9 +53,9 @@ export const PacketSniffer: Component = () => {
         <div class="flex items-center gap-2">
           <span class="h-2 w-2 rounded-full bg-purple-400 animate-pulse-dot" />
           <h2 class="text-xs font-bold text-text-primary m-0">{t().sniffer.title}</h2>
-          <span class="text-[10px] font-mono text-text-muted bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
+          <Badge variant="secondary" class="mono">
             /dev/bpf
-          </span>
+          </Badge>
         </div>
 
         <div class="flex items-center gap-2">
@@ -72,24 +73,26 @@ export const PacketSniffer: Component = () => {
             <option value={PacketProtocolFilter.ICMP}>{t().sniffer.filterIcmp}</option>
           </select>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={togglePause}
             aria-pressed={isSnifferPaused()}
             aria-label={isSnifferPaused() ? t().sniffer.resume : t().sniffer.pause}
-            class="rounded-lg border border-border-default bg-bg-subtle px-2.5 py-1 text-[10.5px] font-mono text-text-secondary transition-all hover:bg-bg-hover hover:text-text-primary focus-visible:ring-1 focus-visible:ring-accent"
           >
             <span>{isSnifferPaused() ? t().sniffer.resume : t().sniffer.pause}</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={clearStream}
             aria-label={t().sniffer.clear}
-            class="rounded-lg border border-border-subtle bg-bg-subtle px-2.5 py-1 text-[10.5px] font-mono text-text-muted hover:text-text-primary transition-all"
           >
             {t().sniffer.clear}
-          </button>
+          </Button>
         </div>
       </div>
 

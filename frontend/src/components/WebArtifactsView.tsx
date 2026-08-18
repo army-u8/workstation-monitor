@@ -18,7 +18,7 @@ import {
   PhotoIcon,
   RefreshIcon,
 } from './Icons';
-import { Input } from './ui';
+import { Button, Input } from './ui';
 import { ArtifactsLayoutMode, ArtifactsSortBy, StorageKey } from '../constants';
 import { t } from '../i18n';
 import type { WebArtifactInfo } from '../types';
@@ -585,22 +585,25 @@ export const WebArtifactsView: Component = () => {
 
                   {/* Actions Footer */}
                   <div class="flex items-center gap-2 pt-2 border-t border-border-subtle">
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="sm"
                       onClick={() => handleOpenBrowser(artifact.url)}
-                      class="flex-1 rounded-lg bg-accent/15 border border-accent/30 py-1.5 text-center text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-all shadow-2xs"
+                      class="flex-1"
                     >
                       {t().artifacts.openBrowser} ↗
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="destructive"
+                      size="sm"
                       onClick={() => freeArtifactPortApi(artifact.port)}
-                      class="rounded-lg border border-status-danger/30 bg-status-danger/10 px-2.5 py-1.5 text-xs font-medium text-status-danger hover:bg-status-danger/20 transition-colors"
                       title={`${t().artifacts.freePortTitle}${artifact.port}`}
                     >
                       {t().artifacts.freePort}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -716,21 +719,23 @@ export const WebArtifactsView: Component = () => {
                       {/* Actions */}
                       <td class="py-2.5 px-3 text-right">
                         <div class="flex items-center justify-end gap-1.5">
-                          <button
+                          <Button
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() => handleOpenBrowser(artifact.url)}
-                            class="rounded bg-accent/15 border border-accent/30 px-2 py-1 text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-all shadow-2xs"
                           >
                             {t().artifacts.openBrowser} ↗
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="destructive"
+                            size="sm"
                             onClick={() => freeArtifactPortApi(artifact.port)}
-                            class="rounded border border-status-danger/30 bg-status-danger/10 px-2 py-1 text-xs font-medium text-status-danger hover:bg-status-danger/20 transition-colors"
                             title={`${t().artifacts.freePortTitle}${artifact.port}`}
                           >
                             {t().artifacts.freePort}
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -797,22 +802,24 @@ export const WebArtifactsView: Component = () => {
                       {artifact.pid ? ` (${artifact.pid})` : ''}
                     </span>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="sm"
                       onClick={() => handleOpenBrowser(artifact.url)}
-                      class="rounded bg-accent/15 border border-accent/30 px-2 py-0.8 text-xs font-semibold text-accent hover:bg-accent hover:text-white transition-all shadow-2xs"
                     >
                       {t().artifacts.openBrowser} ↗
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="destructive"
+                      size="sm"
                       onClick={() => freeArtifactPortApi(artifact.port)}
-                      class="rounded border border-status-danger/30 bg-status-danger/10 px-2 py-0.8 text-xs font-medium text-status-danger hover:bg-status-danger/20 transition-colors"
                       title={`${t().artifacts.freePortTitle}${artifact.port}`}
                     >
                       {t().artifacts.freePort}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}

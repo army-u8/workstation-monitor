@@ -91,14 +91,15 @@ export const SavePointDrawer: Component = () => {
               </div>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={closeSnapshotDrawer}
-              class="rounded-lg p-1.5 text-text-muted hover:bg-bg-hover hover:text-text-primary transition-colors"
               aria-label={t().common.cancel}
             >
               <CloseIcon class="h-4 w-4" />
-            </button>
+            </Button>
           </div>
 
           {/* Body Content */}

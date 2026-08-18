@@ -604,35 +604,38 @@ export const ObsidianHub: Component = () => {
                 </div>
 
                 <div class="flex items-center gap-1.5 shrink-0">
-                  <button
+                  <Button
                     type="button"
+                    variant="default"
+                    size="sm"
                     onClick={() =>
                       openObsidianApi({
                         file_path: note().rel_path,
                         target_app: 'obsidian',
                       })
                     }
-                    class="rounded-lg bg-accent px-2.5 py-1 text-xs font-semibold text-white shadow-xs hover:bg-accent-hover transition-colors"
                   >
                     {t().obsidian.editInObsidian}
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => copyToClipboard(note().content, 'Markdown')}
-                    class="rounded-lg border border-border-default bg-bg-surface px-2.5 py-1 text-xs font-medium text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors"
                   >
                     {t().obsidian.copyContent}
-                  </button>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setActiveNoteDetail(null)}
                     aria-label={t().obsidian.closeReader}
-                    class="rounded-lg border border-border-default bg-bg-surface p-1 text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
                   >
                     <CloseIcon class="h-4 w-4" />
-                  </button>
+                  </Button>
                 </div>
               </div>
 

@@ -657,14 +657,17 @@ export const AiRadarView: Component = () => {
                         </div>
                       </div>
 
-                      <button
+                      <Button
                         type="button"
+                        variant="destructive"
+                        size="sm"
                         onClick={() => unloadOllamaModelApi(model.name)}
                         disabled={isUnloadingOllama()}
-                        class="rounded-lg bg-status-danger/15 border border-status-danger/30 px-3 py-1.2 text-xs font-semibold text-status-danger hover:bg-status-danger hover:text-white transition-all shadow-2xs self-start sm:self-auto disabled:opacity-50"
+                        loading={isUnloadingOllama()}
+                        class="self-start sm:self-auto"
                       >
                         {isUnloadingOllama() ? t().aiRadar.unloading : t().aiRadar.unloadBtn}
-                      </button>
+                      </Button>
                     </div>
                   )}
                 </For>
@@ -833,10 +836,11 @@ export const AiRadarView: Component = () => {
                       </pre>
                     </div>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
                       onClick={() => handleCopyRule(rule)}
-                      class="mt-4 flex items-center justify-center gap-1.5 rounded-lg border border-border-default bg-bg-surface py-1.8 text-xs font-semibold text-text-primary transition-all hover:bg-bg-hover hover:border-border-hover shadow-2xs"
+                      class="mt-4 w-full"
                     >
                       <Show
                         when={copiedRuleId() === rule.id}
@@ -850,7 +854,7 @@ export const AiRadarView: Component = () => {
                         <CheckIcon class="h-3.5 w-3.5 text-status-success" />
                         <span class="text-status-success">{t().aiRadar.ruleCopied}</span>
                       </Show>
-                    </button>
+                    </Button>
                   </div>
                 )}
               </For>

@@ -44,6 +44,7 @@ import {
   wsStatus,
   wsStatusText,
 } from '../services/store';
+import { Badge } from './ui';
 import { NavSectionId, RoutePath, WsConnectionStatus, sectionToPathMap } from '../constants';
 import { t } from '../i18n';
 
@@ -241,24 +242,21 @@ export const Sidebar: Component = () => {
     if (b === null || b === undefined || b === '') return null;
 
     if (typeof b === 'object') {
+      let variant: 'warning' | 'success' | 'secondary' = 'secondary';
+      if (b.isWarning) variant = 'warning';
+      else if (b.isSuccess) variant = 'success';
+
       return (
-        <span
-          class="ml-auto rounded px-1.5 py-0.5 mono text-[9.5px] font-semibold transition-colors"
-          classList={{
-            'bg-status-warning/15 text-status-warning': b.isWarning,
-            'bg-status-success/15 text-status-success': b.isSuccess,
-            'bg-bg-subtle text-text-muted': !b.isWarning && !b.isSuccess,
-          }}
-        >
+        <Badge variant={variant} class="ml-auto mono">
           {b.text}
-        </span>
+        </Badge>
       );
     }
 
     return (
-      <span class="ml-auto rounded bg-bg-surface/80 px-1.5 py-0.5 mono text-[9.5px] font-medium text-text-muted">
+      <Badge variant="secondary" class="ml-auto mono">
         {b}
-      </span>
+      </Badge>
     );
   };
 

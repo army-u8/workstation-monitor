@@ -2,6 +2,7 @@ import { Show, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
 import { flushDnsApi, killPortApi, openConfirmDialog, pingHostApi } from '../services/store';
 import { DEFAULT_PROBE_HOST } from '../constants';
+import { Button, Input } from './ui';
 import { t } from '../i18n';
 import { BoltIcon, GlobeIcon, OpsIcon, PlugIcon } from './Icons';
 import type { PingResponse } from '../types';
@@ -58,8 +59,9 @@ export const OpsView: Component = () => {
     e.preventDefault();
     const host = pingHost().trim();
     if (!host) return;
+
     setIsPinging(true);
-    const res = await pingHostApi(host);
+    const res = await pingHostApi(host, 3);
     setPingResult(res);
     setIsPinging(false);
   };
@@ -67,13 +69,15 @@ export const OpsView: Component = () => {
   return (
     <div class="flex flex-col gap-4" aria-label={t().sidebar.navOps}>
       {/* Header Banner */}
-      <div class="glass-card flex flex-wrap items-center justify-between gap-2 p-4 shadow-xs">
+      <div class="glass-card flex items-center justify-between p-4 shadow-xs">
         <div class="flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-status-info/15 text-status-info text-xl border border-status-info/25 shadow-2xs">
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 border border-accent/20 text-accent">
             <OpsIcon class="h-5 w-5" />
-          </span>
+          </div>
           <div>
-            <h2 class="text-sm font-bold text-text-primary m-0">{t().sidebar.navOps}</h2>
+            <h2 class="text-base font-bold text-text-primary m-0 tracking-tight">
+              {t().sidebar.navOps}
+            </h2>
             <p class="text-xs text-text-muted m-0 mt-0.5">{t().ops.subtitle}</p>
           </div>
         </div>
@@ -93,16 +97,17 @@ export const OpsView: Component = () => {
             <p class="mt-2 text-xs text-text-muted leading-relaxed">{t().devops.dnsDesc}</p>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={handleFlushDns}
             disabled={isFlushingDns()}
-            aria-busy={isFlushingDns()}
+            loading={isFlushingDns()}
             aria-label={t().devops.dnsBtn}
-            class="mt-4 w-full rounded-lg border border-border-default bg-bg-surface py-2 text-xs font-bold text-text-primary transition-all hover:bg-bg-hover hover:border-border-hover active:scale-98 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent"
+            class="mt-4 w-full"
           >
             {isFlushingDns() ? '...' : t().devops.dnsBtn}
-          </button>
+          </Button>
         </div>
 
         {/* Tool 2: Force Kill Port */}
@@ -118,22 +123,23 @@ export const OpsView: Component = () => {
           </div>
 
           <form onSubmit={handleFreePort} class="mt-4 flex gap-2">
-            <input
+            <Input
               type="number"
               min="1"
               max="65535"
               placeholder="e.g. 3000"
               value={portInput()}
               onInput={(e) => setPortInput(e.currentTarget.value)}
-              class="w-full rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 mono text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
+              class="w-full mono"
             />
-            <button
+            <Button
               type="submit"
+              variant="destructive"
               disabled={isFreeingPort() || !portInput()}
-              class="shrink-0 rounded-lg bg-status-danger px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+              loading={isFreeingPort()}
             >
               {isFreeingPort() ? '...' : t().devops.portBtn}
-            </button>
+            </Button>
           </form>
         </div>
 
@@ -150,20 +156,21 @@ export const OpsView: Component = () => {
           </div>
 
           <form onSubmit={handlePing} class="mt-4 flex gap-2">
-            <input
+            <Input
               type="text"
               placeholder="1.1.1.1 or google.com"
               value={pingHost()}
               onInput={(e) => setPingHost(e.currentTarget.value)}
-              class="w-full rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 mono text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none"
+              class="w-full mono"
             />
-            <button
+            <Button
               type="submit"
+              variant="default"
               disabled={isPinging() || !pingHost().trim()}
-              class="shrink-0 rounded-lg bg-accent px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+              loading={isPinging()}
             >
               {isPinging() ? '...' : t().devops.pingBtn}
-            </button>
+            </Button>
           </form>
         </div>
       </section>

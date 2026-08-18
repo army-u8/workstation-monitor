@@ -9,11 +9,10 @@ import {
   CodeIcon,
   FolderIcon,
   MonitorIcon,
-  RefreshIcon,
   SafariIcon,
   TerminalIcon,
 } from './Icons';
-import { Input } from './ui';
+import { Button, Input } from './ui';
 import { t } from '../i18n';
 import type { AppVersionInfo } from '../types';
 
@@ -100,17 +99,17 @@ export const MachineInfo: Component = () => {
           </div>
 
           <div class="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing()}
-              aria-busy={isRefreshing()}
+              loading={isRefreshing()}
               aria-label={t().common.refresh}
-              class="flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs font-semibold text-text-primary transition-all hover:bg-bg-hover hover:border-border-hover disabled:opacity-50"
             >
-              <RefreshIcon class={`h-3.5 w-3.5 ${isRefreshing() ? 'animate-spin' : ''}`} />
               <span>{t().common.refresh}</span>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -240,13 +239,14 @@ export const MachineInfo: Component = () => {
                       </div>
                     </div>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="default"
+                      size="sm"
                       onClick={() => openAppApi(safari().path, 'finder')}
-                      class="rounded-lg bg-accent px-3 py-1 text-xs font-bold text-white transition-all hover:brightness-110 active:scale-95 shadow-2xs"
                     >
                       {t().machineInfo.openApp}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </Show>
@@ -402,13 +402,14 @@ export const MachineInfo: Component = () => {
                   </span>
 
                   <Show when={app.is_installed}>
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="sm"
                       onClick={() => openAppApi(app.path, 'finder')}
-                      class="rounded-md bg-bg-surface border border-border-default px-2.5 py-1 text-xs font-semibold text-text-secondary hover:text-text-primary hover:border-border-hover transition-all"
                     >
                       {t().machineInfo.openApp}
-                    </button>
+                    </Button>
                   </Show>
                 </div>
               </div>
