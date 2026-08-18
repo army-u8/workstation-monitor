@@ -66,14 +66,16 @@ export const HostsManager: Component = () => {
               class="w-60 pr-7"
             />
             <Show when={searchQuery()}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => setSearchQuery('')}
                 aria-label={t().common.cancel}
-                class="absolute right-2 text-text-muted hover:text-text-primary p-0.5"
+                class="absolute right-1 h-6 w-6"
               >
                 <CloseIcon class="h-3 w-3" />
-              </button>
+              </Button>
             </Show>
           </div>
 

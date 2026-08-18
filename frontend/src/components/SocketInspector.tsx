@@ -230,17 +230,19 @@ export const SocketInspector: Component = () => {
                 placeholder={t().sockets.searchPlaceholder}
                 value={searchQuery()}
                 onInput={(e) => setSearchQuery(e.currentTarget.value)}
-                class="h-7 w-40 sm:w-48 pl-2.5 pr-6 text-xs"
+                class="w-40 sm:w-48 pr-7"
               />
               <Show when={searchQuery()}>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setSearchQuery('')}
                   aria-label={t().common.cancel}
-                  class="absolute right-2 text-text-muted hover:text-text-primary p-0.5"
+                  class="absolute right-1 h-6 w-6"
                 >
                   <CloseIcon class="h-3 w-3" />
-                </button>
+                </Button>
               </Show>
             </div>
 
@@ -251,71 +253,46 @@ export const SocketInspector: Component = () => {
                 role="group"
                 aria-label="Category filter"
               >
-                <button
+                <Button
                   type="button"
+                  variant={categoryFilter() === SocketCategoryFilter.ALL ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.ALL)}
-                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
-                  classList={{
-                    'bg-accent text-white font-bold shadow-2xs':
-                      categoryFilter() === SocketCategoryFilter.ALL,
-                    'text-text-muted hover:text-text-primary':
-                      categoryFilter() !== SocketCategoryFilter.ALL,
-                  }}
                 >
                   {t().sockets.filterAll}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant={categoryFilter() === SocketCategoryFilter.WEB ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.WEB)}
-                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
-                  classList={{
-                    'bg-accent text-white font-bold shadow-2xs':
-                      categoryFilter() === SocketCategoryFilter.WEB,
-                    'text-text-muted hover:text-text-primary':
-                      categoryFilter() !== SocketCategoryFilter.WEB,
-                  }}
                 >
                   {t().sockets.filterWeb}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant={categoryFilter() === SocketCategoryFilter.DB ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.DB)}
-                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
-                  classList={{
-                    'bg-accent text-white font-bold shadow-2xs':
-                      categoryFilter() === SocketCategoryFilter.DB,
-                    'text-text-muted hover:text-text-primary':
-                      categoryFilter() !== SocketCategoryFilter.DB,
-                  }}
                 >
                   {t().sockets.filterDb}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant={categoryFilter() === SocketCategoryFilter.DEV ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.DEV)}
-                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
-                  classList={{
-                    'bg-accent text-white font-bold shadow-2xs':
-                      categoryFilter() === SocketCategoryFilter.DEV,
-                    'text-text-muted hover:text-text-primary':
-                      categoryFilter() !== SocketCategoryFilter.DEV,
-                  }}
                 >
                   {t().sockets.filterDev}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant={categoryFilter() === SocketCategoryFilter.APP ? 'default' : 'ghost'}
+                  size="sm"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.APP)}
-                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
-                  classList={{
-                    'bg-accent text-white font-bold shadow-2xs':
-                      categoryFilter() === SocketCategoryFilter.APP,
-                    'text-text-muted hover:text-text-primary':
-                      categoryFilter() !== SocketCategoryFilter.APP,
-                  }}
                 >
                   {t().sockets.filterApp}
-                </button>
+                </Button>
               </div>
             </Show>
           </div>
@@ -481,22 +458,24 @@ export const SocketInspector: Component = () => {
                             <span class="truncate font-semibold text-text-primary">
                               {item.remote_ip}:{item.remote_port}
                             </span>
-                            <button
+                            <Button
                               type="button"
+                              variant="ghost"
+                              size="icon"
                               onClick={() =>
                                 copyToClipboard(
                                   `${item.remote_ip}:${item.remote_port}`,
                                   'Remote Address',
                                 )
                               }
-                              class="opacity-0 group-hover:opacity-100 p-0.5 text-text-muted hover:text-accent transition-opacity"
+                              class="opacity-0 group-hover:opacity-100 h-5 w-5 p-0"
                               title={t().sockets.copyAddrTooltip.replace(
                                 '{addr}',
                                 `${item.remote_ip}:${item.remote_port}`,
                               )}
                             >
                               <CopyIcon class="h-3 w-3" />
-                            </button>
+                            </Button>
                           </div>
                         </Show>
                       </td>

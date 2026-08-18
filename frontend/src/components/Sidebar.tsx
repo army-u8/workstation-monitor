@@ -44,7 +44,7 @@ import {
   wsStatus,
   wsStatusText,
 } from '../services/store';
-import { Badge } from './ui';
+import { Badge, Button } from './ui';
 import { NavSectionId, RoutePath, WsConnectionStatus, sectionToPathMap } from '../constants';
 import { t } from '../i18n';
 
@@ -300,14 +300,16 @@ export const Sidebar: Component = () => {
             </div>
           </A>
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setIsSidebarOpen(false)}
             aria-label={t().common.closeSidebar}
-            class="flex h-6 w-6 items-center justify-center rounded-md text-text-muted hover:text-text-primary md:hidden hover:bg-bg-subtle"
+            class="md:hidden h-6 w-6"
           >
             <CloseIcon class="h-4 w-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Navigation Categories and Items */}

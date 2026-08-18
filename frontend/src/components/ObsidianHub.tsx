@@ -173,15 +173,17 @@ export const ObsidianHub: Component = () => {
               </div>
 
               <Show when={obsidianSummary()?.vault_path}>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => copyToClipboard(obsidianSummary()?.vault_path || '', 'Vault Path')}
-                  class="mt-1 flex items-center gap-1.5 max-w-lg truncate text-left mono text-[10.5px] text-text-muted hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded transition-colors"
+                  class="mt-1 max-w-lg truncate text-left mono text-[10.5px] text-text-muted hover:text-accent h-auto py-1 px-2 justify-start"
                   title={obsidianSummary()?.vault_path}
                 >
-                  <FolderIcon class="h-3.5 w-3.5 shrink-0" />
+                  <FolderIcon class="h-3.5 w-3.5 shrink-0 mr-1" />
                   <span class="truncate">{obsidianSummary()?.vault_path}</span>
-                </button>
+                </Button>
               </Show>
             </div>
           </div>
@@ -316,32 +318,24 @@ export const ObsidianHub: Component = () => {
 
           {/* Target Switcher */}
           <div class="flex items-center rounded-lg border border-border-default bg-bg-input p-0.5 text-[10.5px]">
-            <button
+            <Button
               type="button"
+              variant={captureTarget() === 'daily' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setCaptureTarget('daily')}
               aria-pressed={captureTarget() === 'daily'}
-              class="rounded-md px-2 py-0.5 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary font-semibold shadow-xs':
-                  captureTarget() === 'daily',
-                'text-text-muted hover:text-text-primary': captureTarget() !== 'daily',
-              }}
             >
               {t().obsidian.targetDaily}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={captureTarget() === 'inbox' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setCaptureTarget('inbox')}
               aria-pressed={captureTarget() === 'inbox'}
-              class="rounded-md px-2 py-0.5 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary font-semibold shadow-xs':
-                  captureTarget() === 'inbox',
-                'text-text-muted hover:text-text-primary': captureTarget() !== 'inbox',
-              }}
             >
               {t().obsidian.targetInbox}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -386,32 +380,39 @@ export const ObsidianHub: Component = () => {
         </form>
       </section>
 
-      {/* 3. Search & Tag Radar Filter */}
+      {/* 2. Omnisearch & Instant Note Reader */}
       <section class="glass-card p-4 shadow-xs">
-        <div class="flex flex-col gap-3">
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-            <div class="relative flex-1">
-              <input
+        <div class="flex flex-col gap-2 border-b border-border-subtle pb-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-bold text-text-primary m-0">{t().obsidian.recentNotes}</h2>
+            </div>
+
+            {/* Search Input Bar */}
+            <div class="relative w-full sm:w-80">
+              <Input
                 type="text"
                 value={searchQuery()}
                 onInput={(e) => handleSearch(e.currentTarget.value)}
                 placeholder={t().obsidian.searchPlaceholder}
-                class="h-8.5 w-full rounded-lg border border-border-default bg-bg-surface pl-8 pr-7 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors"
+                class="w-full pl-8 pr-7"
               />
-              <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted">
+              <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
                 <SearchIcon class="h-3.5 w-3.5" />
               </span>
               <Show when={isSearching()}>
                 <span class="absolute right-7 top-1/2 -translate-y-1/2 inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
               </Show>
               <Show when={searchQuery()}>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => handleSearch('')}
-                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5"
+                  class="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
                 >
                   <CloseIcon class="h-3 w-3" />
-                </button>
+                </Button>
               </Show>
             </div>
 
@@ -420,13 +421,15 @@ export const ObsidianHub: Component = () => {
                 <span class="text-text-muted text-[11px] font-semibold">Tag:</span>
                 <span class="rounded-md bg-accent/15 text-accent border border-accent/30 px-2 py-0.5 mono text-[11px] font-bold flex items-center gap-1">
                   #{selectedTag()}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setSelectedTag(null)}
-                    class="hover:opacity-80 p-0.5"
+                    class="h-4 w-4 p-0"
                   >
                     <CloseIcon class="h-3 w-3" />
-                  </button>
+                  </Button>
                 </span>
               </div>
             </Show>
@@ -440,18 +443,15 @@ export const ObsidianHub: Component = () => {
               </span>
               <For each={obsidianSummary()?.top_tags}>
                 {(tag) => (
-                  <button
+                  <Button
                     type="button"
+                    variant={selectedTag() === tag.name ? 'default' : 'secondary'}
+                    size="sm"
                     onClick={() => handleSelectTag(tag.name)}
-                    class="rounded-md border px-2 py-0.5 mono text-[10px] font-bold transition-all focus-visible:ring-1 focus-visible:ring-accent"
-                    classList={{
-                      'bg-accent text-white border-accent shadow-2xs': selectedTag() === tag.name,
-                      'bg-bg-subtle text-text-secondary border-border-subtle hover:bg-bg-hover hover:text-text-primary':
-                        selectedTag() !== tag.name,
-                    }}
+                    class="mono text-[10px]"
                   >
                     #{tag.name} <span class="opacity-75 text-[9px]">({tag.count})</span>
-                  </button>
+                  </Button>
                 )}
               </For>
             </div>

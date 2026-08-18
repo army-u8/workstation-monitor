@@ -18,7 +18,7 @@ import {
   PhotoIcon,
   RefreshIcon,
 } from './Icons';
-import { Button, Input } from './ui';
+import { Badge, Button, Input } from './ui';
 import { ArtifactsLayoutMode, ArtifactsSortBy, StorageKey } from '../constants';
 import { t } from '../i18n';
 import type { WebArtifactInfo } from '../types';
@@ -196,17 +196,20 @@ export const WebArtifactsView: Component = () => {
                 <h3 class="text-xs font-bold text-text-primary">{t().artifacts.title}</h3>
               </div>
 
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={() => fetchWebArtifactsApi()}
                 disabled={isLoadingArtifacts()}
-                class="mono text-[10px] text-accent hover:underline flex items-center gap-1"
+                loading={isLoadingArtifacts()}
+                class="mono text-[10px]"
               >
                 <RefreshIcon class="h-3 w-3" classList={{ 'animate-spin': isLoadingArtifacts() }} />
                 <span>
                   {isLoadingArtifacts() ? t().artifacts.scanning : t().artifacts.refreshBtn}
                 </span>
-              </button>
+              </Button>
             </div>
 
             <p class="mt-2 text-xs text-text-muted leading-relaxed line-clamp-2 m-0">
@@ -216,22 +219,16 @@ export const WebArtifactsView: Component = () => {
 
           <div class="mt-2.5 flex items-center justify-between border-t border-border-subtle pt-2 text-[10px]">
             <span class="text-text-muted">{t().artifacts.status}:</span>
-            <span
-              class="mono rounded px-1.5 py-0.2 font-medium text-[9.5px]"
-              classList={{
-                'bg-status-success/15 text-status-success': degradedCount() === 0,
-                'bg-status-warning/15 text-status-warning': degradedCount() > 0,
-              }}
-            >
+            <Badge variant={degradedCount() === 0 ? 'success' : 'warning'} class="mono">
               {degradedCount() === 0
                 ? `${healthyCount()} Online`
                 : `${degradedCount()} Degraded / Down`}
-            </span>
+            </Badge>
           </div>
         </div>
       </section>
 
-      {/* 2. Controls Toolbar (Identical structure and buttons as GitRadar) */}
+      {/* 2. Controls Toolbar */}
       <section class="flex flex-col gap-2.5 rounded-lg border border-border-default bg-bg-surface p-3.5 sm:flex-row sm:items-center sm:justify-between">
         {/* Left: Section Title, Count & Status Filter */}
         <div class="flex flex-wrap items-center gap-2">
@@ -244,43 +241,34 @@ export const WebArtifactsView: Component = () => {
 
           {/* Quick Status Filter Toggles */}
           <div class="flex items-center rounded border border-border-subtle bg-bg-input p-0.5 text-[10.5px]">
-            <button
+            <Button
               type="button"
+              variant={statusFilter() === 'all' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setStatusFilter('all')}
               aria-pressed={statusFilter() === 'all'}
-              class="rounded px-2 py-0.5 transition-colors"
-              classList={{
-                'bg-bg-active text-text-primary font-medium': statusFilter() === 'all',
-                'text-text-muted hover:text-text-primary': statusFilter() !== 'all',
-              }}
             >
               {t().artifacts.filterAll}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={statusFilter() === 'healthy' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setStatusFilter('healthy')}
               aria-pressed={statusFilter() === 'healthy'}
-              class="rounded px-2 py-0.5 transition-colors"
-              classList={{
-                'bg-bg-active text-status-success font-medium': statusFilter() === 'healthy',
-                'text-text-muted hover:text-text-primary': statusFilter() !== 'healthy',
-              }}
             >
               {t().artifacts.filterHealthy}
-            </button>
+            </Button>
             <Show when={degradedCount() > 0}>
-              <button
+              <Button
                 type="button"
+                variant={statusFilter() === 'degraded' ? 'default' : 'ghost'}
+                size="sm"
                 onClick={() => setStatusFilter('degraded')}
                 aria-pressed={statusFilter() === 'degraded'}
-                class="rounded px-2 py-0.5 transition-colors"
-                classList={{
-                  'bg-bg-active text-status-warning font-medium': statusFilter() === 'degraded',
-                  'text-text-muted hover:text-text-primary': statusFilter() !== 'degraded',
-                }}
               >
                 {t().artifacts.filterDegraded} ({degradedCount()})
-              </button>
+              </Button>
             </Show>
           </div>
         </div>
@@ -289,43 +277,33 @@ export const WebArtifactsView: Component = () => {
         <div class="flex flex-wrap items-center gap-2">
           {/* Sort Switcher */}
           <div class="flex items-center rounded border border-border-subtle bg-bg-input p-0.5 text-[10.5px]">
-            <button
+            <Button
               type="button"
+              variant={sortBy() === ArtifactsSortBy.PORT ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setSortBy(ArtifactsSortBy.PORT)}
               aria-pressed={sortBy() === ArtifactsSortBy.PORT}
-              class="rounded px-2 py-0.5 transition-colors"
-              classList={{
-                'bg-bg-active text-text-primary font-medium': sortBy() === ArtifactsSortBy.PORT,
-                'text-text-muted hover:text-text-primary': sortBy() !== ArtifactsSortBy.PORT,
-              }}
             >
               {t().artifacts.sortPort}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={sortBy() === ArtifactsSortBy.LATENCY ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setSortBy(ArtifactsSortBy.LATENCY)}
               aria-pressed={sortBy() === ArtifactsSortBy.LATENCY}
-              class="rounded px-2 py-0.5 transition-colors"
-              classList={{
-                'bg-bg-active text-text-primary font-medium': sortBy() === ArtifactsSortBy.LATENCY,
-                'text-text-muted hover:text-text-primary': sortBy() !== ArtifactsSortBy.LATENCY,
-              }}
             >
               {t().artifacts.sortLatency}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={sortBy() === ArtifactsSortBy.FRAMEWORK ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setSortBy(ArtifactsSortBy.FRAMEWORK)}
               aria-pressed={sortBy() === ArtifactsSortBy.FRAMEWORK}
-              class="rounded px-2 py-0.5 transition-colors"
-              classList={{
-                'bg-bg-active text-text-primary font-medium':
-                  sortBy() === ArtifactsSortBy.FRAMEWORK,
-                'text-text-muted hover:text-text-primary': sortBy() !== ArtifactsSortBy.FRAMEWORK,
-              }}
             >
               {t().artifacts.sortFramework}
-            </button>
+            </Button>
           </div>
 
           {/* Layout Mode Switcher */}
@@ -334,51 +312,39 @@ export const WebArtifactsView: Component = () => {
             role="group"
             aria-label="Layout mode"
           >
-            <button
+            <Button
               type="button"
+              variant={layoutMode() === ArtifactsLayoutMode.GRID ? 'secondary' : 'ghost'}
+              size="icon"
               onClick={() => setLayoutMode(ArtifactsLayoutMode.GRID)}
               aria-label="Grid layout"
               aria-pressed={layoutMode() === ArtifactsLayoutMode.GRID}
-              class="rounded p-1 transition-colors"
-              classList={{
-                'bg-bg-active text-accent': layoutMode() === ArtifactsLayoutMode.GRID,
-                'text-text-muted hover:text-text-primary':
-                  layoutMode() !== ArtifactsLayoutMode.GRID,
-              }}
               title="Grid View"
             >
               <GridIcon class="h-3.5 w-3.5" />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={layoutMode() === ArtifactsLayoutMode.TABLE ? 'secondary' : 'ghost'}
+              size="icon"
               onClick={() => setLayoutMode(ArtifactsLayoutMode.TABLE)}
               aria-label="Table layout"
               aria-pressed={layoutMode() === ArtifactsLayoutMode.TABLE}
-              class="rounded p-1 transition-colors"
-              classList={{
-                'bg-bg-active text-accent': layoutMode() === ArtifactsLayoutMode.TABLE,
-                'text-text-muted hover:text-text-primary':
-                  layoutMode() !== ArtifactsLayoutMode.TABLE,
-              }}
               title="Table View"
             >
               <ListIcon class="h-3.5 w-3.5" />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={layoutMode() === ArtifactsLayoutMode.COMPACT ? 'secondary' : 'ghost'}
+              size="icon"
               onClick={() => setLayoutMode(ArtifactsLayoutMode.COMPACT)}
               aria-label="Compact layout"
               aria-pressed={layoutMode() === ArtifactsLayoutMode.COMPACT}
-              class="rounded p-1 transition-colors"
-              classList={{
-                'bg-bg-active text-accent': layoutMode() === ArtifactsLayoutMode.COMPACT,
-                'text-text-muted hover:text-text-primary':
-                  layoutMode() !== ArtifactsLayoutMode.COMPACT,
-              }}
               title="Compact View"
             >
               <CompactIcon class="h-3.5 w-3.5" />
-            </button>
+            </Button>
           </div>
 
           {/* Search Input */}
@@ -388,80 +354,20 @@ export const WebArtifactsView: Component = () => {
               placeholder={t().artifacts.searchPlaceholder}
               value={searchQuery()}
               onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-48 pr-6"
+              class="w-48 pr-8"
             />
             <Show when={searchQuery()}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => setSearchQuery('')}
                 aria-label={t().common.cancel}
-                class="absolute right-2 text-text-muted hover:text-text-primary p-0.5"
+                class="absolute right-1 h-6 w-6"
               >
                 <CloseIcon class="h-3 w-3" />
-              </button>
+              </Button>
             </Show>
-          </div>
-        </div>
-
-        {/* Right: Sort Dropdown + Layout Toggles */}
-        <div class="flex items-center gap-2.5 self-end sm:self-auto">
-          {/* Sort Selector */}
-          <div class="flex items-center gap-1.5 text-xs text-text-muted">
-            <select
-              value={sortBy()}
-              onChange={(e) => setSortBy(e.currentTarget.value as ArtifactsSortBy)}
-              class="rounded-lg border border-border-default bg-bg-surface px-2 py-1 text-xs font-medium text-text-primary outline-none transition-all focus:border-accent"
-            >
-              <option value={ArtifactsSortBy.PORT}>{t().artifacts.sortPort}</option>
-              <option value={ArtifactsSortBy.LATENCY}>{t().artifacts.sortLatency}</option>
-              <option value={ArtifactsSortBy.FRAMEWORK}>{t().artifacts.sortFramework}</option>
-            </select>
-          </div>
-
-          {/* Layout Mode Segmented Control */}
-          <div class="flex items-center rounded-lg border border-border-default bg-bg-surface p-0.5">
-            <button
-              type="button"
-              onClick={() => setLayoutMode(ArtifactsLayoutMode.GRID)}
-              aria-label={t().gitRadar.layoutGrid}
-              title={t().gitRadar.layoutGrid}
-              class="flex h-6 w-6 items-center justify-center rounded-md transition-all"
-              classList={{
-                'bg-bg-subtle text-accent shadow-2xs': layoutMode() === ArtifactsLayoutMode.GRID,
-                'text-text-muted hover:text-text-primary':
-                  layoutMode() !== ArtifactsLayoutMode.GRID,
-              }}
-            >
-              <GridIcon class="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setLayoutMode(ArtifactsLayoutMode.TABLE)}
-              aria-label={t().gitRadar.layoutTable}
-              title={t().gitRadar.layoutTable}
-              class="flex h-6 w-6 items-center justify-center rounded-md transition-all"
-              classList={{
-                'bg-bg-subtle text-accent shadow-2xs': layoutMode() === ArtifactsLayoutMode.TABLE,
-                'text-text-muted hover:text-text-primary':
-                  layoutMode() !== ArtifactsLayoutMode.TABLE,
-              }}
-            >
-              <ListIcon class="h-3.5 w-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setLayoutMode(ArtifactsLayoutMode.COMPACT)}
-              aria-label={t().gitRadar.layoutCompact}
-              title={t().gitRadar.layoutCompact}
-              class="flex h-6 w-6 items-center justify-center rounded-md transition-all"
-              classList={{
-                'bg-bg-subtle text-accent shadow-2xs': layoutMode() === ArtifactsLayoutMode.COMPACT,
-                'text-text-muted hover:text-text-primary':
-                  layoutMode() !== ArtifactsLayoutMode.COMPACT,
-              }}
-            >
-              <CompactIcon class="h-3.5 w-3.5" />
-            </button>
           </div>
         </div>
       </section>
@@ -488,14 +394,15 @@ export const WebArtifactsView: Component = () => {
                   <p class="text-xs text-text-muted max-w-md mx-auto mb-4">
                     {t().artifacts.emptyGuide}
                   </p>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => fetchWebArtifactsApi()}
-                    class="inline-flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-subtle px-3 py-1.5 text-xs text-text-primary hover:bg-bg-hover transition-colors"
                   >
                     <RefreshIcon class="h-3 w-3" />
                     <span>{t().artifacts.refreshBtn}</span>
-                  </button>
+                  </Button>
                 </div>
               }
             >
@@ -545,15 +452,17 @@ export const WebArtifactsView: Component = () => {
                       >
                         {artifact.title || `${t().artifacts.localServiceTitle}${artifact.port}`}
                       </h3>
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="sm"
                         onClick={() => copyToClipboard(artifact.url, 'URL')}
-                        class="mt-1 flex items-center gap-1 mono text-[10px] text-text-muted hover:text-accent truncate w-full text-left"
+                        class="mt-1 mono text-[10px] text-text-muted hover:text-accent truncate w-full justify-start h-auto py-0.5 px-1"
                         title={artifact.url}
                       >
-                        <LinkIcon class="h-3 w-3 shrink-0" />
+                        <LinkIcon class="h-3 w-3 shrink-0 mr-1" />
                         <span class="truncate">{artifact.url}</span>
-                      </button>
+                      </Button>
                     </div>
 
                     {/* Metadata Details Grid */}
@@ -672,15 +581,17 @@ export const WebArtifactsView: Component = () => {
                           >
                             {artifact.title || `${t().artifacts.localServiceTitle}${artifact.port}`}
                           </span>
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => copyToClipboard(artifact.url, 'URL')}
-                            class="mono text-[10px] text-text-muted hover:text-accent truncate text-left mt-0.5 flex items-center gap-1"
+                            class="mono text-[10px] text-text-muted hover:text-accent truncate text-left mt-0.5 w-full justify-start h-auto py-0.5 px-1"
                             title={artifact.url}
                           >
-                            <LinkIcon class="h-3 w-3 shrink-0" />
+                            <LinkIcon class="h-3 w-3 shrink-0 mr-1" />
                             <span class="truncate">{artifact.url}</span>
-                          </button>
+                          </Button>
                         </div>
                       </td>
 

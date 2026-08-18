@@ -135,36 +135,30 @@ export const UpdateModal: Component = () => {
 
           {/* Navigation Tabs */}
           <div class="flex items-center gap-2 mt-3 border-b border-border-subtle pb-2">
-            <button
+            <Button
               type="button"
+              variant={activeTab() === 'upgrade' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setActiveTab('upgrade')}
-              class={`px-3 py-1 text-xs rounded-lg font-medium transition-all ${
-                activeTab() === 'upgrade'
-                  ? 'bg-accent text-white shadow-xs'
-                  : 'bg-bg-subtle text-text-muted hover:text-text-primary'
-              }`}
             >
               {t().update.tabUpgrade}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={activeTab() === 'history' ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => {
                 setActiveTab('history');
                 fetchVersionBackupsApi();
               }}
-              class={`px-3 py-1 text-xs rounded-lg font-medium transition-all flex items-center gap-1.5 ${
-                activeTab() === 'history'
-                  ? 'bg-accent text-white shadow-xs'
-                  : 'bg-bg-subtle text-text-muted hover:text-text-primary'
-              }`}
             >
               <span>{t().update.tabHistory}</span>
               <Show when={versionBackups().length > 0}>
-                <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
+                <span class="rounded-full bg-bg-surface px-1.5 py-0.2 text-[10px] mono font-bold text-accent border border-border-subtle ml-1">
                   {versionBackups().length}
                 </span>
               </Show>
-            </button>
+            </Button>
           </div>
 
           {/* TAB 1: UPGRADE OR ALREADY LATEST */}
@@ -314,14 +308,16 @@ export const UpdateModal: Component = () => {
             <div class="my-3.5 space-y-2">
               <div class="flex items-center justify-between text-xs text-text-muted">
                 <span>{t().update.historyTitle}</span>
-                <button
+                <Button
                   type="button"
+                  variant="link"
+                  size="sm"
                   onClick={() => fetchVersionBackupsApi()}
                   disabled={isLoadingBackups()}
-                  class="text-[11px] text-accent hover:underline"
+                  loading={isLoadingBackups()}
                 >
                   {isLoadingBackups() ? t().update.refreshingBackups : t().update.refreshBackups}
-                </button>
+                </Button>
               </div>
 
               <div class="max-h-60 overflow-y-auto space-y-2">

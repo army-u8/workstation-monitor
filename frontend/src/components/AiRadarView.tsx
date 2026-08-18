@@ -541,14 +541,16 @@ export const AiRadarView: Component = () => {
                           <span class="truncate" title={agent.path || ''}>
                             {agent.path}
                           </span>
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon"
                             onClick={() => copyToClipboard(agent.path || '', agent.name)}
-                            class="text-text-muted hover:text-text-primary p-0.5 shrink-0"
+                            class="shrink-0 h-5 w-5 p-0"
                             title={t().aiRadar.copyAgentPath}
                           >
                             <CopyIcon class="h-3 w-3" />
-                          </button>
+                          </Button>
                         </div>
                       </Show>
                     </div>
@@ -771,20 +773,22 @@ export const AiRadarView: Component = () => {
                         <td class="py-2.5 px-3.5 text-text-secondary">{item.maskedValue}</td>
                         <td class="py-2.5 px-3.5 text-text-muted text-[10.5px]">{item.source}</td>
                         <td class="py-2.5 px-3.5 text-right whitespace-nowrap">
-                          <button
+                          <Button
                             type="button"
+                            variant="secondary"
+                            size="sm"
                             onClick={() =>
                               copyToClipboard(
                                 `export ${item.keyName}="sk-your-key-here"`,
                                 item.keyName,
                               )
                             }
-                            class="rounded border border-border-default bg-bg-surface px-2 py-0.8 text-[10px] text-text-muted hover:text-text-primary transition-all flex items-center gap-1 ml-auto"
+                            class="ml-auto"
                             title={t().aiRadar.copyExport}
                           >
-                            <CopyIcon class="h-3 w-3" />
-                            <span>{t().devops.copy}</span>
-                          </button>
+                            <CopyIcon class="h-3 w-3 mr-1" />
+                            <span>{t().aiRadar.copyExport}</span>
+                          </Button>
                         </td>
                       </tr>
                     )}

@@ -21,7 +21,7 @@ import {
   WsConnectionStatus,
   pathToSectionMap,
 } from '../constants';
-import { CompactIcon, MoonIcon, RefreshIcon, RocketIcon, SunIcon, SystemThemeIcon } from './Icons';
+import { CompactIcon, MoonIcon, SunIcon, SystemThemeIcon } from './Icons';
 import { Button } from './ui';
 
 export const Header: Component = () => {
@@ -123,46 +123,43 @@ export const Header: Component = () => {
           role="group"
           aria-label={t().common.langToggle}
         >
-          <button
+          <Button
             type="button"
+            variant={locale() === Locale.ZH ? 'secondary' : 'ghost'}
+            size="sm"
             onClick={() => setLocale(Locale.ZH)}
             aria-pressed={locale() === Locale.ZH}
-            class="rounded-md px-2 py-0.5 transition-all"
-            classList={{
-              'bg-bg-active text-text-primary font-bold shadow-2xs': locale() === Locale.ZH,
-              'text-text-muted hover:text-text-primary': locale() !== Locale.ZH,
-            }}
+            class="h-6 px-2 text-[10.5px]"
           >
             {t().common.langZh}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant={locale() === Locale.EN ? 'secondary' : 'ghost'}
+            size="sm"
             onClick={() => setLocale(Locale.EN)}
             aria-pressed={locale() === Locale.EN}
-            class="rounded-md px-2 py-0.5 transition-all"
-            classList={{
-              'bg-bg-active text-text-primary font-bold shadow-2xs': locale() === Locale.EN,
-              'text-text-muted hover:text-text-primary': locale() !== Locale.EN,
-            }}
+            class="h-6 px-2 text-[10.5px]"
           >
             {t().common.langEn}
-          </button>
+          </Button>
         </div>
 
         {/* Update Checker Badge & Trigger */}
-        <button
+        <Button
           type="button"
+          variant={updateInfo()?.has_update ? 'outline' : 'secondary'}
+          size="sm"
           onClick={() => {
             setIsUpdateModalOpen(true);
             fetchUpdateCheckApi(true);
           }}
           disabled={isCheckingUpdate()}
-          class="flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] font-mono transition-all shadow-2xs active:scale-95"
+          loading={isCheckingUpdate()}
+          class="font-mono text-[11px]"
           classList={{
-            'border-status-success/40 bg-status-success/15 text-status-success font-bold hover:brightness-110':
+            'border-status-success/40 bg-status-success/15 text-status-success font-bold hover:bg-status-success/25':
               Boolean(updateInfo()?.has_update),
-            'border-border-default bg-bg-subtle/80 text-text-muted hover:text-text-primary hover:border-border-hover':
-              !updateInfo()?.has_update,
           }}
           title={
             updateInfo()?.has_update ? t().update.newVersionAvailable : t().update.checkUpdateBtn
@@ -171,19 +168,11 @@ export const Header: Component = () => {
           <Show
             when={updateInfo()?.has_update}
             fallback={
-              <>
-                <Show
-                  when={isCheckingUpdate()}
-                  fallback={<RocketIcon class="h-3 w-3 text-text-muted" />}
-                >
-                  <RefreshIcon class="h-3 w-3 animate-spin text-accent" />
-                </Show>
-                <span>
-                  {isCheckingUpdate()
-                    ? t().update.checking
-                    : `v${updateInfo()?.current_version || '0.2.4'}`}
-                </span>
-              </>
+              <span>
+                {isCheckingUpdate()
+                  ? t().update.checking
+                  : `v${updateInfo()?.current_version || '0.2.4'}`}
+              </span>
             }
           >
             <span class="relative flex h-2 w-2">
@@ -192,7 +181,7 @@ export const Header: Component = () => {
             </span>
             <span>{updateInfo()?.latest_version}</span>
           </Show>
-        </button>
+        </Button>
 
         <div class="h-3.5 w-[1px] bg-border-default" aria-hidden="true" />
 

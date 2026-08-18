@@ -85,30 +85,26 @@ export const ProcessManager: Component = () => {
             role="group"
             aria-label="Sort Processes"
           >
-            <button
+            <Button
               type="button"
+              variant={sortBy() === ProcessSortBy.CPU ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setSortBy(ProcessSortBy.CPU)}
               aria-pressed={sortBy() === ProcessSortBy.CPU}
-              class="rounded-md px-2.5 py-1 text-[10.5px] transition-all focus-visible:ring-1 focus-visible:ring-accent font-mono"
-              classList={{
-                'bg-accent text-white font-bold shadow-2xs': sortBy() === ProcessSortBy.CPU,
-                'text-text-muted hover:text-text-primary': sortBy() !== ProcessSortBy.CPU,
-              }}
+              class="font-mono text-[10.5px]"
             >
               {t().processes.sortByCpu}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={sortBy() === ProcessSortBy.MEM ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setSortBy(ProcessSortBy.MEM)}
               aria-pressed={sortBy() === ProcessSortBy.MEM}
-              class="rounded-md px-2.5 py-1 text-[10.5px] transition-all focus-visible:ring-1 focus-visible:ring-accent font-mono"
-              classList={{
-                'bg-accent text-white font-bold shadow-2xs': sortBy() === ProcessSortBy.MEM,
-                'text-text-muted hover:text-text-primary': sortBy() !== ProcessSortBy.MEM,
-              }}
+              class="font-mono text-[10.5px]"
             >
               {t().processes.sortByMem}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

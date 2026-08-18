@@ -121,16 +121,18 @@ export const GitRadar: Component = () => {
                 </div>
                 <h3 class="text-xs font-bold text-text-primary">{t().gitRadar.globalConfig}</h3>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={() =>
                   copyToClipboard(gitAccount()?.git.config_path || '~/.gitconfig', 'Config Path')
                 }
-                class="mono text-[9.5px] text-text-muted hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded px-1.5 py-0.5 bg-bg-subtle border border-border-subtle"
+                class="mono text-[9.5px]"
                 title={gitAccount()?.git.config_path}
               >
                 {gitAccount()?.git.config_path}
-              </button>
+              </Button>
             </div>
 
             <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
@@ -147,14 +149,16 @@ export const GitRadar: Component = () => {
               <div>
                 <span class="text-[10px] font-semibold text-text-muted">{t().gitRadar.email}</span>
                 <div class="mt-0.5">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => copyToClipboard(gitAccount()?.git.user_email || '', 'Git Email')}
-                    class="mono text-[11px] text-text-secondary hover:text-accent text-left truncate block max-w-full focus-visible:ring-1 focus-visible:ring-accent rounded"
+                    class="mono text-[11px] text-text-secondary hover:text-accent text-left truncate block max-w-full h-auto py-0.5 px-1 justify-start"
                     title={gitAccount()?.git.user_email || ''}
                   >
                     {gitAccount()?.git.user_email || t().gitRadar.notConfigured}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -268,60 +272,46 @@ export const GitRadar: Component = () => {
         {/* Right: Search, Filter, Sort, Layout Switcher & Refresh */}
         <div class="flex flex-wrap items-center gap-2">
           {/* Quick Dirty Filter Toggle */}
-          <button
+          <Button
             type="button"
+            variant={dirtyOnly() ? 'default' : 'outline'}
+            size="sm"
             onClick={() => setDirtyOnly(!dirtyOnly())}
             aria-pressed={dirtyOnly()}
             aria-label={t().gitRadar.filterDirtyOnly}
-            class="rounded border px-2 py-1 text-[10.5px] transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-            classList={{
-              'bg-status-warning/15 border-status-warning/30 text-status-warning font-medium':
-                dirtyOnly(),
-              'bg-bg-input border-border-subtle text-text-muted hover:text-text-primary':
-                !dirtyOnly(),
-            }}
           >
             {t().gitRadar.filterDirtyOnly}
-          </button>
+          </Button>
 
           {/* Sort Switcher */}
           <div class="flex items-center rounded border border-border-subtle bg-bg-input p-0.5 text-[10.5px]">
-            <button
+            <Button
               type="button"
+              variant={sortBy() === GitRepoSortBy.RECENT ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setSortBy(GitRepoSortBy.RECENT)}
               aria-pressed={sortBy() === GitRepoSortBy.RECENT}
-              class="rounded px-2 py-0.5 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary font-medium': sortBy() === GitRepoSortBy.RECENT,
-                'text-text-muted hover:text-text-primary': sortBy() !== GitRepoSortBy.RECENT,
-              }}
             >
               {t().gitRadar.sortRecent}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={sortBy() === GitRepoSortBy.DIRTY ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setSortBy(GitRepoSortBy.DIRTY)}
               aria-pressed={sortBy() === GitRepoSortBy.DIRTY}
-              class="rounded px-2 py-0.5 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary font-medium': sortBy() === GitRepoSortBy.DIRTY,
-                'text-text-muted hover:text-text-primary': sortBy() !== GitRepoSortBy.DIRTY,
-              }}
             >
               {t().gitRadar.sortDirty}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={sortBy() === GitRepoSortBy.NAME ? 'default' : 'ghost'}
+              size="sm"
               onClick={() => setSortBy(GitRepoSortBy.NAME)}
               aria-pressed={sortBy() === GitRepoSortBy.NAME}
-              class="rounded px-2 py-0.5 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary font-medium': sortBy() === GitRepoSortBy.NAME,
-                'text-text-muted hover:text-text-primary': sortBy() !== GitRepoSortBy.NAME,
-              }}
             >
               {t().gitRadar.sortName}
-            </button>
+            </Button>
           </div>
 
           {/* Layout Mode Switcher */}
@@ -330,49 +320,39 @@ export const GitRadar: Component = () => {
             role="group"
             aria-label="Layout Switcher"
           >
-            <button
+            <Button
               type="button"
+              variant={layoutMode() === GitRepoLayoutMode.GRID ? 'secondary' : 'ghost'}
+              size="icon"
               onClick={() => setLayoutMode(GitRepoLayoutMode.GRID)}
               aria-pressed={layoutMode() === GitRepoLayoutMode.GRID}
               aria-label={t().gitRadar.layoutGrid}
               title={t().gitRadar.layoutGrid}
-              class="flex h-6 w-6 items-center justify-center rounded transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary': layoutMode() === GitRepoLayoutMode.GRID,
-                'text-text-muted hover:text-text-primary': layoutMode() !== GitRepoLayoutMode.GRID,
-              }}
             >
               <GridIcon class="h-3.5 w-3.5" />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={layoutMode() === GitRepoLayoutMode.TABLE ? 'secondary' : 'ghost'}
+              size="icon"
               onClick={() => setLayoutMode(GitRepoLayoutMode.TABLE)}
               aria-pressed={layoutMode() === GitRepoLayoutMode.TABLE}
               aria-label={t().gitRadar.layoutTable}
               title={t().gitRadar.layoutTable}
-              class="flex h-6 w-6 items-center justify-center rounded transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary': layoutMode() === GitRepoLayoutMode.TABLE,
-                'text-text-muted hover:text-text-primary': layoutMode() !== GitRepoLayoutMode.TABLE,
-              }}
             >
               <ListIcon class="h-3.5 w-3.5" />
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant={layoutMode() === GitRepoLayoutMode.COMPACT ? 'secondary' : 'ghost'}
+              size="icon"
               onClick={() => setLayoutMode(GitRepoLayoutMode.COMPACT)}
               aria-pressed={layoutMode() === GitRepoLayoutMode.COMPACT}
               aria-label={t().gitRadar.layoutCompact}
               title={t().gitRadar.layoutCompact}
-              class="flex h-6 w-6 items-center justify-center rounded transition-colors focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary': layoutMode() === GitRepoLayoutMode.COMPACT,
-                'text-text-muted hover:text-text-primary':
-                  layoutMode() !== GitRepoLayoutMode.COMPACT,
-              }}
             >
               <CompactIcon class="h-3.5 w-3.5" />
-            </button>
+            </Button>
           </div>
 
           {/* Search box */}
@@ -383,17 +363,19 @@ export const GitRadar: Component = () => {
               placeholder={t().gitRadar.searchPlaceholder}
               value={searchQuery()}
               onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-48 pr-6"
+              class="w-48 pr-8"
             />
             <Show when={searchQuery()}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 onClick={() => setSearchQuery('')}
                 aria-label={t().common.cancel}
-                class="absolute right-1.5 text-text-muted hover:text-text-primary p-0.5"
+                class="absolute right-1 h-6 w-6"
               >
                 <CloseIcon class="h-3 w-3" />
-              </button>
+              </Button>
             </Show>
           </div>
 
@@ -471,15 +453,17 @@ export const GitRadar: Component = () => {
                     </div>
 
                     {/* Path */}
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => copyToClipboard(repo.path, 'Repo Path')}
-                      class="mt-2 mono text-[9px] text-text-muted truncate hover:text-accent text-left block w-full focus-visible:ring-1 focus-visible:ring-accent rounded"
+                      class="mt-2 mono text-[9px] text-text-muted truncate hover:text-accent text-left w-full justify-start h-auto py-0.5 px-1"
                       title={repo.path}
                       aria-label={repo.path}
                     >
-                      {repo.path}
-                    </button>
+                      <span class="truncate">{repo.path}</span>
+                    </Button>
 
                     {/* Last Commit Box */}
                     <div class="mt-2 rounded bg-bg-subtle/70 p-2 text-[10px] text-text-secondary border border-border-subtle">
@@ -659,14 +643,16 @@ export const GitRadar: Component = () => {
 
                       {/* Path */}
                       <td class="py-2 px-3 font-mono text-[9.5px] text-text-muted">
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => copyToClipboard(repo.path, 'Path')}
-                          class="truncate max-w-[170px] hover:text-accent text-left block focus-visible:ring-1 focus-visible:ring-accent rounded"
+                          class="truncate max-w-[170px] hover:text-accent text-left justify-start h-auto py-0.5 px-1 font-mono text-[9.5px]"
                           title={repo.path}
                         >
-                          {repo.path}
-                        </button>
+                          <span class="truncate">{repo.path}</span>
+                        </Button>
                       </td>
 
                       {/* Actions */}

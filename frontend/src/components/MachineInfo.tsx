@@ -14,7 +14,6 @@ import {
 } from './Icons';
 import { Button, Input } from './ui';
 import { t } from '../i18n';
-import type { AppVersionInfo } from '../types';
 
 export const MachineInfo: Component = () => {
   const [searchQuery, setSearchQuery] = createSignal('');
@@ -274,19 +273,15 @@ export const MachineInfo: Component = () => {
 
           <div class="flex flex-wrap items-center gap-2">
             {/* Filter Toggle */}
-            <button
+            <Button
               type="button"
+              variant={installedOnly() ? 'default' : 'secondary'}
+              size="sm"
               onClick={() => setInstalledOnly(!installedOnly())}
               aria-pressed={installedOnly()}
-              class="rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-accent text-white border-accent shadow-2xs': installedOnly(),
-                'bg-bg-surface border-border-default text-text-muted hover:text-text-primary':
-                  !installedOnly(),
-              }}
             >
               {installedOnly() ? t().machineInfo.filterInstalled : t().machineInfo.filterAll}
-            </button>
+            </Button>
 
             {/* Search Input */}
             <div class="relative flex items-center">
@@ -296,17 +291,19 @@ export const MachineInfo: Component = () => {
                 placeholder={t().machineInfo.searchPlaceholder}
                 value={searchQuery()}
                 onInput={(e) => setSearchQuery(e.currentTarget.value)}
-                class="w-56 pr-6"
+                class="w-56 pr-8"
               />
               <Show when={searchQuery()}>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setSearchQuery('')}
                   aria-label={t().common.cancel}
-                  class="absolute right-2 text-text-muted hover:text-text-primary p-0.5"
+                  class="absolute right-1 h-6 w-6"
                 >
                   <CloseIcon class="h-3 w-3" />
-                </button>
+                </Button>
               </Show>
             </div>
           </div>
@@ -322,47 +319,33 @@ export const MachineInfo: Component = () => {
               </div>
             }
           >
-            {(app: AppVersionInfo) => (
+            {(app) => (
               <div
-                class="glass-card-subtle flex flex-col justify-between p-3.5 transition-all duration-200"
+                class="glass-card-subtle flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px]"
                 classList={{
-                  'hover:border-border-hover hover:translate-y-[-1px]': app.is_installed,
-                  'opacity-50 grayscale': !app.is_installed,
+                  'opacity-60 border-border-subtle/50': !app.is_installed,
                 }}
               >
                 <div>
-                  <div class="flex items-start justify-between">
-                    <div class="flex items-center gap-2.5">
-                      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-bg-surface border border-border-subtle shadow-2xs">
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-bg-surface border border-border-subtle shrink-0">
                         {renderAppIcon(app.icon_type)}
                       </div>
-                      <div class="truncate">
-                        <div class="font-bold text-xs text-text-primary truncate" title={app.name}>
-                          {app.name}
-                        </div>
-                        <span class="rounded bg-bg-surface px-1.8 py-0.2 text-[9.5px] font-semibold text-text-muted border border-border-subtle">
+                      <div class="min-w-0">
+                        <h3 class="font-bold text-xs text-text-primary truncate m-0">{app.name}</h3>
+                        <span class="text-[10px] text-text-muted block truncate">
                           {app.category}
                         </span>
                       </div>
                     </div>
 
-                    {/* Version Badge */}
-                    <div>
+                    <div class="shrink-0">
                       <Show
-                        when={app.is_installed && app.version}
+                        when={app.is_installed}
                         fallback={
-                          <span
-                            class="rounded-md px-2 py-0.5 mono text-[9.5px] font-bold"
-                            classList={{
-                              'bg-status-success/15 text-status-success border border-status-success/30':
-                                app.is_installed,
-                              'bg-bg-surface text-text-muted border border-border-subtle':
-                                !app.is_installed,
-                            }}
-                          >
-                            {app.is_installed
-                              ? t().machineInfo.installed
-                              : t().machineInfo.notInstalled}
+                          <span class="rounded px-1.5 py-0.2 font-mono text-[9px] bg-bg-subtle text-text-muted">
+                            {t().machineInfo.notInstalled}
                           </span>
                         }
                       >
@@ -374,14 +357,16 @@ export const MachineInfo: Component = () => {
                   </div>
 
                   {/* App Path */}
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="sm"
                     onClick={() => copyToClipboard(app.path, 'App Path')}
-                    class="mt-3 mono text-[10px] text-text-muted truncate hover:text-accent text-left block w-full focus-visible:ring-1 focus-visible:ring-accent rounded px-1.5 py-0.5 bg-bg-base/60 border border-border-subtle/50"
+                    class="mt-3 mono text-[10px] text-text-muted hover:text-accent text-left w-full justify-start h-auto py-1 px-2"
                     title={app.path}
                   >
-                    {app.path}
-                  </button>
+                    <span class="truncate">{app.path}</span>
+                  </Button>
                 </div>
 
                 {/* Bottom Action */}
