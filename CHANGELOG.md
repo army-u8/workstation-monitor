@@ -4,6 +4,21 @@
 
 ---
 
+## [0.2.4] - 2026-08-17
+
+### 修复
+- **热更新重启多开标签页修复 (In-Place Reload & No Extra Tab)**：
+  - 在 Rust 核心引入 `--no-open` 命令行参数与 `WORKSTATION_NO_OPEN=1` 环境变量识别机制；
+  - 升级与回退唤醒脚本自动携带静默启动标记，避免新进程启动时无条件唤起系统浏览器，实现**当前已有标签页原地无感刷新，杜绝多余标签页**。
+- **国际化多语言与 AST 级别硬编码全面清零**：
+  - 引入 AST 级自动化检测拦截，全面清零 DevTools、AI 测速雷达、Web 产物画廊、项目时光机中遗留的 27 处硬编码中文，保障多语言 100% 动态对齐。
+
+### 优化
+- **最新版本状态 UI 交互重塑**：
+  - 重构更新弹窗（UpdateModal）状态机，在当前已是最新稳定版时呈现专属绿色徽章卡片与即时「🔄 重新检查更新」操作。
+
+---
+
 ## [0.2.3] - 2026-08-17
 
 ### 优化
@@ -155,6 +170,19 @@
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [0.2.4] - 2026-08-17
+
+### Fixed
+- **Prevent Duplicate Browser Tabs on Hot-Update & Rollback**:
+  - Added `--no-open` argument and `WORKSTATION_NO_OPEN=1` environment variable support in the Rust core;
+  - Decoupled supervisor restart scripts to relaunch quietly so the existing browser tab reloads smoothly in-place without spawning redundant tabs.
+- **AST-Level Hardcoded String Elimination & Full i18n**:
+  - Eliminated all residual hardcoded strings across DevTools, AI Radar, Web Artifacts, and Save Point views with 100% dynamic locale switching.
+
+### Changed
+- **Dedicated Latest-Version UI State**:
+  - Rebuilt UpdateModal state machine with a polished "Already Up to Date" hero badge, instant re-check button, and clean action footer.
 
 ---
 
