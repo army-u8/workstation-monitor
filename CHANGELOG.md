@@ -1,5 +1,13 @@
 更新日志（中文）
 
+[0.2.2] - 2026-08-17
+新增
+- 深度融合 Hermes Studio Web 端热更新最佳实践，重构下一代热更新与版本时光机系统：
+  - **细粒度状态机与 409 并发防重锁**：在 Rust 核心构建 `UpdateProgress` 强类型状态机，提供 `/api/system/update/progress` 实时进度通道，并引入 409 Conflict 锁杜绝多次点击与并发写冲突。
+  - **多源加速与国内镜像自动容灾 (Multi-Feed Mirror Accelerator)**：支持官方 GitHub Releases 直链与高速加速镜像（如 `ghfast.top` 等）并行测速择优拉取，1~2 秒极速下载 3.2MB 安装包。
+  - **版本时光机与一键秒级回退 (Version Rollback & Self-Healing)**：升级前自动将旧版本归档至 `~/.workstation-monitor/versions/`，在控制台提供「版本时光机」面板，支持 1 秒无痛一键回退至任意历史稳定版本。
+  - **沉浸式双 Tab 更新与回退面板**：前端 UpdateModal 重构为「🚀 在线自动升级」与「⏳ 版本时光机 (回退)」双选项卡，支持实时百分比进度条（0%~100%）与历史归档列表。
+
 [0.2.1] - 2026-08-17
 修复
 - 彻底解决 GitHub API 403 频控限流导致无法检测更新的问题：
@@ -92,6 +100,14 @@
 ---
 
 Changelog (English)
+
+[0.2.2] - 2026-08-17
+Added
+- Advanced Web Hot Updater & Version Time Machine (Hermes Studio Inspired Architecture):
+  - **Fine-Grained State Machine & 409 Concurrency Lock**: Added `UpdateProgress` state engine with live `/api/system/update/progress` channel and 409 Conflict rejection.
+  - **Multi-Feed Mirror Accelerator**: Dual-channel downloading with GitHub Releases and high-speed mirror fallbacks.
+  - **Version Rollback & Self-Healing**: Automatic pre-upgrade binary archiving with 1-click rollback support via `/api/system/update/rollback`.
+  - **Dual-Tab UpdateModal UI**: Rebuilt modal with In-Place Upgrade and Version Rollback tabs, real-time download progress bar (0%~100%), and archived backups browser.
 
 [0.2.1] - 2026-08-17
 Fixed

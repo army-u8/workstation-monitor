@@ -135,13 +135,8 @@ export const Header: Component = () => {
         <button
           type="button"
           onClick={() => {
-            if (updateInfo()?.has_update) {
-              setIsUpdateModalOpen(true);
-            } else {
-              fetchUpdateCheckApi(false).then((res) => {
-                if (res?.has_update) setIsUpdateModalOpen(true);
-              });
-            }
+            setIsUpdateModalOpen(true);
+            fetchUpdateCheckApi(true);
           }}
           disabled={isCheckingUpdate()}
           class="flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-mono transition-all"

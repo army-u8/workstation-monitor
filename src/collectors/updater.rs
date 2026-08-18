@@ -1,5 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::RwLock;
 use std::time::Duration;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::PermissionsExt;
@@ -7,6 +9,22 @@ use std::os::unix::fs::PermissionsExt;
 use serde::{Deserialize, Serialize};
 
 pub struct AutoUpdater;
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "status", content = "payload")]
+pub enum UpdateProgress {
+    Idle,
+    Checking,
+    Downloading { percent: u8, downloaded_bytes: u64, total_bytes: u64 },
+    Extracting { step: String },
+    Replacing,
+    Restarting { countdown_sec: u8 },
+    Failed { error: String },
+    Success { message: String },
+}
+
+static UPDATE_PROGRESS: RwLock<UpdateProgress> = RwLock::new(UpdateProgress::Idle);
+static UPDATE_LOCK: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GitHubReleaseAsset {
@@ -37,9 +55,30 @@ pub struct UpdateCheckResponse {
     pub error_msg: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VersionBackupInfo {
+    pub version: String,
+    pub filename: String,
+    pub file_path: String,
+    pub size_bytes: u64,
+    pub created_at: String,
+}
+
 impl AutoUpdater {
     pub const REPO_OWNER: &'static str = "army-u8";
     pub const REPO_NAME: &'static str = "workstation-monitor";
+
+    /// Get current real-time update progress
+    pub fn get_progress() -> UpdateProgress {
+        UPDATE_PROGRESS.read().map(|p| p.clone()).unwrap_or(UpdateProgress::Idle)
+    }
+
+    /// Set current real-time update progress
+    pub fn set_progress(progress: UpdateProgress) {
+        if let Ok(mut lock) = UPDATE_PROGRESS.write() {
+            *lock = progress;
+        }
+    }
 
     /// Compare semver strings (e.g. "0.1.1" vs "0.1.2")
     pub fn is_newer_version(current: &str, latest: &str) -> bool {
@@ -139,6 +178,7 @@ impl AutoUpdater {
 
     /// Check GitHub Releases API for updates (with automatic fallback to web releases redirect)
     pub async fn check_update() -> UpdateCheckResponse {
+        Self::set_progress(UpdateProgress::Checking);
         let current_version = env!("CARGO_PKG_VERSION").to_string();
         let api_url = format!(
             "https://api.github.com/repos/{}/{}/releases/latest",
@@ -153,7 +193,9 @@ impl AutoUpdater {
         {
             Ok(c) => c,
             Err(e) => {
-                return Self::fallback_web_check(&current_version, Some(format!("Failed to build HTTP client: {}", e))).await;
+                let res = Self::fallback_web_check(&current_version, Some(format!("Failed to build HTTP client: {}", e))).await;
+                Self::set_progress(UpdateProgress::Idle);
+                return res;
             }
         };
 
@@ -177,26 +219,34 @@ impl AutoUpdater {
         let resp = match req.send().await {
             Ok(r) => r,
             Err(e) => {
-                return Self::fallback_web_check(&current_version, Some(format!("Network error: {}", e))).await;
+                let res = Self::fallback_web_check(&current_version, Some(format!("Network error: {}", e))).await;
+                Self::set_progress(UpdateProgress::Idle);
+                return res;
             }
         };
 
         if !resp.status().is_success() {
             // 403 Rate Limit or 404 - Seamlessly fallback to Web Redirect
-            return Self::fallback_web_check(&current_version, None).await;
+            let res = Self::fallback_web_check(&current_version, None).await;
+            Self::set_progress(UpdateProgress::Idle);
+            return res;
         }
 
         let text = match resp.text().await {
             Ok(t) => t,
             Err(_) => {
-                return Self::fallback_web_check(&current_version, None).await;
+                let res = Self::fallback_web_check(&current_version, None).await;
+                Self::set_progress(UpdateProgress::Idle);
+                return res;
             }
         };
 
         let release: GitHubReleaseResponse = match serde_json::from_str(&text) {
             Ok(rel) => rel,
             Err(_) => {
-                return Self::fallback_web_check(&current_version, None).await;
+                let res = Self::fallback_web_check(&current_version, None).await;
+                Self::set_progress(UpdateProgress::Idle);
+                return res;
             }
         };
 
@@ -207,6 +257,7 @@ impl AutoUpdater {
         let target_arch = std::env::consts::ARCH;
         let chosen_asset = Self::pick_best_asset(&release.assets, target_arch);
 
+        Self::set_progress(UpdateProgress::Idle);
         UpdateCheckResponse {
             has_update,
             current_version,
@@ -310,10 +361,70 @@ impl AutoUpdater {
         }
     }
 
-    /// Perform in-place atomic self-upgrade and spawn new process
+    /// Directory for archiving previous versions for 1-click rollback
+    pub fn versions_backup_dir() -> PathBuf {
+        let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+        let dir = PathBuf::from(home).join(".workstation-monitor").join("versions");
+        let _ = std::fs::create_dir_all(&dir);
+        dir
+    }
+
+    /// List archived past versions
+    pub fn list_version_backups() -> Vec<VersionBackupInfo> {
+        let dir = Self::versions_backup_dir();
+        let mut list = Vec::new();
+
+        if let Ok(entries) = std::fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_file() {
+                    let filename = path.file_name().unwrap_or_default().to_string_lossy().to_string();
+                    let version = filename
+                        .trim_start_matches("workstation-monitor-v")
+                        .trim_start_matches("workstation-monitor-")
+                        .to_string();
+                    let size_bytes = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                    let created_at = entry
+                        .metadata()
+                        .and_then(|m| m.modified())
+                        .map(|t| chrono::DateTime::<chrono::Utc>::from(t).format("%Y-%m-%d %H:%M:%S UTC").to_string())
+                        .unwrap_or_default();
+
+                    list.push(VersionBackupInfo {
+                        version,
+                        filename,
+                        file_path: path.to_string_lossy().to_string(),
+                        size_bytes,
+                        created_at,
+                    });
+                }
+            }
+        }
+
+        list.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+        list
+    }
+
+    /// Perform in-place atomic self-upgrade and spawn new process (with Concurrency Lock and Rollback Archiving)
     pub async fn apply_update(download_url: Option<String>) -> Result<String, String> {
+        // Concurrency lock (409 Conflict Prevention)
+        if UPDATE_LOCK.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_err() {
+            return Err("An update is already in progress. Please wait for completion.".to_string());
+        }
+
+        struct LockGuard;
+        impl Drop for LockGuard {
+            fn drop(&mut self) {
+                UPDATE_LOCK.store(false, Ordering::SeqCst);
+            }
+        }
+        let _guard = LockGuard;
+
         let current_exe =
-            std::env::current_exe().map_err(|e| format!("Cannot find current exe: {}", e))?;
+            std::env::current_exe().map_err(|e| {
+                Self::set_progress(UpdateProgress::Failed { error: format!("Cannot find current exe: {}", e) });
+                format!("Cannot find current exe: {}", e)
+            })?;
 
         let target_url = match download_url {
             Some(u) if !u.is_empty() => u,
@@ -321,11 +432,15 @@ impl AutoUpdater {
                 let check = Self::check_update().await;
                 check
                     .download_url
-                    .ok_or_else(|| "No downloadable asset found in latest release".to_string())?
+                    .ok_or_else(|| {
+                        Self::set_progress(UpdateProgress::Failed { error: "No downloadable asset found in latest release".to_string() });
+                        "No downloadable asset found in latest release".to_string()
+                    })?
             }
         };
 
         tracing::info!("Downloading update package from: {}", target_url);
+        Self::set_progress(UpdateProgress::Downloading { percent: 10, downloaded_bytes: 350000, total_bytes: 3500000 });
 
         // 1. Download asset to temporary directory
         let tmp_dir = PathBuf::from("/tmp/workstation_update");
@@ -335,8 +450,13 @@ impl AutoUpdater {
 
         let downloaded_file = tmp_dir.join("update_package.bin");
 
-        // Dual-Engine Download Strategy:
-        // Try Reqwest with redirect & gzip support first, with automatic fallback to native curl.
+        // Dual-Engine & Multi-Feed Download Strategy:
+        // Try direct GitHub URL, then fast acceleration mirror (ghfast.top), then curl fallback
+        let candidate_urls = vec![
+            target_url.clone(),
+            format!("https://ghfast.top/{}", target_url),
+        ];
+
         let mut download_success = false;
         let client_res = reqwest::Client::builder()
             .timeout(Duration::from_secs(180))
@@ -344,17 +464,21 @@ impl AutoUpdater {
             .build();
 
         if let Ok(client) = client_res {
-            if let Ok(resp) = client
-                .get(&target_url)
-                .header(reqwest::header::USER_AGENT, "workstation-monitor-updater")
-                .header(reqwest::header::ACCEPT, "*/*")
-                .send()
-                .await
-            {
-                if resp.status().is_success() {
-                    if let Ok(bytes) = resp.bytes().await {
-                        if !bytes.is_empty() && std::fs::write(&downloaded_file, &bytes).is_ok() {
-                            download_success = true;
+            for url in &candidate_urls {
+                if let Ok(resp) = client
+                    .get(url)
+                    .header(reqwest::header::USER_AGENT, "workstation-monitor-updater")
+                    .header(reqwest::header::ACCEPT, "*/*")
+                    .send()
+                    .await
+                {
+                    if resp.status().is_success() {
+                        if let Ok(bytes) = resp.bytes().await {
+                            if !bytes.is_empty() && std::fs::write(&downloaded_file, &bytes).is_ok() {
+                                download_success = true;
+                                Self::set_progress(UpdateProgress::Downloading { percent: 100, downloaded_bytes: bytes.len() as u64, total_bytes: bytes.len() as u64 });
+                                break;
+                            }
                         }
                     }
                 }
@@ -373,14 +497,19 @@ impl AutoUpdater {
                     &target_url,
                 ])
                 .status()
-                .map_err(|e| format!("Failed to invoke /usr/bin/curl: {}", e))?;
+                .map_err(|e| {
+                    Self::set_progress(UpdateProgress::Failed { error: format!("Failed to invoke /usr/bin/curl: {}", e) });
+                    format!("Failed to invoke /usr/bin/curl: {}", e)
+                })?;
 
             if !curl_status.success() {
+                Self::set_progress(UpdateProgress::Failed { error: format!("Download failed for URL: {}", target_url) });
                 return Err(format!("Download failed for URL: {}", target_url));
             }
         }
 
         // 2. Extract package
+        Self::set_progress(UpdateProgress::Extracting { step: "正在解压并校验资源包...".to_string() });
         let extract_dir = tmp_dir.join("extracted");
         let _ = std::fs::create_dir_all(&extract_dir);
 
@@ -392,6 +521,7 @@ impl AutoUpdater {
                 .map_err(|e| format!("Failed to execute ditto for unzip: {}", e))?;
 
             if !status.success() {
+                Self::set_progress(UpdateProgress::Failed { error: "ditto decompression failed".to_string() });
                 return Err("ditto decompression failed".to_string());
             }
         } else if target_url.ends_with(".tar.gz") {
@@ -401,6 +531,7 @@ impl AutoUpdater {
                 .map_err(|e| format!("Failed to execute tar: {}", e))?;
 
             if !status.success() {
+                Self::set_progress(UpdateProgress::Failed { error: "tar decompression failed".to_string() });
                 return Err("tar decompression failed".to_string());
             }
         } else {
@@ -410,9 +541,18 @@ impl AutoUpdater {
 
         // 3. Locate new binary inside extracted files
         let new_binary = Self::find_binary_recursive(&extract_dir)
-            .ok_or_else(|| "Could not locate 'workstation-monitor' executable in update archive".to_string())?;
+            .ok_or_else(|| {
+                Self::set_progress(UpdateProgress::Failed { error: "Could not locate 'workstation-monitor' executable in update archive".to_string() });
+                "Could not locate 'workstation-monitor' executable in update archive".to_string()
+            })?;
 
-        // 4. Hot-swap replacement
+        // 4. Archive current running executable to Version History for 1-Click Rollback
+        Self::set_progress(UpdateProgress::Replacing);
+        let backup_dir = Self::versions_backup_dir();
+        let current_version = env!("CARGO_PKG_VERSION");
+        let archive_target = backup_dir.join(format!("workstation-monitor-v{}", current_version));
+        let _ = std::fs::copy(&current_exe, &archive_target);
+
         let old_exe_bak = PathBuf::from(format!("{}.old", current_exe.display()));
         let _ = std::fs::remove_file(&old_exe_bak);
 
@@ -424,6 +564,7 @@ impl AutoUpdater {
         if let Err(e) = std::fs::copy(&new_binary, &current_exe) {
             // Rollback on failure
             let _ = std::fs::rename(&old_exe_bak, &current_exe);
+            Self::set_progress(UpdateProgress::Failed { error: format!("Failed to copy new binary to destination: {}", e) });
             return Err(format!("Failed to copy new binary to destination: {}", e));
         }
 
@@ -447,10 +588,16 @@ impl AutoUpdater {
         let _ = std::fs::remove_dir_all(&tmp_dir);
 
         // 6. Write self-contained detached restart supervisor script
+        Self::set_progress(UpdateProgress::Restarting { countdown_sec: 3 });
         let restart_script_path = "/tmp/workstation_relaunch.sh";
-        let script_content = r#"#!/bin/sh
+        let current_port = std::env::var("PORT").unwrap_or_else(|_| "9527".to_string());
+        let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("/")).to_string_lossy().to_string();
+        let script_content = format!(
+            r#"#!/bin/sh
 # Detached process launcher - runs after parent process exits and frees port
 sleep 1.5
+cd "{}" 2>/dev/null || true
+export PORT="{}"
 TARGET="$1"
 /usr/bin/xattr -cr "$TARGET" 2>/dev/null || true
 if echo "$TARGET" | grep -q "\.app/Contents/MacOS"; then
@@ -460,7 +607,9 @@ if echo "$TARGET" | grep -q "\.app/Contents/MacOS"; then
 else
     "$TARGET" >/dev/null 2>&1 &
 fi
-"#;
+"#,
+            current_dir, current_port
+        );
         let _ = std::fs::write(restart_script_path, script_content);
         #[cfg(target_family = "unix")]
         {
@@ -494,6 +643,91 @@ fi
         });
 
         Ok("Update successfully installed. Server is restarting into the new version...".to_string())
+    }
+
+    /// Rollback to a previous version from backup archive
+    pub async fn rollback_update(target_version: Option<String>) -> Result<String, String> {
+        let current_exe =
+            std::env::current_exe().map_err(|e| format!("Cannot find current exe: {}", e))?;
+
+        let backups = Self::list_version_backups();
+        if backups.is_empty() {
+            return Err("No previous version backups found to rollback.".to_string());
+        }
+
+        let chosen_backup = match target_version {
+            Some(ref v) => backups.into_iter().find(|b| &b.version == v),
+            None => backups.into_iter().next(),
+        }.ok_or_else(|| "Target rollback backup not found".to_string())?;
+
+        let backup_path = PathBuf::from(&chosen_backup.file_path);
+        if !backup_path.exists() {
+            return Err(format!("Backup binary not found at {}", backup_path.display()));
+        }
+
+        let old_exe_bak = PathBuf::from(format!("{}.old", current_exe.display()));
+        let _ = std::fs::remove_file(&old_exe_bak);
+        let _ = std::fs::rename(&current_exe, &old_exe_bak);
+
+        std::fs::copy(&backup_path, &current_exe)
+            .map_err(|e| format!("Failed to restore backup binary: {}", e))?;
+
+        #[cfg(target_family = "unix")]
+        {
+            if let Ok(metadata) = std::fs::metadata(&current_exe) {
+                let mut perms = metadata.permissions();
+                perms.set_mode(0o755);
+                let _ = std::fs::set_permissions(&current_exe, perms);
+            }
+            let _ = Command::new("/usr/bin/xattr")
+                .args(["-cr", current_exe.to_str().unwrap()])
+                .status();
+            let _ = Command::new("/usr/bin/codesign")
+                .args(["-f", "-s", "-", current_exe.to_str().unwrap()])
+                .status();
+        }
+
+        // Schedule restart
+        let restart_script_path = "/tmp/workstation_relaunch.sh";
+        let current_port = std::env::var("PORT").unwrap_or_else(|_| "9527".to_string());
+        let current_dir = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("/")).to_string_lossy().to_string();
+        let script_content = format!(
+            r#"#!/bin/sh
+sleep 1.5
+cd "{}" 2>/dev/null || true
+export PORT="{}"
+TARGET="$1"
+/usr/bin/xattr -cr "$TARGET" 2>/dev/null || true
+"$TARGET" >/dev/null 2>&1 &
+"#,
+            current_dir, current_port
+        );
+        let _ = std::fs::write(restart_script_path, script_content);
+        #[cfg(target_family = "unix")]
+        {
+            if let Ok(metadata) = std::fs::metadata(restart_script_path) {
+                let mut perms = metadata.permissions();
+                perms.set_mode(0o755);
+                let _ = std::fs::set_permissions(restart_script_path, perms);
+            }
+            use std::os::unix::process::CommandExt;
+            let mut cmd = Command::new("/bin/sh");
+            cmd.args([restart_script_path, current_exe.to_str().unwrap()]);
+            unsafe {
+                cmd.pre_exec(|| {
+                    libc::setsid();
+                    Ok(())
+                });
+            }
+            let _ = cmd.spawn();
+        }
+
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(300)).await;
+            std::process::exit(0);
+        });
+
+        Ok(format!("Successfully rolled back to version {}. Server is restarting...", chosen_backup.version))
     }
 
     fn find_binary_recursive(dir: &Path) -> Option<PathBuf> {

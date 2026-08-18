@@ -354,6 +354,17 @@ pub struct UpdateApplyResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateRollbackRequest {
+    pub version: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateRollbackResponse {
+    pub success: bool,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SavePointSnapshot {
     pub commit_hash: String,
     pub short_hash: String,

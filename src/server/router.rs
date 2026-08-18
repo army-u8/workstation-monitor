@@ -42,7 +42,10 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/system/machine-info", get(get_machine_info))
         .route("/api/system/env-vars", get(get_env_vars))
         .route("/api/system/update/check", get(get_update_check))
+        .route("/api/system/update/progress", get(get_update_progress))
         .route("/api/system/update/apply", post(post_update_apply))
+        .route("/api/system/update/history", get(get_update_history))
+        .route("/api/system/update/rollback", post(post_update_rollback))
         .route("/api/cleaner/scan", get(get_cleaner_scan))
         .route("/api/cleaner/clean", post(post_cleaner_clean))
         .route("/api/git/projects", get(get_git_projects))
@@ -665,6 +668,35 @@ async fn get_update_check() -> impl IntoResponse {
     (StatusCode::OK, Json(serde_json::to_value(update_info).unwrap()))
 }
 
+async fn get_update_progress() -> impl IntoResponse {
+    let progress = AutoUpdater::get_progress();
+    (StatusCode::OK, Json(serde_json::to_value(progress).unwrap()))
+}
+
+async fn get_update_history() -> impl IntoResponse {
+    let backups = AutoUpdater::list_version_backups();
+    (StatusCode::OK, Json(serde_json::to_value(backups).unwrap()))
+}
+
+async fn post_update_rollback(Json(payload): Json<crate::types::UpdateRollbackRequest>) -> impl IntoResponse {
+    match AutoUpdater::rollback_update(payload.version).await {
+        Ok(msg) => (
+            StatusCode::OK,
+            Json(crate::types::UpdateRollbackResponse {
+                success: true,
+                message: msg,
+            }),
+        ),
+        Err(err) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(crate::types::UpdateRollbackResponse {
+                success: false,
+                message: err,
+            }),
+        ),
+    }
+}
+
 async fn post_update_apply(Json(payload): Json<UpdateApplyRequest>) -> impl IntoResponse {
     match AutoUpdater::apply_update(payload.download_url).await {
         Ok(msg) => (
@@ -675,14 +707,21 @@ async fn post_update_apply(Json(payload): Json<UpdateApplyRequest>) -> impl Into
                 new_version: None,
             }),
         ),
-        Err(err) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(UpdateApplyResponse {
-                success: false,
-                message: err,
-                new_version: None,
-            }),
-        ),
+        Err(err) => {
+            let status = if err.contains("already in progress") {
+                StatusCode::CONFLICT
+            } else {
+                StatusCode::INTERNAL_SERVER_ERROR
+            };
+            (
+                status,
+                Json(UpdateApplyResponse {
+                    success: false,
+                    message: err,
+                    new_version: None,
+                }),
+            )
+        }
     }
 }
 

@@ -313,6 +313,32 @@ export interface UpdateApplyResponse {
   new_version?: string | null;
 }
 
+export interface UpdateProgressResponse {
+  status: 'Idle' | 'Checking' | 'Downloading' | 'Extracting' | 'Replacing' | 'Restarting' | 'Failed' | 'Success';
+  payload?: {
+    percent?: number;
+    downloaded_bytes?: number;
+    total_bytes?: number;
+    step?: string;
+    countdown_sec?: number;
+    error?: string;
+    message?: string;
+  };
+}
+
+export interface VersionBackupInfo {
+  version: string;
+  filename: string;
+  file_path: string;
+  size_bytes: number;
+  created_at: string;
+}
+
+export interface UpdateRollbackResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface SavePointSnapshot {
   commit_hash: string;
   short_hash: string;

@@ -50,6 +50,9 @@ import type {
   TrafficSummary,
   UpdateApplyResponse,
   UpdateCheckResponse,
+  UpdateProgressResponse,
+  UpdateRollbackResponse,
+  VersionBackupInfo,
   WebArtifactInfo,
   WsEvent,
 } from '../types';
@@ -158,6 +161,9 @@ export const [isCheckingUpdate, setIsCheckingUpdate] = createSignal(false);
 export const [isApplyingUpdate, setIsApplyingUpdate] = createSignal(false);
 export const [isUpdateModalOpen, setIsUpdateModalOpen] = createSignal(false);
 export const [updateStep, setUpdateStep] = createSignal<'idle' | 'downloading' | 'installing' | 'restarting' | 'reconnecting'>('idle');
+export const [updateProgressPayload, setUpdateProgressPayload] = createSignal<UpdateProgressResponse | null>(null);
+export const [versionBackups, setVersionBackups] = createSignal<VersionBackupInfo[]>([]);
+export const [isLoadingBackups, setIsLoadingBackups] = createSignal(false);
 
 // Save Point & Time Machine Signals
 export const [activeSnapshotPath, setActiveSnapshotPath] = createSignal<string | null>(null);
@@ -579,17 +585,86 @@ export async function fetchUpdateCheckApi(silent = false): Promise<UpdateCheckRe
   }
 }
 
+export async function fetchUpdateProgressApi(): Promise<UpdateProgressResponse | null> {
+  try {
+    const res = await fetch(ApiEndpoint.UPDATE_PROGRESS);
+    if (!res.ok) return null;
+    const data: UpdateProgressResponse = await res.json();
+    setUpdateProgressPayload(data);
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchVersionBackupsApi(): Promise<VersionBackupInfo[]> {
+  setIsLoadingBackups(true);
+  try {
+    const res = await fetch(ApiEndpoint.UPDATE_HISTORY);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: VersionBackupInfo[] = await res.json();
+    setVersionBackups(data);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to load version history', ToastType.ERROR);
+    return [];
+  } finally {
+    setIsLoadingBackups(false);
+  }
+}
+
+export async function rollbackUpdateApi(version?: string): Promise<boolean> {
+  if (isApplyingUpdate()) return false;
+  setIsApplyingUpdate(true);
+  setUpdateStep('restarting');
+  try {
+    const res = await fetch(ApiEndpoint.UPDATE_ROLLBACK, {
+      method: HTTP_METHODS.POST,
+      headers: { 'Content-Type': CONTENT_TYPES.JSON },
+      body: JSON.stringify({ version }),
+    });
+    const data: UpdateRollbackResponse = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Rollback failed');
+    }
+    showToast(data.message, ToastType.SUCCESS);
+    setTimeout(() => {
+      setUpdateStep('reconnecting');
+      pollForServerRestart();
+    }, 1500);
+    return true;
+  } catch (err: any) {
+    setIsApplyingUpdate(false);
+    setUpdateStep('idle');
+    showToast(err.message || 'Failed to rollback version', ToastType.ERROR);
+    return false;
+  }
+}
+
 export async function applyUpdateApi(downloadUrl?: string | null): Promise<boolean> {
   if (isApplyingUpdate()) return false;
   setIsApplyingUpdate(true);
   setUpdateStep('downloading');
-  try {
-    setTimeout(() => {
-      if (isApplyingUpdate() && updateStep() === 'downloading') {
-        setUpdateStep('installing');
-      }
-    }, 4000);
 
+  // Start background progress poller
+  const progressPoller = setInterval(async () => {
+    if (!isApplyingUpdate()) {
+      clearInterval(progressPoller);
+      return;
+    }
+    const prog = await fetchUpdateProgressApi();
+    if (prog) {
+      if (prog.status === 'Downloading') {
+        setUpdateStep('downloading');
+      } else if (prog.status === 'Extracting') {
+        setUpdateStep('installing');
+      } else if (prog.status === 'Restarting') {
+        setUpdateStep('restarting');
+      }
+    }
+  }, 400);
+
+  try {
     const res = await fetch(ApiEndpoint.UPDATE_APPLY, {
       method: HTTP_METHODS.POST,
       headers: { 'Content-Type': CONTENT_TYPES.JSON },
@@ -597,6 +672,12 @@ export async function applyUpdateApi(downloadUrl?: string | null): Promise<boole
     });
 
     const data: UpdateApplyResponse = await res.json();
+    clearInterval(progressPoller);
+
+    if (res.status === 409) {
+      throw new Error('Update is already in progress');
+    }
+
     if (!res.ok || !data.success) {
       throw new Error(data.message || 'Update failed');
     }
@@ -612,6 +693,7 @@ export async function applyUpdateApi(downloadUrl?: string | null): Promise<boole
 
     return true;
   } catch (err: any) {
+    clearInterval(progressPoller);
     setIsApplyingUpdate(false);
     setUpdateStep('idle');
     showToast(err.message || 'Failed to apply update', ToastType.ERROR);
