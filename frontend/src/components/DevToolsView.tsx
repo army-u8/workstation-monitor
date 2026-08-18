@@ -11,9 +11,225 @@ import { t } from '../i18n';
 import { DevToolsIcon, RefreshIcon } from './Icons';
 import type { EnvVarEntry, PathEntry } from '../types';
 
+interface KnownApiKeyDef {
+  key: string;
+  name: string;
+  provider: string;
+  category: 'ai' | 'cloud';
+  icon: string;
+  docsUrl?: string;
+}
+
+const KNOWN_API_KEYS: KnownApiKeyDef[] = [
+  // AI & LLM
+  {
+    key: 'OPENAI_API_KEY',
+    name: 'OpenAI API Key',
+    provider: 'OpenAI (GPT-4o / o3)',
+    category: 'ai',
+    icon: '🤖',
+    docsUrl: 'https://platform.openai.com/api-keys',
+  },
+  {
+    key: 'ANTHROPIC_API_KEY',
+    name: 'Anthropic Claude Key',
+    provider: 'Anthropic (Claude 3.5 / 3.7)',
+    category: 'ai',
+    icon: '🧠',
+    docsUrl: 'https://console.anthropic.com/',
+  },
+  {
+    key: 'DEEPSEEK_API_KEY',
+    name: 'DeepSeek API Key',
+    provider: 'DeepSeek (V3 / R1)',
+    category: 'ai',
+    icon: '⚡',
+    docsUrl: 'https://platform.deepseek.com/',
+  },
+  {
+    key: 'GEMINI_API_KEY',
+    name: 'Google Gemini Key',
+    provider: 'Google AI Studio',
+    category: 'ai',
+    icon: '✨',
+    docsUrl: 'https://aistudio.google.com/',
+  },
+  {
+    key: 'GROQ_API_KEY',
+    name: 'Groq LPU Key',
+    provider: 'Groq Cloud',
+    category: 'ai',
+    icon: '🚀',
+    docsUrl: 'https://console.groq.com/',
+  },
+  {
+    key: 'OPENROUTER_API_KEY',
+    name: 'OpenRouter Key',
+    provider: 'OpenRouter Aggregator',
+    category: 'ai',
+    icon: '🌌',
+    docsUrl: 'https://openrouter.ai/keys',
+  },
+  {
+    key: 'SILICONFLOW_API_KEY',
+    name: 'SiliconFlow Key',
+    provider: 'SiliconFlow Cloud',
+    category: 'ai',
+    icon: '🌊',
+    docsUrl: 'https://cloud.siliconflow.cn/',
+  },
+  {
+    key: 'MISTRAL_API_KEY',
+    name: 'Mistral AI Key',
+    provider: 'Mistral Platform',
+    category: 'ai',
+    icon: '🌪️',
+    docsUrl: 'https://console.mistral.ai/',
+  },
+  {
+    key: 'MOONSHOT_API_KEY',
+    name: 'Moonshot (Kimi) Key',
+    provider: 'Moonshot AI / Kimi',
+    category: 'ai',
+    icon: '🌙',
+    docsUrl: 'https://platform.moonshot.cn/',
+  },
+  {
+    key: 'ZHIPU_API_KEY',
+    name: 'Zhipu GLM Key',
+    provider: 'Zhipu AI / GLM',
+    category: 'ai',
+    icon: '🔮',
+    docsUrl: 'https://open.bigmodel.cn/',
+  },
+  {
+    key: 'ELEVENLABS_API_KEY',
+    name: 'ElevenLabs Voice Key',
+    provider: 'ElevenLabs AI Voice',
+    category: 'ai',
+    icon: '🎙️',
+    docsUrl: 'https://elevenlabs.io/',
+  },
+  {
+    key: 'HF_TOKEN',
+    name: 'HuggingFace Token',
+    provider: 'HuggingFace Hub',
+    category: 'ai',
+    icon: '🤗',
+    docsUrl: 'https://huggingface.co/settings/tokens',
+  },
+  {
+    key: 'TAVILY_API_KEY',
+    name: 'Tavily Search Key',
+    provider: 'Tavily AI Search',
+    category: 'ai',
+    icon: '🔍',
+    docsUrl: 'https://tavily.com/',
+  },
+  {
+    key: 'PERPLEXITY_API_KEY',
+    name: 'Perplexity Key',
+    provider: 'Perplexity AI',
+    category: 'ai',
+    icon: '💡',
+    docsUrl: 'https://www.perplexity.ai/settings/api',
+  },
+  {
+    key: 'COHERE_API_KEY',
+    name: 'Cohere API Key',
+    provider: 'Cohere Platform',
+    category: 'ai',
+    icon: '🧬',
+    docsUrl: 'https://dashboard.cohere.com/api-keys',
+  },
+  {
+    key: 'OLLAMA_HOST',
+    name: 'Ollama Host Endpoint',
+    provider: 'Local Ollama Daemon',
+    category: 'ai',
+    icon: '🦙',
+    docsUrl: 'https://ollama.com/',
+  },
+
+  // Cloud & DevOps & SaaS
+  {
+    key: 'GITHUB_TOKEN',
+    name: 'GitHub Personal Token',
+    provider: 'GitHub / Actions',
+    category: 'cloud',
+    icon: '🐙',
+    docsUrl: 'https://github.com/settings/tokens',
+  },
+  {
+    key: 'AWS_ACCESS_KEY_ID',
+    name: 'AWS Access Key ID',
+    provider: 'Amazon Web Services',
+    category: 'cloud',
+    icon: '☁️',
+    docsUrl: 'https://console.aws.amazon.com/',
+  },
+  {
+    key: 'AWS_SECRET_ACCESS_KEY',
+    name: 'AWS Secret Access Key',
+    provider: 'Amazon Web Services',
+    category: 'cloud',
+    icon: '🔒',
+    docsUrl: 'https://console.aws.amazon.com/',
+  },
+  {
+    key: 'CLOUDFLARE_API_TOKEN',
+    name: 'Cloudflare API Token',
+    provider: 'Cloudflare Workers / CDN',
+    category: 'cloud',
+    icon: '🛡️',
+    docsUrl: 'https://dash.cloudflare.com/profile/api-tokens',
+  },
+  {
+    key: 'VERCEL_TOKEN',
+    name: 'Vercel Token',
+    provider: 'Vercel Platform',
+    category: 'cloud',
+    icon: '▲',
+    docsUrl: 'https://vercel.com/account/tokens',
+  },
+  {
+    key: 'SUPABASE_KEY',
+    name: 'Supabase Key',
+    provider: 'Supabase BaaS',
+    category: 'cloud',
+    icon: '⚡',
+    docsUrl: 'https://supabase.com/',
+  },
+  {
+    key: 'STRIPE_SECRET_KEY',
+    name: 'Stripe Secret Key',
+    provider: 'Stripe Payments',
+    category: 'cloud',
+    icon: '💳',
+    docsUrl: 'https://dashboard.stripe.com/apikeys',
+  },
+  {
+    key: 'SENTRY_AUTH_TOKEN',
+    name: 'Sentry Auth Token',
+    provider: 'Sentry Monitoring',
+    category: 'cloud',
+    icon: '🎯',
+    docsUrl: 'https://sentry.io/settings/auth-tokens/',
+  },
+  {
+    key: 'RESEND_API_KEY',
+    name: 'Resend API Key',
+    provider: 'Resend Email API',
+    category: 'cloud',
+    icon: '✉️',
+    docsUrl: 'https://resend.com/api-keys',
+  },
+];
+
 export const DevToolsView: Component = () => {
-  const [activeTab, setActiveTab] = createSignal<'tools' | 'path' | 'env'>('tools');
+  const [activeTab, setActiveTab] = createSignal<'tools' | 'api_keys' | 'path' | 'env'>('tools');
   const [searchEnv, setSearchEnv] = createSignal('');
+  const [searchKeys, setSearchKeys] = createSignal('');
   const [selectedCategory, setSelectedCategory] = createSignal<string>('ALL');
   const [revealedSecrets, setRevealedSecrets] = createSignal<Record<string, boolean>>({});
 
@@ -27,6 +243,16 @@ export const DevToolsView: Component = () => {
     return tools().filter((d) => d.is_installed).length;
   });
 
+  // Map variable names to values for rapid lookup
+  const envMap = createMemo(() => {
+    const map: Record<string, string> = {};
+    const list = envVarsData()?.env_vars || [];
+    for (const item of list) {
+      map[item.name] = item.value;
+    }
+    return map;
+  });
+
   const toggleSecretReveal = (name: string) => {
     setRevealedSecrets((prev) => ({
       ...prev,
@@ -35,9 +261,37 @@ export const DevToolsView: Component = () => {
   };
 
   const maskSecretValue = (val: string) => {
+    if (!val) return '';
     if (val.length <= 8) return '••••••••';
     return `${val.slice(0, 4)}••••••••${val.slice(-4)}`;
   };
+
+  // Known API keys with detection state
+  const enrichedKnownKeys = createMemo(() => {
+    const map = envMap();
+    const q = searchKeys().trim().toLowerCase();
+
+    return KNOWN_API_KEYS.map((def) => {
+      const val = map[def.key];
+      const isConfigured = Boolean(val && val.trim() !== '');
+      return {
+        ...def,
+        value: val || '',
+        isConfigured,
+      };
+    }).filter((item) => {
+      if (!q) return true;
+      return (
+        item.key.toLowerCase().includes(q) ||
+        item.name.toLowerCase().includes(q) ||
+        item.provider.toLowerCase().includes(q)
+      );
+    });
+  });
+
+  const configuredApiKeysCount = createMemo(() => {
+    return enrichedKnownKeys().filter((k) => k.isConfigured).length;
+  });
 
   const filteredEnvVars = () => {
     const list = envVarsData()?.env_vars || [];
@@ -99,11 +353,11 @@ export const DevToolsView: Component = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div class="flex items-center gap-2 border-b border-border-subtle pb-2">
+      <div class="flex items-center gap-2 border-b border-border-subtle pb-2 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('tools')}
-          class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all"
+          class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all shrink-0"
           classList={{
             'bg-accent text-white shadow-xs': activeTab() === 'tools',
             'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default':
@@ -122,10 +376,36 @@ export const DevToolsView: Component = () => {
           </span>
         </button>
 
+        {/* TAB 2: API Keys Radar */}
+        <button
+          type="button"
+          onClick={() => setActiveTab('api_keys')}
+          class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all shrink-0"
+          classList={{
+            'bg-accent text-white shadow-xs': activeTab() === 'api_keys',
+            'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default':
+              activeTab() !== 'api_keys',
+          }}
+        >
+          <span>{t().devops.tabApiKeys}</span>
+          <span
+            class="rounded-full px-1.5 py-0.2 text-[10px] mono tabular-nums"
+            classList={{
+              'bg-white/20 text-white': activeTab() === 'api_keys',
+              'bg-status-success/15 text-status-success border border-status-success/30 font-bold':
+                activeTab() !== 'api_keys' && configuredApiKeysCount() > 0,
+              'bg-bg-subtle text-text-muted':
+                activeTab() !== 'api_keys' && configuredApiKeysCount() === 0,
+            }}
+          >
+            {configuredApiKeysCount()}/{KNOWN_API_KEYS.length}
+          </span>
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('path')}
-          class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all"
+          class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all shrink-0"
           classList={{
             'bg-accent text-white shadow-xs': activeTab() === 'path',
             'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default':
@@ -147,7 +427,7 @@ export const DevToolsView: Component = () => {
         <button
           type="button"
           onClick={() => setActiveTab('env')}
-          class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all"
+          class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all shrink-0"
           classList={{
             'bg-accent text-white shadow-xs': activeTab() === 'env',
             'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default':
@@ -198,38 +478,40 @@ export const DevToolsView: Component = () => {
                             tool.is_installed,
                           'bg-text-muted': !tool.is_installed,
                         }}
-                        title={tool.is_installed ? 'Installed & Ready' : 'Not Found'}
                       />
                     </div>
 
-                    <div
-                      class="mt-2 text-[11px] mono text-text-secondary truncate"
-                      title={tool.version || t().devops.notInstalled}
-                    >
-                      {tool.version || (
-                        <span class="text-text-muted">{t().devops.notInstalled}</span>
-                      )}
+                    <div class="mt-2 text-[11px] mono">
+                      <span class="text-text-muted">{t().devops.category}: </span>
+                      <span class="text-text-secondary">{tool.category}</span>
+                    </div>
+
+                    <div class="mt-1 text-[11px] mono">
+                      <span class="text-text-muted">{t().devops.versionLabel}: </span>
+                      <span class="text-accent font-medium">
+                        {tool.version || t().devops.notInstalled}
+                      </span>
                     </div>
                   </div>
 
-                  <Show when={tool.path}>
-                    <div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between">
-                      <span
-                        class="text-[10px] text-text-muted mono truncate max-w-[120px]"
-                        title={tool.path || ''}
-                      >
-                        {tool.path}
-                      </span>
+                  <div class="mt-3 pt-2.5 border-t border-border-subtle flex items-center justify-between">
+                    <span
+                      class="text-[10px] mono text-text-muted truncate max-w-[120px]"
+                      title={tool.path || ''}
+                    >
+                      {tool.path || '-'}
+                    </span>
+                    <Show when={tool.path}>
                       <button
                         type="button"
                         onClick={() => copyToClipboard(tool.path || '', tool.name)}
-                        class="text-[10px] text-accent hover:underline shrink-0 ml-1"
+                        class="rounded border border-border-default bg-bg-surface px-1.5 py-0.5 text-[9.5px] text-text-muted hover:text-text-primary transition-colors shrink-0"
                         title={t().devops.copyPath}
                       >
                         {t().devops.copy}
                       </button>
-                    </div>
-                  </Show>
+                    </Show>
+                  </div>
                 </div>
               )}
             </For>
@@ -237,31 +519,337 @@ export const DevToolsView: Component = () => {
         </section>
       </Show>
 
-      {/* TAB 2: $PATH Resolution Chain */}
+      {/* TAB 2: API Keys Radar (AI & Cloud Services) */}
+      <Show when={activeTab() === 'api_keys'}>
+        <section class="space-y-4">
+          {/* Top Overview & Filter Bar */}
+          <div class="glass-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg">🔑</span>
+                <h3 class="text-xs font-bold text-text-primary m-0">{t().devops.apiKeysTitle}</h3>
+              </div>
+              <p class="text-xs text-text-muted m-0 mt-0.5">{t().devops.apiKeysSubtitle}</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 text-xs">
+                <span class="rounded bg-status-success/15 border border-status-success/30 px-2 py-0.8 text-status-success font-mono font-semibold">
+                  ✓ {configuredApiKeysCount()} {t().devops.configuredKeys}
+                </span>
+                <span class="rounded bg-bg-subtle border border-border-subtle px-2 py-0.8 text-text-muted font-mono">
+                  ⚪ {KNOWN_API_KEYS.length - configuredApiKeysCount()}{' '}
+                  {t().devops.unconfiguredKeys}
+                </span>
+              </div>
+
+              {/* Search Box */}
+              <input
+                type="text"
+                placeholder={t().devops.searchKeysPlaceholder}
+                value={searchKeys()}
+                onInput={(e) => setSearchKeys(e.currentTarget.value)}
+                class="w-full sm:w-64 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent"
+              />
+            </div>
+          </div>
+
+          {/* Section 1: AI & LLM Keys Grid */}
+          <div class="space-y-2">
+            <div class="flex items-center justify-between px-1">
+              <h4 class="text-xs font-bold text-text-secondary m-0">{t().devops.aiSectionTitle}</h4>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <For each={enrichedKnownKeys().filter((k) => k.category === 'ai')}>
+                {(item) => {
+                  const isRevealed = () => Boolean(revealedSecrets()[item.key]);
+                  const displayValue = () => {
+                    if (!item.isConfigured) return '';
+                    return isRevealed() ? item.value : maskSecretValue(item.value);
+                  };
+
+                  return (
+                    <div
+                      class="glass-card flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover"
+                      classList={{
+                        'border-status-success/30 bg-status-success/5': item.isConfigured,
+                        'opacity-60 bg-bg-surface/50': !item.isConfigured,
+                      }}
+                    >
+                      <div>
+                        {/* Top: Icon + Name + Badge */}
+                        <div class="flex items-center justify-between mb-2">
+                          <div class="flex items-center gap-2">
+                            <span class="text-base">{item.icon}</span>
+                            <div class="flex flex-col">
+                              <span class="font-bold text-xs text-text-primary">{item.name}</span>
+                              <span class="text-[10px] text-text-muted">{item.provider}</span>
+                            </div>
+                          </div>
+
+                          <span
+                            class="rounded px-1.5 py-0.2 font-mono text-[9.5px] font-semibold"
+                            classList={{
+                              'bg-status-success/15 text-status-success border border-status-success/30':
+                                item.isConfigured,
+                              'bg-bg-subtle text-text-muted border border-border-subtle':
+                                !item.isConfigured,
+                            }}
+                          >
+                            {item.isConfigured ? t().devops.keyConfigured : t().devops.keyNotSet}
+                          </span>
+                        </div>
+
+                        {/* Variable Name */}
+                        <div class="mb-2">
+                          <span class="font-mono text-xs font-bold text-accent">{item.key}</span>
+                        </div>
+
+                        {/* Value Box */}
+                        <div class="rounded bg-bg-base/80 p-2 border border-border-subtle text-[11px] font-mono mb-3 min-h-[32px] flex items-center justify-between">
+                          <Show
+                            when={item.isConfigured}
+                            fallback={
+                              <span class="text-text-muted/60 text-[10px]">
+                                export {item.key}="..."
+                              </span>
+                            }
+                          >
+                            <span
+                              class="text-text-secondary truncate max-w-[170px]"
+                              classList={{ 'tracking-wider text-text-muted': !isRevealed() }}
+                            >
+                              {displayValue()}
+                            </span>
+
+                            <div class="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => toggleSecretReveal(item.key)}
+                                class="text-[10px] text-text-muted hover:text-text-primary px-1"
+                                title={isRevealed() ? t().devops.hideSecret : t().devops.showSecret}
+                              >
+                                {isRevealed() ? '🙈' : '👁️'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(item.value, item.key)}
+                                class="text-[10px] text-text-muted hover:text-accent px-1"
+                                title={t().devops.copy}
+                              >
+                                📋
+                              </button>
+                            </div>
+                          </Show>
+                        </div>
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div class="pt-2 border-t border-border-subtle flex items-center justify-between text-[10.5px]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const exportStr = `export ${item.key}="${item.value || ''}"`;
+                            copyToClipboard(exportStr, `export ${item.key}`);
+                          }}
+                          class="text-text-muted hover:text-accent font-mono text-[10px]"
+                        >
+                          {t().devops.copyExport} ↗
+                        </button>
+
+                        <Show when={item.docsUrl}>
+                          <a
+                            href={item.docsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-text-muted hover:text-accent text-[10px] underline"
+                          >
+                            Console ↗
+                          </a>
+                        </Show>
+                      </div>
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
+          </div>
+
+          {/* Section 2: Cloud & DevOps Platform Keys */}
+          <div class="space-y-2 pt-2">
+            <div class="flex items-center justify-between px-1">
+              <h4 class="text-xs font-bold text-text-secondary m-0">
+                {t().devops.cloudSectionTitle}
+              </h4>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <For each={enrichedKnownKeys().filter((k) => k.category === 'cloud')}>
+                {(item) => {
+                  const isRevealed = () => Boolean(revealedSecrets()[item.key]);
+                  const displayValue = () => {
+                    if (!item.isConfigured) return '';
+                    return isRevealed() ? item.value : maskSecretValue(item.value);
+                  };
+
+                  return (
+                    <div
+                      class="glass-card flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover"
+                      classList={{
+                        'border-status-success/30 bg-status-success/5': item.isConfigured,
+                        'opacity-60 bg-bg-surface/50': !item.isConfigured,
+                      }}
+                    >
+                      <div>
+                        {/* Top: Icon + Name + Badge */}
+                        <div class="flex items-center justify-between mb-2">
+                          <div class="flex items-center gap-2">
+                            <span class="text-base">{item.icon}</span>
+                            <div class="flex flex-col">
+                              <span class="font-bold text-xs text-text-primary">{item.name}</span>
+                              <span class="text-[10px] text-text-muted">{item.provider}</span>
+                            </div>
+                          </div>
+
+                          <span
+                            class="rounded px-1.5 py-0.2 font-mono text-[9.5px] font-semibold"
+                            classList={{
+                              'bg-status-success/15 text-status-success border border-status-success/30':
+                                item.isConfigured,
+                              'bg-bg-subtle text-text-muted border border-border-subtle':
+                                !item.isConfigured,
+                            }}
+                          >
+                            {item.isConfigured ? t().devops.keyConfigured : t().devops.keyNotSet}
+                          </span>
+                        </div>
+
+                        {/* Variable Name */}
+                        <div class="mb-2">
+                          <span class="font-mono text-xs font-bold text-accent">{item.key}</span>
+                        </div>
+
+                        {/* Value Box */}
+                        <div class="rounded bg-bg-base/80 p-2 border border-border-subtle text-[11px] font-mono mb-3 min-h-[32px] flex items-center justify-between">
+                          <Show
+                            when={item.isConfigured}
+                            fallback={
+                              <span class="text-text-muted/60 text-[10px]">
+                                export {item.key}="..."
+                              </span>
+                            }
+                          >
+                            <span
+                              class="text-text-secondary truncate max-w-[170px]"
+                              classList={{ 'tracking-wider text-text-muted': !isRevealed() }}
+                            >
+                              {displayValue()}
+                            </span>
+
+                            <div class="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => toggleSecretReveal(item.key)}
+                                class="text-[10px] text-text-muted hover:text-text-primary px-1"
+                                title={isRevealed() ? t().devops.hideSecret : t().devops.showSecret}
+                              >
+                                {isRevealed() ? '🙈' : '👁️'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(item.value, item.key)}
+                                class="text-[10px] text-text-muted hover:text-accent px-1"
+                                title={t().devops.copy}
+                              >
+                                📋
+                              </button>
+                            </div>
+                          </Show>
+                        </div>
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div class="pt-2 border-t border-border-subtle flex items-center justify-between text-[10.5px]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const exportStr = `export ${item.key}="${item.value || ''}"`;
+                            copyToClipboard(exportStr, `export ${item.key}`);
+                          }}
+                          class="text-text-muted hover:text-accent font-mono text-[10px]"
+                        >
+                          {t().devops.copyExport} ↗
+                        </button>
+
+                        <Show when={item.docsUrl}>
+                          <a
+                            href={item.docsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-text-muted hover:text-accent text-[10px] underline"
+                          >
+                            Console ↗
+                          </a>
+                        </Show>
+                      </div>
+                    </div>
+                  );
+                }}
+              </For>
+            </div>
+          </div>
+        </section>
+      </Show>
+
+      {/* TAB 3: $PATH Resolution Chain */}
       <Show when={activeTab() === 'path'}>
-        <section class="glass-card p-4 space-y-4">
-          <div class="flex items-center justify-between text-xs text-text-muted">
-            <span>{t().devops.pathPriorityHint}</span>
-            <span class="mono tabular-nums">
-              {t().envVars.totalPaths.replace(
-                '{count}',
-                (envVarsData()?.path_entries.length || 0).toString(),
-              )}
-            </span>
+        <section class="glass-card p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-border-subtle pb-3">
+            <div>
+              <h3 class="text-xs font-bold text-text-primary m-0">
+                {t().devops.tabPath} ({envVarsData()?.path_entries.length || 0})
+              </h3>
+              <p class="text-xs text-text-muted mt-0.5 m-0">{t().devops.pathPriorityHint}</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                copyToClipboard(
+                  envVarsData()
+                    ?.path_entries.map((p) => p.path)
+                    .join(':') || '',
+                  '$PATH',
+                )
+              }
+              class="rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-hover transition-colors"
+            >
+              {t().devops.copy} $PATH
+            </button>
           </div>
 
           <div class="space-y-2">
-            <For each={envVarsData()?.path_entries}>
+            <For
+              each={envVarsData()?.path_entries || []}
+              fallback={
+                <div class="py-8 text-center text-xs text-text-muted font-mono">
+                  {t().devops.noMatchEnv}
+                </div>
+              }
+            >
               {(entry: PathEntry) => (
-                <div class="glass-card-subtle flex items-center justify-between p-3 transition-colors hover:bg-bg-subtle">
-                  <div class="flex items-center gap-3">
-                    <span class="flex h-6 w-6 items-center justify-center rounded-md bg-bg-surface mono text-[10.5px] font-bold text-text-secondary border border-border-subtle tabular-nums">
-                      {entry.index + 1}
+                <div class="glass-card-subtle flex items-center justify-between p-2.5 transition-colors hover:border-border-hover">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-bg-subtle mono text-[10px] font-bold text-text-muted">
+                      {entry.index}
                     </span>
-                    <span class="mono text-xs font-medium text-text-primary">{entry.path}</span>
+                    <span class="mono text-xs text-text-primary truncate" title={entry.path}>
+                      {entry.path}
+                    </span>
                   </div>
 
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 shrink-0">
                     <Show
                       when={entry.exists}
                       fallback={
@@ -290,7 +878,7 @@ export const DevToolsView: Component = () => {
         </section>
       </Show>
 
-      {/* TAB 3: Environment Variables Browser */}
+      {/* TAB 4: Environment Variables Browser */}
       <Show when={activeTab() === 'env'}>
         <section class="glass-card p-4 space-y-4">
           {/* Filter Bar */}
@@ -310,7 +898,7 @@ export const DevToolsView: Component = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedCategory(cat)}
-                    class="rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all"
+                    class="rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all shrink-0"
                     classList={{
                       'bg-accent text-white shadow-2xs': selectedCategory() === cat,
                       'bg-bg-subtle text-text-muted hover:text-text-primary border border-border-subtle':
