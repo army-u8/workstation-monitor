@@ -28,7 +28,24 @@ pub async fn static_handler(uri: Uri) -> impl IntoResponse {
         path = "index.html".to_string();
     }
 
-    // 1. Try embedded assets from rust-embed
+    // 1. Check local filesystem first (frontend/dist/) for instant hot reloading without restarting Rust
+    let local_file = Path::new("frontend/dist").join(&path);
+    if local_file.is_file() {
+        if let Ok(bytes) = fs::read(&local_file) {
+            let mime = mime_guess::from_path(&local_file).first_or_octet_stream();
+            return Response::builder()
+                .header(
+                    header::CONTENT_TYPE,
+                    HeaderValue::from_str(mime.as_ref())
+                        .unwrap_or(HeaderValue::from_static("application/octet-stream")),
+                )
+                .header(header::CACHE_CONTROL, HeaderValue::from_static("no-cache, no-store, must-revalidate"))
+                .body(Body::from(bytes))
+                .unwrap();
+        }
+    }
+
+    // 2. Fallback to embedded assets from rust-embed (for standalone single-binary release)
     if let Some(content) = WebAssets::get(&path) {
         let mime = mime_guess::from_path(&path).first_or_octet_stream();
         return Response::builder()
@@ -41,38 +58,23 @@ pub async fn static_handler(uri: Uri) -> impl IntoResponse {
             .unwrap();
     }
 
-    // 2. Fallback to reading directly from local filesystem (frontend/dist/)
-    let local_file = Path::new("frontend/dist").join(&path);
-    if local_file.is_file() {
-        if let Ok(bytes) = fs::read(&local_file) {
-            let mime = mime_guess::from_path(&local_file).first_or_octet_stream();
-            return Response::builder()
-                .header(
-                    header::CONTENT_TYPE,
-                    HeaderValue::from_str(mime.as_ref())
-                        .unwrap_or(HeaderValue::from_static("application/octet-stream")),
-                )
-                .body(Body::from(bytes))
-                .unwrap();
-        }
-    }
-
     // 3. Fallback for SPA Routing: serve index.html (Only for non-API page routes)
-    if let Some(content) = WebAssets::get("index.html") {
-        return Response::builder()
-            .header(header::CONTENT_TYPE, HeaderValue::from_static("text/html; charset=utf-8"))
-            .body(Body::from(content.data))
-            .unwrap();
-    }
-
     let local_index = Path::new("frontend/dist/index.html");
     if local_index.is_file() {
         if let Ok(bytes) = fs::read(local_index) {
             return Response::builder()
                 .header(header::CONTENT_TYPE, HeaderValue::from_static("text/html; charset=utf-8"))
+                .header(header::CACHE_CONTROL, HeaderValue::from_static("no-cache, no-store, must-revalidate"))
                 .body(Body::from(bytes))
                 .unwrap();
         }
+    }
+
+    if let Some(content) = WebAssets::get("index.html") {
+        return Response::builder()
+            .header(header::CONTENT_TYPE, HeaderValue::from_static("text/html; charset=utf-8"))
+            .body(Body::from(content.data))
+            .unwrap();
     }
 
     Response::builder()
