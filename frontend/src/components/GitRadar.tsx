@@ -23,7 +23,7 @@ import {
   TerminalIcon,
   UserIcon,
 } from './Icons';
-import { Button, Input } from './ui';
+import { Badge, Button, Input } from './ui';
 import { SavePointDrawer } from './SavePointDrawer';
 import { GitRepoLayoutMode, GitRepoSortBy, StorageKey } from '../constants';
 import { t } from '../i18n';
@@ -231,22 +231,18 @@ export const GitRadar: Component = () => {
 
           <div class="mt-3 flex items-center justify-between border-t border-border-subtle pt-2.5 text-[10px]">
             <span class="text-text-muted font-mono">{t().gitRadar.authState}:</span>
-            <span
-              class="mono rounded-md px-2 py-0.5 font-bold text-[9.5px]"
-              classList={{
-                'bg-status-success/15 text-status-success border border-status-success/30': Boolean(
-                  gitAccount()?.github?.is_authenticated,
-                ),
-                'bg-status-warning/15 text-status-warning border border-status-warning/30': Boolean(
-                  !gitAccount()?.github?.is_authenticated && gitAccount()?.github?.username,
-                ),
-                'bg-bg-subtle text-text-muted border border-border-subtle': Boolean(
-                  !gitAccount()?.github?.username,
-                ),
-              }}
+            <Badge
+              variant={
+                gitAccount()?.github?.is_authenticated
+                  ? 'success'
+                  : gitAccount()?.github?.username
+                    ? 'warning'
+                    : 'secondary'
+              }
+              size="sm"
             >
               {gitAccount()?.github?.status_text || t().gitRadar.notLoggedIn}
-            </span>
+            </Badge>
           </div>
         </div>
       </section>
@@ -257,15 +253,15 @@ export const GitRadar: Component = () => {
         <div class="flex items-center gap-2.5">
           <div class="flex items-center gap-2">
             <h2 class="text-xs font-bold text-text-primary m-0">{t().gitRadar.title}</h2>
-            <span class="mono text-[10px] font-bold text-text-muted bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
+            <Badge variant="secondary" size="sm">
               {gitProjects().length} {t().gitRadar.reposUnit}
-            </span>
+            </Badge>
           </div>
 
           <Show when={dirtyCount() > 0}>
-            <span class="rounded-full bg-status-warning/15 border border-status-warning/30 px-2 py-0.2 mono text-[10px] text-status-warning font-bold animate-pulse">
+            <Badge variant="warning" dot>
               {dirtyCount()} {t().gitRadar.dirty}
-            </span>
+            </Badge>
           </Show>
         </div>
 
@@ -429,14 +425,14 @@ export const GitRadar: Component = () => {
                           <Show
                             when={repo.is_dirty}
                             fallback={
-                              <span class="rounded bg-status-success/10 px-1.5 py-0.2 mono text-[9px] text-status-success font-medium">
+                              <Badge variant="success" size="sm">
                                 {t().gitRadar.clean}
-                              </span>
+                              </Badge>
                             }
                           >
-                            <span class="rounded bg-status-warning/10 px-1.5 py-0.2 mono text-[9px] text-status-warning font-medium">
+                            <Badge variant="warning" size="sm">
                               {repo.uncommitted_count} {t().gitRadar.dirtyShort}
-                            </span>
+                            </Badge>
                           </Show>
                         </div>
                       </div>
@@ -609,14 +605,14 @@ export const GitRadar: Component = () => {
                           <Show
                             when={repo.is_dirty}
                             fallback={
-                              <span class="rounded bg-status-success/10 px-1.5 py-0.2 text-[9px] text-status-success font-medium">
+                              <Badge variant="success" size="sm">
                                 {t().gitRadar.clean}
-                              </span>
+                              </Badge>
                             }
                           >
-                            <span class="rounded bg-status-warning/10 px-1.5 py-0.2 text-[9px] text-status-warning font-medium">
+                            <Badge variant="warning" size="sm">
                               {repo.uncommitted_count} {t().gitRadar.dirtyShort}
-                            </span>
+                            </Badge>
                           </Show>
 
                           <Show when={repo.ahead > 0}>

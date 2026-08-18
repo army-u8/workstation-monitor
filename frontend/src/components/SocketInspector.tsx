@@ -1,6 +1,6 @@
 import { For, Show, createMemo, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
-import { Button, Input, Tabs, TabsContent, TabsList, TabsTrigger } from './ui';
+import { Badge, Button, Input, Tabs, TabsContent, TabsList, TabsTrigger } from './ui';
 import { copyToClipboard, killPortApi, openConfirmDialog, sockets } from '../services/store';
 import {
   AppBoxIcon,
@@ -335,9 +335,9 @@ export const SocketInspector: Component = () => {
                   {(item: SocketEntry) => (
                     <tr class="hover:bg-bg-subtle/50 transition-colors group">
                       <td class="py-2.5 px-3.5">
-                        <span class="rounded bg-bg-surface px-1.8 py-0.5 text-[10px] font-bold text-text-secondary border border-border-subtle uppercase">
+                        <Badge variant="secondary" size="sm" class="uppercase">
                           {item.protocol}
-                        </span>
+                        </Badge>
                       </td>
                       <td class="py-2.5 px-3.5 font-bold text-accent">:{item.local_port}</td>
                       <td
@@ -442,9 +442,9 @@ export const SocketInspector: Component = () => {
                   {(item: SocketEntry) => (
                     <tr class="hover:bg-bg-subtle/50 transition-colors group">
                       <td class="py-2.5 px-3.5">
-                        <span class="rounded bg-bg-surface px-1.8 py-0.5 text-[10px] font-bold text-text-secondary border border-border-subtle uppercase">
+                        <Badge variant="secondary" size="sm" class="uppercase">
                           {item.protocol}
-                        </span>
+                        </Badge>
                       </td>
                       <td class="py-2.5 px-3.5 text-text-primary truncate max-w-[150px]">
                         {item.local_ip}:{item.local_port}

@@ -9,8 +9,8 @@ import {
   quickCaptureObsidianApi,
   searchObsidianApi,
 } from '../services/store';
-import { CheckIcon, CloseIcon, FolderIcon, RefreshIcon, SearchIcon } from './Icons';
-import { Button, Input } from './ui';
+import { CloseIcon, FolderIcon, RefreshIcon, SearchIcon } from './Icons';
+import { Badge, Button, Input } from './ui';
 import { t } from '../i18n';
 import type { ObsidianNoteDetail, ObsidianSearchResponse } from '../types';
 
@@ -156,19 +156,11 @@ export const ObsidianHub: Component = () => {
 
                 <Show
                   when={obsidianSummary()?.git_dirty}
-                  fallback={
-                    <span class="rounded-md bg-status-success/15 border border-status-success/30 px-2 py-0.5 text-[9.5px] font-bold text-status-success flex items-center gap-1">
-                      <CheckIcon class="h-3 w-3" />
-                      <span>{t().obsidian.clean}</span>
-                    </span>
-                  }
+                  fallback={<Badge variant="success">{t().obsidian.clean}</Badge>}
                 >
-                  <span class="rounded-md bg-status-warning/15 border border-status-warning/30 px-2 py-0.5 text-[9.5px] font-bold text-status-warning animate-pulse flex items-center gap-1">
-                    <span class="h-1.5 w-1.5 rounded-full bg-status-warning" />
-                    <span>
-                      {obsidianSummary()?.git_uncommitted_count} {t().obsidian.dirty}
-                    </span>
-                  </span>
+                  <Badge variant="warning" dot>
+                    {obsidianSummary()?.git_uncommitted_count} {t().obsidian.dirty}
+                  </Badge>
                 </Show>
               </div>
 

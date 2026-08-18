@@ -12,7 +12,7 @@ import {
   SafariIcon,
   TerminalIcon,
 } from './Icons';
-import { Button, Input } from './ui';
+import { Badge, Button, Input } from './ui';
 import { t } from '../i18n';
 
 export const MachineInfo: Component = () => {
@@ -344,14 +344,14 @@ export const MachineInfo: Component = () => {
                       <Show
                         when={app.is_installed}
                         fallback={
-                          <span class="rounded px-1.5 py-0.2 font-mono text-[9px] bg-bg-subtle text-text-muted">
+                          <Badge variant="secondary" size="sm">
                             {t().machineInfo.notInstalled}
-                          </span>
+                          </Badge>
                         }
                       >
-                        <span class="rounded-md bg-status-success/15 border border-status-success/30 px-2 py-0.5 mono text-[9.5px] text-status-success font-bold">
+                        <Badge variant="success" size="sm">
                           v{app.version}
-                        </span>
+                        </Badge>
                       </Show>
                     </div>
                   </div>

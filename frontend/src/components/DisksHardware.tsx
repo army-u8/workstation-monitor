@@ -1,6 +1,7 @@
 import { For, Show } from 'solid-js';
 import type { Component } from 'solid-js';
 import { BoltIcon } from './Icons';
+import { Badge } from './ui';
 import { battery, disks, formatTotalBytes } from '../services/store';
 import { t } from '../i18n';
 
@@ -14,13 +15,13 @@ export const DisksHardware: Component = () => {
             <div class="flex items-center gap-2">
               <span class="h-2 w-2 rounded-full bg-status-success animate-pulse-dot" />
               <h2 class="text-xs font-bold text-text-primary m-0">{t().disks.batteryTitle}</h2>
-              <span class="text-[10px] text-text-muted mono bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
+              <Badge variant="secondary" size="sm">
                 pmset
-              </span>
+              </Badge>
             </div>
-            <span class="rounded-full bg-status-success/15 border border-status-success/30 px-2.5 py-0.5 text-[10.5px] text-status-success font-mono font-bold">
+            <Badge variant="success" size="sm">
               {battery()?.is_charging ? t().disks.acCharging : t().disks.batteryPower}
-            </span>
+            </Badge>
           </div>
 
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">

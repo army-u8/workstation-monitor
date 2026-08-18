@@ -576,19 +576,12 @@ export const AiRadarView: Component = () => {
                     </h2>
                     <Show
                       when={ollamaStatus()?.is_running}
-                      fallback={
-                        <span class="rounded bg-status-warning/15 px-2 py-0.5 text-[10px] font-semibold text-status-warning">
-                          {t().aiRadar.ollamaOffline}
-                        </span>
-                      }
+                      fallback={<Badge variant="warning">{t().aiRadar.ollamaOffline}</Badge>}
                     >
-                      <span class="rounded bg-status-success/15 px-2 py-0.5 text-[10px] font-semibold text-status-success flex items-center gap-1">
-                        <span class="h-1.5 w-1.5 rounded-full bg-status-success animate-pulse" />
-                        <span>
-                          {t().aiRadar.ollamaRunning}{' '}
-                          {ollamaStatus()?.version ? `(v${ollamaStatus()?.version})` : ''}
-                        </span>
-                      </span>
+                      <Badge variant="success" dot>
+                        {t().aiRadar.ollamaRunning}{' '}
+                        {ollamaStatus()?.version ? `(v${ollamaStatus()?.version})` : ''}
+                      </Badge>
                     </Show>
                   </div>
                   <p class="text-xs text-text-muted mt-0.5">{t().aiRadar.ollamaDesc}</p>
@@ -706,23 +699,14 @@ export const AiRadarView: Component = () => {
                 <p class="text-xs text-text-muted mt-0.5">{t().aiRadar.vaultDesc}</p>
               </div>
               <div class="flex items-center gap-2">
-                <span
-                  class="rounded-full px-2.5 py-0.5 text-[10.5px] font-semibold border flex items-center gap-1"
-                  classList={{
-                    'bg-status-success/15 text-status-success border-status-success/30': Boolean(
-                      envVarsData()?.proxy_configured,
-                    ),
-                    'bg-bg-subtle text-text-muted border-border-subtle':
-                      !envVarsData()?.proxy_configured,
-                  }}
-                >
+                <Badge variant={envVarsData()?.proxy_configured ? 'success' : 'secondary'}>
                   <ShieldIcon class="h-3 w-3" />
                   <span>
                     {envVarsData()?.proxy_configured
                       ? t().aiRadar.proxyActive
                       : t().aiRadar.proxyInactive}
                   </span>
-                </span>
+                </Badge>
               </div>
             </div>
 
@@ -758,17 +742,9 @@ export const AiRadarView: Component = () => {
                           </div>
                         </td>
                         <td class="py-2.5 px-3.5">
-                          <span
-                            class="rounded px-2 py-0.5 text-[10px] font-bold uppercase"
-                            classList={{
-                              'bg-status-success/15 text-status-success border-status-success/30':
-                                item.isConfigured,
-                              'bg-bg-surface text-text-muted border border-border-subtle':
-                                !item.isConfigured,
-                            }}
-                          >
+                          <Badge variant={item.isConfigured ? 'success' : 'secondary'} size="sm">
                             {item.isConfigured ? t().aiRadar.keyConfigured : t().aiRadar.keyMissing}
-                          </span>
+                          </Badge>
                         </td>
                         <td class="py-2.5 px-3.5 text-text-secondary">{item.maskedValue}</td>
                         <td class="py-2.5 px-3.5 text-text-muted text-[10.5px]">{item.source}</td>

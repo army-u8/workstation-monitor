@@ -2,7 +2,7 @@ import { For, Show, createSignal, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import { copyToClipboard, fetchHostsApi, hostsList, pingHostApi } from '../services/store';
 import { CloseIcon, RefreshIcon } from './Icons';
-import { Button, Input } from './ui';
+import { Badge, Button, Input } from './ui';
 import { t } from '../i18n';
 
 export const HostsManager: Component = () => {
@@ -129,9 +129,9 @@ export const HostsManager: Component = () => {
                     #{host.line_number}
                   </td>
                   <td class="py-2 px-3.5">
-                    <span class="rounded bg-bg-surface px-1.8 py-0.5 text-accent font-bold border border-border-subtle">
+                    <Badge variant="default" size="sm">
                       {host.ip}
-                    </span>
+                    </Badge>
                   </td>
                   <td class="py-2 px-3.5 text-text-primary font-semibold">{host.domain}</td>
                   <td class="py-2 px-3.5 text-right whitespace-nowrap">

@@ -711,17 +711,14 @@ export const DevToolsView: Component = () => {
                                 <span class="font-bold text-xs text-text-primary">{item.name}</span>
                               </div>
 
-                              <span
-                                class="rounded px-1.5 py-0.2 font-mono text-[9px] font-semibold"
-                                classList={{
-                                  'bg-status-success/15 text-status-success': item.isConfigured,
-                                  'bg-bg-subtle text-text-muted': !item.isConfigured,
-                                }}
+                              <Badge
+                                variant={item.isConfigured ? 'success' : 'secondary'}
+                                size="sm"
                               >
                                 {item.isConfigured
                                   ? t().devops.keyConfigured
                                   : t().devops.keyNotSet}
-                              </span>
+                              </Badge>
                             </div>
 
                             <div class="font-mono text-[11px] text-accent mb-1 truncate">
@@ -804,17 +801,9 @@ export const DevToolsView: Component = () => {
                           <span class="break-all">{entry.path}</span>
                         </td>
                         <td class="py-2 px-3">
-                          <span
-                            class="rounded px-1.5 py-0.5 text-[9.5px] font-bold"
-                            classList={{
-                              'bg-status-success/15 text-status-success border border-status-success/30':
-                                entry.exists,
-                              'bg-status-danger/15 text-status-danger border border-status-danger/30':
-                                !entry.exists,
-                            }}
-                          >
+                          <Badge variant={entry.exists ? 'success' : 'destructive'} size="sm">
                             {entry.exists ? 'OK' : 'Missing'}
-                          </span>
+                          </Badge>
                         </td>
                         <td class="py-2 px-3 text-right whitespace-nowrap">
                           <Button

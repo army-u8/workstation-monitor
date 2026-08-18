@@ -21,7 +21,7 @@ import {
   TbBranchIcon,
   UserIcon,
 } from './Icons';
-import { Button, Input } from './ui';
+import { Badge, Button, Input } from './ui';
 import { t } from '../i18n';
 import type { SavePointSnapshot } from '../types';
 
@@ -217,20 +217,20 @@ export const SavePointDrawer: Component = () => {
                               <Show
                                 when={snap.is_save_point}
                                 fallback={
-                                  <span class="rounded bg-bg-subtle px-1.5 py-0.2 text-[9.5px] mono text-text-muted">
+                                  <Badge variant="secondary" size="sm">
                                     {t().snapshots.normalCommit}
-                                  </span>
+                                  </Badge>
                                 }
                               >
-                                <span class="rounded bg-status-success/15 px-1.5 py-0.2 text-[9.5px] font-semibold text-status-success">
+                                <Badge variant="success" size="sm">
                                   {t().snapshots.savePointTag}
-                                </span>
+                                </Badge>
                               </Show>
 
                               <Show when={snap.is_head}>
-                                <span class="rounded bg-accent px-1.5 py-0.2 text-[9.5px] font-bold text-white uppercase tracking-wider">
+                                <Badge variant="default" size="sm">
                                   {t().snapshots.currentHead}
-                                </span>
+                                </Badge>
                               </Show>
 
                               <span class="mono text-[10px] text-text-muted">

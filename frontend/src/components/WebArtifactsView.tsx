@@ -412,33 +412,22 @@ export const WebArtifactsView: Component = () => {
                     {/* Top Row: Port Badge + Status & Framework */}
                     <div class="flex items-center justify-between mb-2.5">
                       <div class="flex items-center gap-2">
-                        <span class="rounded-md bg-accent/15 border border-accent/30 px-2 py-0.5 mono text-xs font-bold text-accent tabular-nums">
+                        <Badge variant="default" class="text-xs font-bold tabular-nums">
                           :{artifact.port}
-                        </span>
-                        <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 text-[10px] font-medium text-text-secondary">
+                        </Badge>
+                        <Badge variant="secondary" size="sm">
                           {artifact.framework}
-                        </span>
+                        </Badge>
                       </div>
 
                       <div class="flex items-center gap-1.5">
-                        <Show
-                          when={artifact.is_healthy}
-                          fallback={
-                            <span class="rounded-full bg-status-warning/15 px-2 py-0.5 text-[10px] font-semibold text-status-warning flex items-center gap-1">
-                              <span class="h-1.5 w-1.5 rounded-full bg-status-warning animate-pulse" />
-                              <span>
-                                {artifact.status_code ? `HTTP ${artifact.status_code}` : 'Down'}
-                              </span>
-                            </span>
-                          }
-                        >
-                          <span class="rounded-full bg-status-success/15 px-2 py-0.5 text-[10px] font-semibold text-status-success flex items-center gap-1">
-                            <span class="h-1.5 w-1.5 rounded-full bg-status-success" />
-                            <span>
-                              {artifact.status_code ? `HTTP ${artifact.status_code}` : '200 OK'}
-                            </span>
-                          </span>
-                        </Show>
+                        <Badge variant={artifact.is_healthy ? 'success' : 'warning'} dot>
+                          {artifact.status_code
+                            ? `HTTP ${artifact.status_code}`
+                            : artifact.is_healthy
+                              ? '200 OK'
+                              : 'Down'}
+                        </Badge>
                       </div>
                     </div>
 
@@ -598,15 +587,9 @@ export const WebArtifactsView: Component = () => {
                       {/* Status & Latency */}
                       <td class="py-2.5 px-3 font-mono text-[10px]">
                         <div class="flex items-center gap-2">
-                          <span
-                            class="rounded px-1.5 py-0.2 font-semibold text-[9.5px]"
-                            classList={{
-                              'bg-status-success/15 text-status-success': artifact.is_healthy,
-                              'bg-status-warning/15 text-status-warning': !artifact.is_healthy,
-                            }}
-                          >
+                          <Badge variant={artifact.is_healthy ? 'success' : 'warning'} size="sm">
                             {artifact.status_code ? `HTTP ${artifact.status_code}` : 'Down'}
-                          </span>
+                          </Badge>
                           <Show when={typeof artifact.response_time_ms === 'number'}>
                             <span class="text-status-success tabular-nums flex items-center gap-0.5">
                               <BoltIcon class="h-3 w-3" />
