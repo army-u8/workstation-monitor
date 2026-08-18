@@ -362,10 +362,10 @@ export const MachineInfo: Component = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => copyToClipboard(app.path, 'App Path')}
-                    class="mt-3 mono text-[10px] text-text-muted hover:text-accent text-left w-full justify-start h-auto py-1 px-2"
+                    class="mt-3 mono text-[10px] text-text-muted hover:text-accent text-left w-full justify-start h-auto py-1 px-2 max-w-full overflow-hidden"
                     title={app.path}
                   >
-                    <span class="truncate">{app.path}</span>
+                    <span class="truncate block w-full">{app.path}</span>
                   </Button>
                 </div>
 

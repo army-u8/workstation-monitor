@@ -454,11 +454,11 @@ export const GitRadar: Component = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(repo.path, 'Repo Path')}
-                      class="mt-2 mono text-[9px] text-text-muted truncate hover:text-accent text-left w-full justify-start h-auto py-0.5 px-1"
+                      class="mt-2 mono text-[9px] text-text-muted hover:text-accent text-left w-full justify-start h-auto py-0.5 px-1 max-w-full overflow-hidden"
                       title={repo.path}
                       aria-label={repo.path}
                     >
-                      <span class="truncate">{repo.path}</span>
+                      <span class="truncate block w-full">{repo.path}</span>
                     </Button>
 
                     {/* Last Commit Box */}

@@ -51,7 +51,7 @@ export const Button: Component<ButtonProps> = (props) => {
   return (
     <button
       class={cn(
-        'inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-all outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer',
+        'inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-all outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer whitespace-nowrap shrink-0',
         variantClass(),
         sizeClass(),
         local.class,

@@ -44,7 +44,7 @@ export const Badge: Component<BadgeProps> = (props) => {
   return (
     <div
       class={cn(
-        'inline-flex items-center gap-1 rounded-md border font-semibold transition-colors select-none font-mono shrink-0',
+        'inline-flex items-center gap-1 rounded-md border font-semibold transition-colors select-none font-mono shrink-0 whitespace-nowrap',
         variantClass(),
         sizeClass(),
         local.class,

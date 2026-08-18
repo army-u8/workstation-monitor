@@ -467,9 +467,9 @@ export const AiRadarView: Component = () => {
                 <p class="text-xs text-text-muted mt-0.5">{t().aiRadar.agentsSectionDesc}</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="rounded bg-bg-subtle border border-border-subtle px-2.5 py-0.8 mono text-[11px] text-text-primary font-semibold">
+                <Badge variant="secondary" size="lg">
                   {installedAgentsCount()} / {localAgents().length} {t().aiRadar.agentInstalled}
-                </span>
+                </Badge>
               </div>
             </div>
 
