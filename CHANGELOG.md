@@ -1,12 +1,16 @@
 更新日志（中文）
 
 [0.2.3] - 2026-08-17
-新增
-- 深度基于 `design-taste-frontend` 顶级反模板化设计准则，完成全站 UI 视觉与交互重构：
-  - **黑曜石暗黑科技与 Hairline 金属微光**：底色与卡片重构为深邃有层次的黑曜石深色层级（`#0a0d14` ➔ `#121723` ➔ `#181f2f`），顶部引入 `inset 0 1px 0 0 rgba(255, 255, 255, 0.08)` 类似 Apple 硬件倒角的金属微光；
+优化
+- 深度基于 `design-taste-frontend` 顶级反模板化设计准则，重构全站 UI 视觉与交互质感：
+  - **黑曜石暗黑科技与 Hairline 金属微光**：底色与卡片重构为深邃有层次的黑曜石深色层级（`#0a0d14` ➔ `#121723` ➔ `#181f2f`），卡片顶部引入 `inset 0 1px 0 0 rgba(255, 255, 255, 0.08)` 类似 Apple 硬件倒角的金属微光；
   - **Tabular Mono 等宽数字防抖**：全站硬件占用百分比、网速、时延、端口 PID 统一开启 `tabular-nums`，实时数值跳动时彻底消除视觉抖动；
   - **侧边栏与顶栏磨砂毛玻璃重塑**：流线型胶囊导航项、极简控件与心跳微缩仪表盘；
   - **专属视图精修**：AI 测速网格梯队色彩化、本地 Web 产物画廊微卡片、DevTools $PATH 链路节点连线与环境变量密钥一键脱敏。
+修复
+- 国际化多语言与硬编码文本全面修复：
+  - 修复了 DevTools 开发环境页面中顶部副标题、$PATH 寻址链路、环境变量表格表头等写死中文的问题；
+  - 修复了 AI 测速雷达、本地 Web 产物画廊、项目时光机等视图中遗留的未本地化文本，确保中英文切换 100% 动态对齐。
 
 [0.2.2] - 2026-08-17
 新增
@@ -110,12 +114,16 @@
 Changelog (English)
 
 [0.2.3] - 2026-08-17
-Added
+Changed
 - Full UI/UX Redesign (design-taste-frontend Anti-Slop Principles):
   - **Obsidian Dark Tech & Hairline Metal Glow**: Deep background hierarchy (`#0a0d14` ➔ `#121723` ➔ `#181f2f`) with `inset 0 1px 0 0 rgba(255, 255, 255, 0.08)` hairline top highlight.
   - **Tabular Mono Typography**: Eliminated layout jitter with global `tabular-nums` on all stats, bandwidth, latency, and PIDs.
   - **Refined Navigation & Vitals**: Frosted glass header, capsule active navigation, and compact hardware vitals with live pulse.
   - **Dedicated Views Polish**: Tier-colored AI radar, web artifacts cards, $PATH chain timeline, and secret masking.
+Fixed
+- Internationalization (i18n) & Hardcoded Text Polish:
+  - Fixed hardcoded Chinese strings in DevToolsView ($PATH resolution hints, table headers, actions, search placeholders).
+  - Fixed residual non-localized text across AI Radar, Web Artifacts Gallery, and Project Time Machine views to ensure 100% dynamic multi-language switching.
 
 [0.2.2] - 2026-08-17
 Added
