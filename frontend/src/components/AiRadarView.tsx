@@ -1,6 +1,6 @@
 import { For, Show, createMemo, createSignal, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
-import { Tabs } from '@kobalte/core/tabs';
+import { Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger } from './ui';
 import {
   copyToClipboard,
   envVarsData,
@@ -231,12 +231,12 @@ export const AiRadarView: Component = () => {
         </div>
 
         <div class="flex items-center gap-3">
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={refreshAll}
             disabled={isTestingLlmLatency() || isLoadingLocalAgents()}
-            aria-busy={isTestingLlmLatency() || isLoadingLocalAgents()}
-            class="flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-surface px-3 py-1.8 text-xs font-semibold text-text-primary transition-all hover:bg-bg-hover hover:border-border-hover disabled:opacity-50 shadow-2xs"
+            loading={isTestingLlmLatency() || isLoadingLocalAgents()}
           >
             <RefreshIcon
               class={`h-3.5 w-3.5 ${isTestingLlmLatency() || isLoadingLocalAgents() ? 'animate-spin' : ''}`}
@@ -246,7 +246,7 @@ export const AiRadarView: Component = () => {
                 ? t().aiRadar.testing
                 : t().aiRadar.testLatencyBtn}
             </span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -316,79 +316,48 @@ export const AiRadarView: Component = () => {
       </div>
 
       {/* Main Tabs Container */}
-      <Tabs value={activeTab()} onChange={setActiveTab} class="w-full flex flex-col">
-        <Tabs.List class="flex flex-wrap rounded-lg bg-bg-base/80 p-1 border border-border-subtle text-[11px] shadow-2xs w-fit mb-4">
-          <Tabs.Trigger
-            value="latency"
-            class="rounded-md px-3.5 py-1.5 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent flex items-center gap-1.5"
-            classList={{
-              'bg-bg-active text-text-primary shadow-2xs': activeTab() === 'latency',
-              'text-text-muted hover:text-text-primary': activeTab() !== 'latency',
-            }}
-          >
+      <Tabs
+        value={activeTab()}
+        onValueChange={(details) => setActiveTab(details.value)}
+        class="w-full flex flex-col"
+      >
+        <TabsList class="w-fit mb-4">
+          <TabsTrigger value="latency">
             <AntennaIcon class="h-3.5 w-3.5" />
             <span>{t().aiRadar.tabLatency}</span>
             <span class="mono text-[10px] text-accent">({llmLatencies().length})</span>
-          </Tabs.Trigger>
+          </TabsTrigger>
 
-          <Tabs.Trigger
-            value="agents"
-            class="rounded-md px-3.5 py-1.5 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent flex items-center gap-1.5"
-            classList={{
-              'bg-bg-active text-text-primary shadow-2xs': activeTab() === 'agents',
-              'text-text-muted hover:text-text-primary': activeTab() !== 'agents',
-            }}
-          >
+          <TabsTrigger value="agents">
             <RobotIcon class="h-3.5 w-3.5" />
             <span>{t().aiRadar.tabAgents}</span>
             <span class="mono text-[10px] text-teal-400">({installedAgentsCount()})</span>
-          </Tabs.Trigger>
+          </TabsTrigger>
 
-          <Tabs.Trigger
-            value="ollama"
-            class="rounded-md px-3.5 py-1.5 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent flex items-center gap-1.5"
-            classList={{
-              'bg-bg-active text-text-primary shadow-2xs': activeTab() === 'ollama',
-              'text-text-muted hover:text-text-primary': activeTab() !== 'ollama',
-            }}
-          >
+          <TabsTrigger value="ollama">
             <DiskIcon class="h-3.5 w-3.5" />
             <span>{t().aiRadar.tabOllama}</span>
             <Show when={ollamaStatus()?.is_running}>
               <span class="h-1.5 w-1.5 rounded-full bg-status-success" />
             </Show>
-          </Tabs.Trigger>
+          </TabsTrigger>
 
-          <Tabs.Trigger
-            value="vault"
-            class="rounded-md px-3.5 py-1.5 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent flex items-center gap-1.5"
-            classList={{
-              'bg-bg-active text-text-primary shadow-2xs': activeTab() === 'vault',
-              'text-text-muted hover:text-text-primary': activeTab() !== 'vault',
-            }}
-          >
+          <TabsTrigger value="vault">
             <KeyIcon class="h-3.5 w-3.5" />
             <span>{t().aiRadar.tabVault}</span>
             <span class="mono text-[10px] text-indigo-400">
               ({aiKeyVault().filter((k) => k.isConfigured).length})
             </span>
-          </Tabs.Trigger>
+          </TabsTrigger>
 
-          <Tabs.Trigger
-            value="rules"
-            class="rounded-md px-3.5 py-1.5 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent flex items-center gap-1.5"
-            classList={{
-              'bg-bg-active text-text-primary shadow-2xs': activeTab() === 'rules',
-              'text-text-muted hover:text-text-primary': activeTab() !== 'rules',
-            }}
-          >
+          <TabsTrigger value="rules">
             <CodeIcon class="h-3.5 w-3.5" />
             <span>{t().aiRadar.tabRules}</span>
-          </Tabs.Trigger>
-        </Tabs.List>
+          </TabsTrigger>
+        </TabsList>
 
         {/* Tab 1: Global LLM API Latency Matrix */}
-        <Tabs.Content value="latency" class="outline-none space-y-4">
+        <TabsContent value="latency" class="outline-none space-y-4">
           <div class="glass-card p-5">
             <div class="flex items-center justify-between border-b border-border-subtle pb-3 mb-4">
               <div>
@@ -485,10 +454,10 @@ export const AiRadarView: Component = () => {
               </For>
             </div>
           </div>
-        </Tabs.Content>
+        </TabsContent>
 
         {/* Tab 2: Local AI Coding Agents Probe Matrix */}
-        <Tabs.Content value="agents" class="outline-none space-y-4">
+        <TabsContent value="agents" class="outline-none space-y-4">
           <div class="glass-card p-5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-4 mb-4">
               <div>
@@ -542,14 +511,12 @@ export const AiRadarView: Component = () => {
                           <Show
                             when={agent.is_installed}
                             fallback={
-                              <span class="rounded px-1.8 py-0.5 text-[9.5px] font-semibold bg-bg-surface text-text-muted border border-border-subtle">
-                                {t().aiRadar.agentNotInstalled}
-                              </span>
+                              <Badge variant="secondary">{t().aiRadar.agentNotInstalled}</Badge>
                             }
                           >
-                            <span class="rounded px-1.8 py-0.5 text-[9.5px] font-bold bg-status-success/15 text-status-success border border-status-success/30">
+                            <Badge variant="success">
                               {agent.version ? `v${agent.version}` : t().aiRadar.agentInstalled}
-                            </span>
+                            </Badge>
                           </Show>
 
                           <Show when={agent.is_running}>
@@ -590,10 +557,10 @@ export const AiRadarView: Component = () => {
               </For>
             </div>
           </div>
-        </Tabs.Content>
+        </TabsContent>
 
         {/* Tab 3: Local Ollama Model & Memory Controller */}
-        <Tabs.Content value="ollama" class="outline-none space-y-4">
+        <TabsContent value="ollama" class="outline-none space-y-4">
           <div class="glass-card p-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border-subtle pb-4 mb-4">
               <div class="flex items-center gap-2.5">
@@ -723,10 +690,10 @@ export const AiRadarView: Component = () => {
               </div>
             </Show>
           </div>
-        </Tabs.Content>
+        </TabsContent>
 
         {/* Tab 4: API Key Safe Vault */}
-        <Tabs.Content value="vault" class="outline-none space-y-4">
+        <TabsContent value="vault" class="outline-none space-y-4">
           <div class="glass-card p-5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-4 mb-4">
               <div>
@@ -836,10 +803,10 @@ export const AiRadarView: Component = () => {
               </div>
             </Show>
           </div>
-        </Tabs.Content>
+        </TabsContent>
 
         {/* Tab 5: Rules & Prompt Ammo Hub */}
-        <Tabs.Content value="rules" class="outline-none space-y-4">
+        <TabsContent value="rules" class="outline-none space-y-4">
           <div class="glass-card p-5">
             <div class="border-b border-border-subtle pb-3 mb-4">
               <h2 class="text-sm font-bold text-text-primary m-0">{t().aiRadar.rulesTitle}</h2>
@@ -889,7 +856,7 @@ export const AiRadarView: Component = () => {
               </For>
             </div>
           </div>
-        </Tabs.Content>
+        </TabsContent>
       </Tabs>
     </div>
   );

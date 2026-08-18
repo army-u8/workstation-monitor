@@ -11,6 +11,7 @@ import {
   IconBroadcast,
   IconCamera,
   IconCheck,
+  IconChevronDown,
   IconCircle,
   IconCircleDot,
   IconClock,
@@ -132,3 +133,4 @@ export const CircleDotIcon = IconCircleDot;
 export const TargetIcon = IconTarget;
 export const PhotoIcon = IconPhoto;
 export const ShieldIcon = IconShield;
+export const ChevronDownIcon = IconChevronDown;
