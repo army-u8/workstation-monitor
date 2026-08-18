@@ -20,6 +20,7 @@ export const StorageKey = {
   THEME: 'wm_theme',
   LOCALE: 'wm_locale',
   GIT_LAYOUT: 'wm_git_layout',
+  ARTIFACTS_LAYOUT: 'wm_artifacts_layout',
 } as const;
 export type StorageKey = (typeof StorageKey)[keyof typeof StorageKey];
 
@@ -121,6 +122,20 @@ export const GitRepoSortBy = {
   DIRTY: 'dirty',
 } as const;
 export type GitRepoSortBy = (typeof GitRepoSortBy)[keyof typeof GitRepoSortBy];
+
+export const ArtifactsLayoutMode = {
+  GRID: 'grid',
+  TABLE: 'table',
+  COMPACT: 'compact',
+} as const;
+export type ArtifactsLayoutMode = (typeof ArtifactsLayoutMode)[keyof typeof ArtifactsLayoutMode];
+
+export const ArtifactsSortBy = {
+  PORT: 'port',
+  LATENCY: 'latency',
+  FRAMEWORK: 'framework',
+} as const;
+export type ArtifactsSortBy = (typeof ArtifactsSortBy)[keyof typeof ArtifactsSortBy];
 
 export const SocketTab = {
   LISTENING: 'listening',
