@@ -23,7 +23,7 @@ import {
   TerminalIcon,
   UserIcon,
 } from './Icons';
-import { Badge, Button, Input } from './ui';
+import { Badge, Button, Input, SimpleTooltip } from './ui';
 import { SavePointDrawer } from './SavePointDrawer';
 import { GitRepoLayoutMode, GitRepoSortBy, StorageKey } from '../constants';
 import { t } from '../i18n';
@@ -478,61 +478,66 @@ export const GitRadar: Component = () => {
 
                   {/* Action Buttons */}
                   <div class="mt-3 flex items-center justify-between gap-1 border-t border-border-subtle pt-2 text-[10.5px]">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openSnapshotDrawer(repo.path)}
-                      title={t().snapshots.drawerSubtitle}
-                    >
-                      <HistoryIcon class="h-3.5 w-3.5" />
-                      <span>{t().snapshots.viewSnapshotsBtn}</span>
-                    </Button>
+                    <SimpleTooltip content={t().snapshots.drawerSubtitle}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openSnapshotDrawer(repo.path)}
+                      >
+                        <HistoryIcon class="h-3.5 w-3.5" />
+                        <span>{t().snapshots.viewSnapshotsBtn}</span>
+                      </Button>
+                    </SimpleTooltip>
 
                     <div class="flex items-center gap-1 shrink-0">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => openAppApi(repo.path, 'code')}
-                        aria-label={`VS Code: ${repo.name}`}
-                        title={t().gitRadar.openCode}
-                      >
-                        <CodeIcon class="h-3.5 w-3.5 text-accent" />
-                      </Button>
+                      <SimpleTooltip content={`VS Code: ${repo.name}`}>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => openAppApi(repo.path, 'code')}
+                          aria-label={`VS Code: ${repo.name}`}
+                        >
+                          <CodeIcon class="h-3.5 w-3.5 text-accent" />
+                        </Button>
+                      </SimpleTooltip>
 
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => openAppApi(repo.path, 'cursor')}
-                        aria-label={`Cursor: ${repo.name}`}
-                        title={t().gitRadar.openCursor}
-                      >
-                        <CodeIcon class="h-3.5 w-3.5 text-status-warning" />
-                      </Button>
+                      <SimpleTooltip content={`Cursor: ${repo.name}`}>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => openAppApi(repo.path, 'cursor')}
+                          aria-label={`Cursor: ${repo.name}`}
+                        >
+                          <CodeIcon class="h-3.5 w-3.5 text-status-warning" />
+                        </Button>
+                      </SimpleTooltip>
 
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => openAppApi(repo.path, 'terminal')}
-                        aria-label={`Terminal: ${repo.name}`}
-                        title={t().gitRadar.openTerminal}
-                      >
-                        <TerminalIcon class="h-3.5 w-3.5 text-status-info" />
-                      </Button>
+                      <SimpleTooltip content={`${t().gitRadar.openTerminal}: ${repo.name}`}>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => openAppApi(repo.path, 'terminal')}
+                          aria-label={`Terminal: ${repo.name}`}
+                        >
+                          <TerminalIcon class="h-3.5 w-3.5 text-status-info" />
+                        </Button>
+                      </SimpleTooltip>
 
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => openAppApi(repo.path, 'finder')}
-                        aria-label={`Finder: ${repo.name}`}
-                        title={t().gitRadar.openFinder}
-                      >
-                        <FolderIcon class="h-3.5 w-3.5 text-status-success" />
-                      </Button>
+                      <SimpleTooltip content={`${t().gitRadar.openFinder}: ${repo.name}`}>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => openAppApi(repo.path, 'finder')}
+                          aria-label={`Finder: ${repo.name}`}
+                        >
+                          <FolderIcon class="h-3.5 w-3.5 text-status-success" />
+                        </Button>
+                      </SimpleTooltip>
                     </div>
                   </div>
                 </div>
@@ -650,57 +655,66 @@ export const GitRadar: Component = () => {
                       {/* Actions */}
                       <td class="py-2 px-3 text-right">
                         <div class="flex items-center justify-end gap-1">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openSnapshotDrawer(repo.path)}
-                            aria-label={`Time Machine: ${repo.name}`}
-                            title={t().snapshots.viewSnapshotsBtn}
-                          >
-                            <HistoryIcon class="h-3 w-3" />
-                            <span>{t().snapshots.viewSnapshotsBtn}</span>
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            onClick={() => openAppApi(repo.path, 'code')}
-                            aria-label={`VS Code: ${repo.name}`}
-                            title={t().gitRadar.openCode}
-                          >
-                            <CodeIcon class="h-3 w-3" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            onClick={() => openAppApi(repo.path, 'cursor')}
-                            aria-label={`Cursor: ${repo.name}`}
-                            title={t().gitRadar.openCursor}
-                          >
-                            <CodeIcon class="h-3 w-3 text-status-warning" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            onClick={() => openAppApi(repo.path, 'terminal')}
-                            aria-label={`Terminal: ${repo.name}`}
-                            title={t().gitRadar.openTerminal}
-                          >
-                            <TerminalIcon class="h-3 w-3 text-status-info" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            onClick={() => openAppApi(repo.path, 'finder')}
-                            aria-label={`Finder: ${repo.name}`}
-                            title={t().gitRadar.openFinder}
-                          >
-                            <FolderIcon class="h-3 w-3 text-status-success" />
-                          </Button>
+                          <SimpleTooltip content={t().snapshots.drawerSubtitle}>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openSnapshotDrawer(repo.path)}
+                              aria-label={`Time Machine: ${repo.name}`}
+                            >
+                              <HistoryIcon class="h-3 w-3" />
+                              <span>{t().snapshots.viewSnapshotsBtn}</span>
+                            </Button>
+                          </SimpleTooltip>
+
+                          <SimpleTooltip content={`VS Code: ${repo.name}`}>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="icon"
+                              onClick={() => openAppApi(repo.path, 'code')}
+                              aria-label={`VS Code: ${repo.name}`}
+                            >
+                              <CodeIcon class="h-3 w-3 text-accent" />
+                            </Button>
+                          </SimpleTooltip>
+
+                          <SimpleTooltip content={`Cursor: ${repo.name}`}>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="icon"
+                              onClick={() => openAppApi(repo.path, 'cursor')}
+                              aria-label={`Cursor: ${repo.name}`}
+                            >
+                              <CodeIcon class="h-3 w-3 text-status-warning" />
+                            </Button>
+                          </SimpleTooltip>
+
+                          <SimpleTooltip content={`${t().gitRadar.openTerminal}: ${repo.name}`}>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="icon"
+                              onClick={() => openAppApi(repo.path, 'terminal')}
+                              aria-label={`Terminal: ${repo.name}`}
+                            >
+                              <TerminalIcon class="h-3 w-3 text-status-info" />
+                            </Button>
+                          </SimpleTooltip>
+
+                          <SimpleTooltip content={`${t().gitRadar.openFinder}: ${repo.name}`}>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="icon"
+                              onClick={() => openAppApi(repo.path, 'finder')}
+                              aria-label={`Finder: ${repo.name}`}
+                            >
+                              <FolderIcon class="h-3 w-3 text-status-success" />
+                            </Button>
+                          </SimpleTooltip>
                         </div>
                       </td>
                     </tr>
@@ -768,53 +782,66 @@ export const GitRadar: Component = () => {
 
                   {/* Right: Quick Action Buttons */}
                   <div class="flex items-center gap-1 shrink-0 text-[10px]">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openSnapshotDrawer(repo.path)}
-                      aria-label={`Time Machine ${repo.name}`}
-                      title={t().snapshots.viewSnapshotsBtn}
-                    >
-                      <HistoryIcon class="h-3 w-3" />
-                      <span>{t().snapshots.viewSnapshotsBtn}</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => openAppApi(repo.path, 'code')}
-                      aria-label={`VS Code ${repo.name}`}
-                    >
-                      {t().gitRadar.openCode}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => openAppApi(repo.path, 'cursor')}
-                      aria-label={`Cursor ${repo.name}`}
-                    >
-                      {t().gitRadar.openCursor}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => openAppApi(repo.path, 'terminal')}
-                      aria-label={`Terminal ${repo.name}`}
-                    >
-                      {t().gitRadar.openTerminal}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => openAppApi(repo.path, 'finder')}
-                      aria-label={`Finder ${repo.name}`}
-                    >
-                      {t().gitRadar.openFinder}
-                    </Button>
+                    <SimpleTooltip content={t().snapshots.drawerSubtitle}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openSnapshotDrawer(repo.path)}
+                        aria-label={`Time Machine ${repo.name}`}
+                      >
+                        <HistoryIcon class="h-3 w-3" />
+                        <span>{t().snapshots.viewSnapshotsBtn}</span>
+                      </Button>
+                    </SimpleTooltip>
+
+                    <SimpleTooltip content={`VS Code: ${repo.name}`}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        onClick={() => openAppApi(repo.path, 'code')}
+                        aria-label={`VS Code ${repo.name}`}
+                      >
+                        <CodeIcon class="h-3 w-3 text-accent" />
+                      </Button>
+                    </SimpleTooltip>
+
+                    <SimpleTooltip content={`Cursor: ${repo.name}`}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        onClick={() => openAppApi(repo.path, 'cursor')}
+                        aria-label={`Cursor ${repo.name}`}
+                      >
+                        <CodeIcon class="h-3 w-3 text-status-warning" />
+                      </Button>
+                    </SimpleTooltip>
+
+                    <SimpleTooltip content={`${t().gitRadar.openTerminal}: ${repo.name}`}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        onClick={() => openAppApi(repo.path, 'terminal')}
+                        aria-label={`Terminal ${repo.name}`}
+                      >
+                        <TerminalIcon class="h-3 w-3 text-status-info" />
+                      </Button>
+                    </SimpleTooltip>
+
+                    <SimpleTooltip content={`${t().gitRadar.openFinder}: ${repo.name}`}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        onClick={() => openAppApi(repo.path, 'finder')}
+                        aria-label={`Finder ${repo.name}`}
+                      >
+                        <FolderIcon class="h-3 w-3 text-status-success" />
+                      </Button>
+                    </SimpleTooltip>
                   </div>
                 </div>
               )}
