@@ -26,6 +26,9 @@ export interface SocketEntry {
   state: string;
   pid: number | null;
   process_name: string | null;
+  app_name?: string | null;
+  exe_path?: string | null;
+  category?: string | null;
 }
 
 export interface SocketsPayload {

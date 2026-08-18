@@ -148,6 +148,7 @@ export const SocketCategoryFilter = {
   WEB: 'web',
   DB: 'db',
   DEV: 'dev',
+  APP: 'app',
 } as const;
 export type SocketCategoryFilter = (typeof SocketCategoryFilter)[keyof typeof SocketCategoryFilter];
 

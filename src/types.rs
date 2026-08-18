@@ -31,6 +31,12 @@ pub struct SocketEntry {
     pub state: String,
     pub pid: Option<u32>,
     pub process_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exe_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

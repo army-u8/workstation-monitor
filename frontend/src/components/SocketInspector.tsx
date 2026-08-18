@@ -1,8 +1,17 @@
-import { For, Show, createSignal } from 'solid-js';
+import { For, Show, createMemo, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
 import { Tabs } from '@kobalte/core/tabs';
 import { copyToClipboard, killPortApi, openConfirmDialog, sockets } from '../services/store';
-import { CloseIcon } from './Icons';
+import {
+  AppBoxIcon,
+  ChromeIcon,
+  CloseIcon,
+  CodeIcon,
+  CopyIcon,
+  DiskIcon,
+  GlobeIcon,
+  TerminalIcon,
+} from './Icons';
 import { SocketCategoryFilter, SocketState, SocketTab } from '../constants';
 import type { SocketEntry } from '../types';
 import { t } from '../i18n';
@@ -14,40 +23,77 @@ export const SocketInspector: Component = () => {
     SocketCategoryFilter.ALL,
   );
 
-  const isMatchingCategory = (port: number, processName: string) => {
+  const isMatchingCategory = (item: SocketEntry) => {
     const filter = categoryFilter();
     if (!filter) return true;
 
+    if (item.category) {
+      if (
+        filter === SocketCategoryFilter.WEB &&
+        (item.category === 'web' || item.category === 'dev')
+      ) {
+        return true;
+      }
+      if (filter === SocketCategoryFilter.DB && item.category === 'db') return true;
+      if (filter === SocketCategoryFilter.DEV && item.category === 'dev') return true;
+      if (
+        filter === SocketCategoryFilter.APP &&
+        (item.category === 'app' || item.category === 'browser')
+      )
+        return true;
+    }
+
+    const port = item.local_port;
+    const processName = (item.process_name || '').toLowerCase();
+    const appName = (item.app_name || '').toLowerCase();
+
     if (filter === SocketCategoryFilter.WEB) {
       return (
-        [80, 443, 8080, 8443, 3000, 5173, 8000, 9527, 9528].includes(port) ||
-        processName.toLowerCase().includes('nginx') ||
-        processName.toLowerCase().includes('node') ||
-        processName.toLowerCase().includes('vite') ||
-        processName.toLowerCase().includes('caddy')
+        [80, 443, 8080, 8443, 3000, 5173, 8000, 9527, 9528, 9529, 4173].includes(port) ||
+        processName.includes('nginx') ||
+        processName.includes('node') ||
+        processName.includes('vite') ||
+        processName.includes('caddy') ||
+        appName.includes('vite') ||
+        appName.includes('next')
       );
     }
     if (filter === SocketCategoryFilter.DB) {
       return (
         [3306, 5432, 6379, 27017, 9200, 9042, 1433].includes(port) ||
-        processName.toLowerCase().includes('mysql') ||
-        processName.toLowerCase().includes('postgres') ||
-        processName.toLowerCase().includes('redis') ||
-        processName.toLowerCase().includes('mongo')
+        processName.includes('mysql') ||
+        processName.includes('postgres') ||
+        processName.includes('redis') ||
+        processName.includes('mongo') ||
+        appName.includes('postgres') ||
+        appName.includes('redis')
       );
     }
     if (filter === SocketCategoryFilter.DEV) {
       return (
-        [3000, 3001, 5173, 5174, 8080, 8000, 9527, 9528, 4000].includes(port) ||
-        processName.toLowerCase().includes('workstation') ||
-        processName.toLowerCase().includes('next') ||
-        processName.toLowerCase().includes('rust')
+        [3000, 3001, 5173, 5174, 8080, 8000, 9527, 9528, 9529, 4000].includes(port) ||
+        processName.includes('workstation') ||
+        processName.includes('next') ||
+        processName.includes('rust') ||
+        processName.includes('cargo') ||
+        processName.includes('python')
+      );
+    }
+    if (filter === SocketCategoryFilter.APP) {
+      return (
+        appName.endsWith('.app') ||
+        appName.includes('chrome') ||
+        appName.includes('code') ||
+        appName.includes('docker') ||
+        appName.includes('postman') ||
+        appName.includes('wechat') ||
+        appName.includes('telegram')
       );
     }
     return true;
   };
 
-  const filteredListeningPorts = () => {
+  const filteredListeningPorts = createMemo(() => {
     const list = sockets()?.listening_ports || [];
     const q = searchQuery().trim().toLowerCase();
 
@@ -55,16 +101,18 @@ export const SocketInspector: Component = () => {
       const matchesSearch =
         !q ||
         item.local_port.toString().includes(q) ||
+        (item.app_name && item.app_name.toLowerCase().includes(q)) ||
         (item.process_name && item.process_name.toLowerCase().includes(q)) ||
         (item.pid && item.pid.toString().includes(q)) ||
+        (item.exe_path && item.exe_path.toLowerCase().includes(q)) ||
         item.local_ip.toLowerCase().includes(q);
 
-      const matchesCat = isMatchingCategory(item.local_port, item.process_name || '');
+      const matchesCat = isMatchingCategory(item);
       return matchesSearch && matchesCat;
     });
-  };
+  });
 
-  const filteredActiveConnections = () => {
+  const filteredActiveConnections = createMemo(() => {
     const list = sockets()?.active_connections || [];
     const q = searchQuery().trim().toLowerCase();
 
@@ -73,19 +121,67 @@ export const SocketInspector: Component = () => {
         !q ||
         item.local_port.toString().includes(q) ||
         (item.remote_port && item.remote_port.toString().includes(q)) ||
+        (item.app_name && item.app_name.toLowerCase().includes(q)) ||
         (item.process_name && item.process_name.toLowerCase().includes(q)) ||
         (item.pid && item.pid.toString().includes(q)) ||
+        (item.exe_path && item.exe_path.toLowerCase().includes(q)) ||
         (item.remote_ip && item.remote_ip.toLowerCase().includes(q)) ||
         item.state.toLowerCase().includes(q)
       );
     });
+  });
+
+  const renderAppIcon = (item: SocketEntry) => {
+    const cat = item.category || '';
+    const name = (item.app_name || item.process_name || '').toLowerCase();
+
+    if (
+      cat === 'browser' ||
+      name.includes('chrome') ||
+      name.includes('safari') ||
+      name.includes('firefox')
+    ) {
+      return <ChromeIcon class="h-3.5 w-3.5 text-amber-400" />;
+    }
+    if (
+      cat === 'db' ||
+      name.includes('postgres') ||
+      name.includes('mysql') ||
+      name.includes('redis') ||
+      name.includes('mongo')
+    ) {
+      return <DiskIcon class="h-3.5 w-3.5 text-teal-400" />;
+    }
+    if (
+      cat === 'web' ||
+      name.includes('nginx') ||
+      name.includes('caddy') ||
+      name.includes('httpd')
+    ) {
+      return <GlobeIcon class="h-3.5 w-3.5 text-accent" />;
+    }
+    if (
+      cat === 'dev' ||
+      name.includes('node') ||
+      name.includes('vite') ||
+      name.includes('python') ||
+      name.includes('cargo') ||
+      name.includes('rust')
+    ) {
+      return <CodeIcon class="h-3.5 w-3.5 text-indigo-400" />;
+    }
+    if (cat === 'sys' || name.startsWith('com.apple.')) {
+      return <TerminalIcon class="h-3.5 w-3.5 text-text-muted" />;
+    }
+    return <AppBoxIcon class="h-3.5 w-3.5 text-text-secondary" />;
   };
 
   const confirmKillPort = (item: SocketEntry) => {
+    const displayName = item.app_name || item.process_name || 'Process';
     openConfirmDialog({
       title: t().confirmDialog.killPortTitle,
       message: t()
-        .confirmDialog.killPortWarning.replace('{name}', item.process_name || 'Process')
+        .confirmDialog.killPortWarning.replace('{name}', displayName)
         .replace('{pid}', item.pid?.toString() || '-')
         .replace('{port}', item.local_port.toString()),
       confirmText: t().confirmDialog.killPortConfirmBtn,
@@ -152,7 +248,7 @@ export const SocketInspector: Component = () => {
                 placeholder={t().sockets.searchPlaceholder}
                 value={searchQuery()}
                 onInput={(e) => setSearchQuery(e.currentTarget.value)}
-                class="w-52 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
+                class="w-56 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
               />
               <Show when={searchQuery()}>
                 <button
@@ -225,6 +321,19 @@ export const SocketInspector: Component = () => {
                 >
                   {t().sockets.filterDev}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setCategoryFilter(SocketCategoryFilter.APP)}
+                  class="rounded-md px-2 py-0.8 transition-all focus-visible:ring-1 focus-visible:ring-accent"
+                  classList={{
+                    'bg-accent text-white font-bold shadow-2xs':
+                      categoryFilter() === SocketCategoryFilter.APP,
+                    'text-text-muted hover:text-text-primary':
+                      categoryFilter() !== SocketCategoryFilter.APP,
+                  }}
+                >
+                  {t().sockets.filterApp}
+                </button>
               </div>
             </Show>
           </div>
@@ -232,23 +341,23 @@ export const SocketInspector: Component = () => {
 
         {/* Tab 1: Listening Ports Table */}
         <Tabs.Content value={SocketTab.LISTENING} class="outline-none">
-          <div class="max-h-[480px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
+          <div class="max-h-[500px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle/90 text-[10.5px] font-bold text-text-muted uppercase tracking-wider backdrop-blur-xs">
-                  <th scope="col" class="py-2 px-3.5 w-16">
+                  <th scope="col" class="py-2.5 px-3.5 w-16">
                     {t().sockets.thProto}
                   </th>
-                  <th scope="col" class="py-2 px-3.5 w-24">
+                  <th scope="col" class="py-2.5 px-3.5 w-24">
                     {t().sockets.thLocalPort}
                   </th>
-                  <th scope="col" class="py-2 px-3.5">
+                  <th scope="col" class="py-2.5 px-3.5">
                     {t().sockets.thBindAddr}
                   </th>
-                  <th scope="col" class="py-2 px-3.5">
+                  <th scope="col" class="py-2.5 px-3.5">
                     {t().sockets.thProcess}
                   </th>
-                  <th scope="col" class="py-2 px-3.5 text-right w-24">
+                  <th scope="col" class="py-2.5 px-3.5 text-right w-24">
                     {t().processes.thAction}
                   </th>
                 </tr>
@@ -266,42 +375,62 @@ export const SocketInspector: Component = () => {
                 >
                   {(item: SocketEntry) => (
                     <tr class="hover:bg-bg-subtle/50 transition-colors group">
-                      <td class="py-2 px-3.5">
+                      <td class="py-2.5 px-3.5">
                         <span class="rounded bg-bg-surface px-1.8 py-0.5 text-[10px] font-bold text-text-secondary border border-border-subtle uppercase">
                           {item.protocol}
                         </span>
                       </td>
-                      <td class="py-2 px-3.5 font-bold text-accent">:{item.local_port}</td>
+                      <td class="py-2.5 px-3.5 font-bold text-accent">:{item.local_port}</td>
                       <td
-                        class="py-2 px-3.5 text-text-secondary truncate max-w-[160px]"
+                        class="py-2.5 px-3.5 text-text-secondary truncate max-w-[160px]"
                         title={item.local_ip}
                       >
-                        {item.local_ip}
+                        <span class="text-text-muted text-[10px]">{item.local_ip}</span>
                       </td>
-                      <td class="py-2 px-3.5 truncate max-w-[200px]">
-                        <div class="flex items-center gap-1.5 truncate">
-                          <span class="font-bold text-text-primary truncate">
-                            {item.process_name || '-'}
-                          </span>
-                          <Show when={item.pid}>
-                            <span class="text-text-muted text-[10px]">({item.pid})</span>
-                          </Show>
+                      <td
+                        class="py-2.5 px-3.5 truncate max-w-[260px]"
+                        title={item.exe_path || item.process_name || ''}
+                      >
+                        <div class="flex items-center gap-2">
+                          <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-bg-surface border border-border-subtle">
+                            {renderAppIcon(item)}
+                          </div>
+                          <div class="flex flex-col min-w-0 truncate">
+                            <span class="font-bold text-xs text-text-primary truncate">
+                              {item.app_name || item.process_name || '-'}
+                            </span>
+                            <div class="flex items-center gap-1.5 text-[9.5px] text-text-muted truncate">
+                              <Show
+                                when={
+                                  item.process_name &&
+                                  item.app_name &&
+                                  item.process_name !== item.app_name
+                                }
+                              >
+                                <span class="truncate">{item.process_name}</span>
+                              </Show>
+                              <Show when={item.pid}>
+                                <span class="mono opacity-80">PID: {item.pid}</span>
+                              </Show>
+                            </div>
+                          </div>
                         </div>
                       </td>
-                      <td class="py-2 px-3.5 text-right whitespace-nowrap">
+                      <td class="py-2.5 px-3.5 text-right whitespace-nowrap">
                         <div class="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
                             onClick={() => copyToClipboard(item.local_port.toString(), 'Port')}
-                            class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-all"
+                            class="rounded border border-border-default bg-bg-surface px-2 py-0.8 text-[10px] text-text-muted hover:text-text-primary transition-all flex items-center gap-1"
                             title={t().devops.copy}
                           >
-                            {t().devops.copy}
+                            <CopyIcon class="h-3 w-3" />
+                            <span>{t().devops.copy}</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => confirmKillPort(item)}
-                            class="rounded border border-status-danger/30 bg-status-danger/10 px-2 py-0.5 text-[10px] font-bold text-status-danger hover:bg-status-danger hover:text-white transition-all"
+                            class="rounded border border-status-danger/30 bg-status-danger/10 px-2 py-0.8 text-[10px] font-bold text-status-danger hover:bg-status-danger hover:text-white transition-all"
                           >
                             {t().confirmDialog.killPortConfirmBtn}
                           </button>
@@ -317,23 +446,23 @@ export const SocketInspector: Component = () => {
 
         {/* Tab 2: Active Connections Table */}
         <Tabs.Content value={SocketTab.ACTIVE} class="outline-none">
-          <div class="max-h-[480px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
+          <div class="max-h-[500px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle/90 text-[10.5px] font-bold text-text-muted uppercase tracking-wider backdrop-blur-xs">
-                  <th scope="col" class="py-2 px-3.5 w-16">
+                  <th scope="col" class="py-2.5 px-3.5 w-16">
                     {t().sockets.thProto}
                   </th>
-                  <th scope="col" class="py-2 px-3.5">
+                  <th scope="col" class="py-2.5 px-3.5">
                     {t().sockets.thLocalAddr}
                   </th>
-                  <th scope="col" class="py-2 px-3.5">
+                  <th scope="col" class="py-2.5 px-3.5">
                     {t().sockets.thRemoteAddr}
                   </th>
-                  <th scope="col" class="py-2 px-3.5 w-24">
+                  <th scope="col" class="py-2.5 px-3.5 w-24">
                     {t().sockets.thState}
                   </th>
-                  <th scope="col" class="py-2 px-3.5">
+                  <th scope="col" class="py-2.5 px-3.5">
                     {t().sockets.thProcess}
                   </th>
                 </tr>
@@ -351,18 +480,43 @@ export const SocketInspector: Component = () => {
                 >
                   {(item: SocketEntry) => (
                     <tr class="hover:bg-bg-subtle/50 transition-colors group">
-                      <td class="py-2 px-3.5">
+                      <td class="py-2.5 px-3.5">
                         <span class="rounded bg-bg-surface px-1.8 py-0.5 text-[10px] font-bold text-text-secondary border border-border-subtle uppercase">
                           {item.protocol}
                         </span>
                       </td>
-                      <td class="py-2 px-3.5 text-text-primary truncate max-w-[150px]">
+                      <td class="py-2.5 px-3.5 text-text-primary truncate max-w-[150px]">
                         {item.local_ip}:{item.local_port}
                       </td>
-                      <td class="py-2 px-3.5 text-text-secondary truncate max-w-[180px]">
-                        {item.remote_ip ? `${item.remote_ip}:${item.remote_port}` : '-'}
+                      <td class="py-2.5 px-3.5 text-text-secondary truncate max-w-[180px]">
+                        <Show
+                          when={item.remote_ip}
+                          fallback={<span class="text-text-muted">-</span>}
+                        >
+                          <div class="flex items-center gap-1.5">
+                            <span class="truncate font-semibold text-text-primary">
+                              {item.remote_ip}:{item.remote_port}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                copyToClipboard(
+                                  `${item.remote_ip}:${item.remote_port}`,
+                                  'Remote Address',
+                                )
+                              }
+                              class="opacity-0 group-hover:opacity-100 p-0.5 text-text-muted hover:text-accent transition-opacity"
+                              title={t().sockets.copyAddrTooltip.replace(
+                                '{addr}',
+                                `${item.remote_ip}:${item.remote_port}`,
+                              )}
+                            >
+                              <CopyIcon class="h-3 w-3" />
+                            </button>
+                          </div>
+                        </Show>
                       </td>
-                      <td class="py-2 px-3.5">
+                      <td class="py-2.5 px-3.5">
                         <span
                           class="rounded px-1.8 py-0.5 text-[9.5px] font-bold uppercase"
                           classList={{
@@ -380,14 +534,33 @@ export const SocketInspector: Component = () => {
                           {item.state}
                         </span>
                       </td>
-                      <td class="py-2 px-3.5 truncate max-w-[180px]">
-                        <div class="flex items-center gap-1.5 truncate">
-                          <span class="font-bold text-text-primary truncate">
-                            {item.process_name || '-'}
-                          </span>
-                          <Show when={item.pid}>
-                            <span class="text-text-muted text-[10px]">({item.pid})</span>
-                          </Show>
+                      <td
+                        class="py-2.5 px-3.5 truncate max-w-[240px]"
+                        title={item.exe_path || item.process_name || ''}
+                      >
+                        <div class="flex items-center gap-2">
+                          <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-bg-surface border border-border-subtle">
+                            {renderAppIcon(item)}
+                          </div>
+                          <div class="flex flex-col min-w-0 truncate">
+                            <span class="font-bold text-xs text-text-primary truncate">
+                              {item.app_name || item.process_name || '-'}
+                            </span>
+                            <div class="flex items-center gap-1.5 text-[9.5px] text-text-muted truncate">
+                              <Show
+                                when={
+                                  item.process_name &&
+                                  item.app_name &&
+                                  item.process_name !== item.app_name
+                                }
+                              >
+                                <span class="truncate">{item.process_name}</span>
+                              </Show>
+                              <Show when={item.pid}>
+                                <span class="mono opacity-80">PID: {item.pid}</span>
+                              </Show>
+                            </div>
+                          </div>
                         </div>
                       </td>
                     </tr>
