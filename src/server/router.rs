@@ -229,7 +229,7 @@ async fn post_speedtest() -> impl IntoResponse {
     match SpeedTester::run_speed_test().await {
         Ok(result) => (StatusCode::OK, Json(serde_json::to_value(result).unwrap())),
         Err(err) => (
-            StatusCode::BAD_REQUEST,
+            StatusCode::INTERNAL_SERVER_ERROR,
             Json(serde_json::json!({ "error": err })),
         ),
     }

@@ -375,12 +375,14 @@ export async function runSpeedTestApi(): Promise<void> {
       method: HTTP_METHODS.POST,
       headers: { 'Content-Type': CONTENT_TYPES.JSON },
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data: SpeedTestResult = await res.json();
-    setSpeedTestResult(data);
-    showToast(`✓ Speedtest: ${data.download_mbps.toFixed(1)} Mbps`, ToastType.SUCCESS);
+    const json = await res.json();
+    if (!res.ok) {
+      throw new Error(json.error || `HTTP ${res.status}`);
+    }
+    setSpeedTestResult(json);
+    showToast(`✓ ${json.download_mbps.toFixed(1)} Mbps (${json.server})`, ToastType.SUCCESS);
   } catch (err: any) {
-    showToast(`Speedtest error: ${err.message}`, ToastType.ERROR);
+    showToast(`${err.message}`, ToastType.ERROR);
   }
 }
 
