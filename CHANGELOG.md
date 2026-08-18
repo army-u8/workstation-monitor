@@ -7,9 +7,6 @@
   - **Tabular Mono 等宽数字防抖**：全站硬件占用百分比、网速、时延、端口 PID 统一开启 `tabular-nums`，实时数值跳动时彻底消除视觉抖动；
   - **侧边栏与顶栏磨砂毛玻璃重塑**：流线型胶囊导航项、极简控件与心跳微缩仪表盘；
   - **专属视图精修**：AI 测速网格梯队色彩化、本地 Web 产物画廊微卡片、DevTools $PATH 链路节点连线与环境变量密钥一键脱敏。
-- 前端工程化与代码规范全面升级：
-  - **ESLint 9 Flat Config + Prettier**：集成 TypeScript、Solid.js 响应式规则与自动化代码美化；
-  - **Git Pre-commit 自动化质量门禁**：基于 Husky 与 lint-staged，每次 `git commit` 时自动执行暂存区代码修复与 Rust `cargo test` 全量单元测试。
 
 [0.2.2] - 2026-08-17
 新增
@@ -119,9 +116,6 @@ Added
   - **Tabular Mono Typography**: Eliminated layout jitter with global `tabular-nums` on all stats, bandwidth, latency, and PIDs.
   - **Refined Navigation & Vitals**: Frosted glass header, capsule active navigation, and compact hardware vitals with live pulse.
   - **Dedicated Views Polish**: Tier-colored AI radar, web artifacts cards, $PATH chain timeline, and secret masking.
-- Frontend Code Quality & Tooling:
-  - **ESLint 9 Flat Config + Prettier**: Standardized Solid.js TypeScript linting and code formatting.
-  - **Git Pre-Commit Hook**: Automated commit-time formatting (lint-staged) and Rust backend testing (`cargo test`).
 
 [0.2.2] - 2026-08-17
 Added
