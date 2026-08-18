@@ -131,3 +131,4 @@ export const CircleIcon = IconCircle;
 export const CircleDotIcon = IconCircleDot;
 export const TargetIcon = IconTarget;
 export const PhotoIcon = IconPhoto;
+export const ShieldIcon = IconShield;

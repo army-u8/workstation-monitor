@@ -17,6 +17,7 @@ import {
   OpsIcon,
   OverviewIcon,
   ProcessIcon,
+  RobotIcon,
   SnifferIcon,
   SocketsIcon,
   SpeedIcon,
@@ -211,7 +212,7 @@ export const Sidebar: Component = () => {
       items: [
         {
           id: NavSectionId.AI_RADAR,
-          icon: LatencyIcon,
+          icon: RobotIcon,
           label: () => t().sidebar.navAiRadar,
         },
         {
