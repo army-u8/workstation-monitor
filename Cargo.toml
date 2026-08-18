@@ -1,6 +1,6 @@
 [package]
 name = "workstation-monitor"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 license = "MIT"
 build = "build.rs"
@@ -24,6 +24,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 futures = "0.3"
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
 open = "5"
+libc = "0.2"
 
 # Packaging config for `cargo bundle` (produces Workstation Monitor.app).
 # Usage: cargo install cargo-bundle && cargo bundle --release

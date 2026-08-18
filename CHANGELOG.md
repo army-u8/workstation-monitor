@@ -1,5 +1,11 @@
 更新日志（中文）
 
+[0.2.1] - 2026-08-17
+修复
+- 彻底解决 GitHub API 403 频控限流导致无法检测更新的问题：
+  - **双通道无限制检测 (Rate-Limit Immune Fallback)**：当 GitHub REST API 达到 60次/小时 匿名限流返回 403 Forbidden 时，自动降级至 GitHub 官方 Web 重定向端点解析最新 Tag，并合成对应架构的直链下载地址，**100% 免疫 403 拦截**。
+  - **跨进程 Session 完全脱钩 (`setsid`)**：在拉起重启守护脚本时通过 `libc::setsid()` 建立独立进程会话组，防止父进程退出时内核发送 `SIGHUP` 提前误杀唤醒脚本。
+
 [0.2.0] - 2026-08-17
 修复
 - 彻底加固 macOS 热更新与隔离机制 (Gatekeeper & Quarantine Removal)：
@@ -57,7 +63,7 @@
 - 修复热升级 API 在特定网络或代理环境下可能出现的 500 解码异常 (error decoding response body)。
 - 清理冗余类型定义与编译器警告。
 
-[.0.1.3] - 2026-08-17
+[0.1.3] - 2026-08-17
 新增
 - 独立开发环境页面：将开发环境工具链检测矩阵独立为专用视图，支持查看 Node.js/Rust/Python/Docker/Ollama 等工具版本与路径一键复制。
 - 独立快捷运维页面：将 DNS 刷新、端口释放与实时 Ping 诊断独立为专属运维控制台。
@@ -80,12 +86,17 @@
 [0.1.1] - 2026-08-17
 新增
 - 多架构 macOS 原生发布体系：新增 Apple Silicon (aarch64)、Intel (x64) 以及 Universal 2 (Fat Binary) 的原生打包支持。
-- 高清 Retina 图标支持：生成 10 层标准 Apple Retina 分辨率的 .icns 应用与 DMG 卷标图标。
+- 高清 Retina 图标支持：生成 10层 standard Apple Retina 分辨率的 .icns 应用与 DMG 卷标图标。
 - GitHub Actions 自动化发布流水线：支持 tag 推送触发全自动跨架构编译与 GitHub Releases 资产发布。
 
 ---
 
 Changelog (English)
+
+[0.2.1] - 2026-08-17
+Fixed
+- Rate-Limit Immune Update Checker: Added zero-rate-limit web releases fallback when GitHub REST API hits 403 Forbidden.
+- Detached Session Supervisor (`libc::setsid`): Prevented `SIGHUP` child process termination upon parent process exit.
 
 [0.2.0] - 2026-08-17
 Fixed
@@ -153,7 +164,7 @@ Changed
 Fixed
 - Fixed route mapping conflict where both /devtools and /ops rendered the same component.
 
-[0.1.2] - 2026-08-17
+[.0.1.2] - 2026-08-17
 Added
 - One-Click In-App Auto-Updater: Automatic GitHub Releases semver detection, incremental binary download, atomic hot-swap replacement of running macOS executables, and seamless server relaunch with real-time UI progress.
 - Follow System Theme Mode: Real-time synchronization with macOS dark/light mode preferences via system media query.

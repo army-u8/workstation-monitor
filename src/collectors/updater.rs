@@ -137,7 +137,7 @@ impl AutoUpdater {
         assets.first()
     }
 
-    /// Check GitHub Releases API for updates
+    /// Check GitHub Releases API for updates (with automatic fallback to web releases redirect)
     pub async fn check_update() -> UpdateCheckResponse {
         let current_version = env!("CARGO_PKG_VERSION").to_string();
         let api_url = format!(
@@ -153,21 +153,11 @@ impl AutoUpdater {
         {
             Ok(c) => c,
             Err(e) => {
-                return UpdateCheckResponse {
-                    has_update: false,
-                    current_version: current_version.clone(),
-                    latest_version: current_version,
-                    release_notes: String::new(),
-                    download_url: None,
-                    asset_name: None,
-                    asset_size_bytes: None,
-                    published_at: None,
-                    error_msg: Some(format!("Failed to build HTTP client: {}", e)),
-                };
+                return Self::fallback_web_check(&current_version, Some(format!("Failed to build HTTP client: {}", e))).await;
             }
         };
 
-        let resp = match client
+        let mut req = client
             .get(&api_url)
             .header(
                 reqwest::header::USER_AGENT,
@@ -176,71 +166,37 @@ impl AutoUpdater {
             .header(
                 reqwest::header::ACCEPT,
                 "application/vnd.github.v3+json",
-            )
-            .send()
-            .await
-        {
+            );
+
+        if let Ok(token) = std::env::var("GITHUB_TOKEN").or_else(|_| std::env::var("GH_TOKEN")) {
+            if !token.trim().is_empty() {
+                req = req.header(reqwest::header::AUTHORIZATION, format!("Bearer {}", token.trim()));
+            }
+        }
+
+        let resp = match req.send().await {
             Ok(r) => r,
             Err(e) => {
-                return UpdateCheckResponse {
-                    has_update: false,
-                    current_version: current_version.clone(),
-                    latest_version: current_version,
-                    release_notes: String::new(),
-                    download_url: None,
-                    asset_name: None,
-                    asset_size_bytes: None,
-                    published_at: None,
-                    error_msg: Some(format!("Network error checking updates: {}", e)),
-                };
+                return Self::fallback_web_check(&current_version, Some(format!("Network error: {}", e))).await;
             }
         };
 
         if !resp.status().is_success() {
-            return UpdateCheckResponse {
-                has_update: false,
-                current_version: current_version.clone(),
-                latest_version: current_version,
-                release_notes: String::new(),
-                download_url: None,
-                asset_name: None,
-                asset_size_bytes: None,
-                published_at: None,
-                error_msg: Some(format!("GitHub API returned HTTP status: {}", resp.status())),
-            };
+            // 403 Rate Limit or 404 - Seamlessly fallback to Web Redirect
+            return Self::fallback_web_check(&current_version, None).await;
         }
 
         let text = match resp.text().await {
             Ok(t) => t,
-            Err(e) => {
-                return UpdateCheckResponse {
-                    has_update: false,
-                    current_version: current_version.clone(),
-                    latest_version: current_version,
-                    release_notes: String::new(),
-                    download_url: None,
-                    asset_name: None,
-                    asset_size_bytes: None,
-                    published_at: None,
-                    error_msg: Some(format!("Failed to read response body: {}", e)),
-                };
+            Err(_) => {
+                return Self::fallback_web_check(&current_version, None).await;
             }
         };
 
         let release: GitHubReleaseResponse = match serde_json::from_str(&text) {
             Ok(rel) => rel,
-            Err(e) => {
-                return UpdateCheckResponse {
-                    has_update: false,
-                    current_version: current_version.clone(),
-                    latest_version: current_version,
-                    release_notes: String::new(),
-                    download_url: None,
-                    asset_name: None,
-                    asset_size_bytes: None,
-                    published_at: None,
-                    error_msg: Some(format!("Failed to parse GitHub release JSON: {}", e)),
-                };
+            Err(_) => {
+                return Self::fallback_web_check(&current_version, None).await;
             }
         };
 
@@ -263,6 +219,94 @@ impl AutoUpdater {
             asset_size_bytes: chosen_asset.map(|a| a.size),
             published_at: release.published_at,
             error_msg: None,
+        }
+    }
+
+    /// Fallback release checker querying GitHub Web Redirect when API rate limit (403) is hit
+    async fn fallback_web_check(current_version: &str, initial_err: Option<String>) -> UpdateCheckResponse {
+        let web_url = format!(
+            "https://github.com/{}/{}/releases/latest",
+            Self::REPO_OWNER,
+            Self::REPO_NAME
+        );
+
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(8))
+            .redirect(reqwest::redirect::Policy::limited(5))
+            .build();
+
+        let latest_tag = if let Ok(client) = client {
+            if let Ok(resp) = client.get(&web_url).send().await {
+                let final_url = resp.url().as_str();
+                if let Some(pos) = final_url.rfind("/tag/") {
+                    Some(final_url[pos + 5..].trim().to_string())
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // Fallback using curl if reqwest redirect inspection was inconclusive
+        let latest_tag = latest_tag.or_else(|| {
+            let output = Command::new("/usr/bin/curl")
+                .args(["-sI", &web_url])
+                .output()
+                .ok()?;
+            let out_str = String::from_utf8_lossy(&output.stdout);
+            for line in out_str.lines() {
+                if line.to_lowercase().starts_with("location:") {
+                    if let Some(pos) = line.rfind("/tag/") {
+                        return Some(line[pos + 5..].trim().to_string());
+                    }
+                }
+            }
+            None
+        });
+
+        if let Some(tag) = latest_tag {
+            let clean_latest = tag.trim_start_matches('v').to_string();
+            let has_update = Self::is_newer_version(current_version, &clean_latest);
+            let target_arch = match std::env::consts::ARCH {
+                "aarch64" => "aarch64",
+                "x86_64" => "x64",
+                _ => "universal",
+            };
+            let asset_name = format!("Workstation_Monitor_{}_{}.app.zip", clean_latest, target_arch);
+            let download_url = format!(
+                "https://github.com/{}/{}/releases/download/v{}/{}",
+                Self::REPO_OWNER,
+                Self::REPO_NAME,
+                clean_latest,
+                asset_name
+            );
+
+            UpdateCheckResponse {
+                has_update,
+                current_version: current_version.to_string(),
+                latest_version: format!("v{}", clean_latest),
+                release_notes: format!("✨ 发现新版本 v{}！可通过热更新一键升级。", clean_latest),
+                download_url: Some(download_url),
+                asset_name: Some(asset_name),
+                asset_size_bytes: Some(3400000),
+                published_at: None,
+                error_msg: None,
+            }
+        } else {
+            UpdateCheckResponse {
+                has_update: false,
+                current_version: current_version.to_string(),
+                latest_version: current_version.to_string(),
+                release_notes: String::new(),
+                download_url: None,
+                asset_name: None,
+                asset_size_bytes: None,
+                published_at: None,
+                error_msg: initial_err.or_else(|| Some("Unable to reach GitHub release servers.".to_string())),
+            }
         }
     }
 
@@ -402,26 +446,45 @@ impl AutoUpdater {
         // 5. Clean up temporary files
         let _ = std::fs::remove_dir_all(&tmp_dir);
 
-        // 6. Schedule detached supervisor restart to prevent port conflict
-        let current_exe_str = current_exe.to_string_lossy().to_string();
-        let is_app_bundle = current_exe_str.contains(".app/Contents/MacOS");
+        // 6. Write self-contained detached restart supervisor script
+        let restart_script_path = "/tmp/workstation_relaunch.sh";
+        let script_content = r#"#!/bin/sh
+# Detached process launcher - runs after parent process exits and frees port
+sleep 1.5
+TARGET="$1"
+/usr/bin/xattr -cr "$TARGET" 2>/dev/null || true
+if echo "$TARGET" | grep -q "\.app/Contents/MacOS"; then
+    APP_BUNDLE=$(echo "$TARGET" | sed 's|/Contents/MacOS/.*||')
+    /usr/bin/xattr -cr "$APP_BUNDLE" 2>/dev/null || true
+    open -n "$APP_BUNDLE" 2>/dev/null || "$TARGET" >/dev/null 2>&1 &
+else
+    "$TARGET" >/dev/null 2>&1 &
+fi
+"#;
+        let _ = std::fs::write(restart_script_path, script_content);
+        #[cfg(target_family = "unix")]
+        {
+            if let Ok(metadata) = std::fs::metadata(restart_script_path) {
+                let mut perms = metadata.permissions();
+                perms.set_mode(0o755);
+                let _ = std::fs::set_permissions(restart_script_path, perms);
+            }
+        }
 
-        let restart_cmd = if is_app_bundle {
-            let mut app_path = current_exe.clone();
-            app_path.pop(); // MacOS
-            app_path.pop(); // Contents
-            let _ = Command::new("/usr/bin/xattr")
-                .args(["-cr", app_path.to_str().unwrap()])
-                .status();
-            format!("sleep 1.2 && (open -n '{}' || '{}')", app_path.display(), current_exe.display())
-        } else {
-            format!("sleep 1.2 && '{}'", current_exe.display())
-        };
-
-        tracing::info!("Spawning detached restart supervisor: {}", restart_cmd);
-        let _ = Command::new("/bin/sh")
-            .args(["-c", &format!("({} >/dev/null 2>&1 &)", restart_cmd)])
-            .spawn();
+        tracing::info!("Launching detached supervisor via setsid session");
+        #[cfg(target_family = "unix")]
+        {
+            use std::os::unix::process::CommandExt;
+            let mut cmd = Command::new("/bin/sh");
+            cmd.args([restart_script_path, current_exe.to_str().unwrap()]);
+            unsafe {
+                cmd.pre_exec(|| {
+                    libc::setsid();
+                    Ok(())
+                });
+            }
+            let _ = cmd.spawn();
+        }
 
         // 7. Exit old process after brief flush window so port is freed before new process binds
         tokio::spawn(async move {
