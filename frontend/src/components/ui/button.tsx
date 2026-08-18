@@ -38,13 +38,13 @@ export const Button: Component<ButtonProps> = (props) => {
   const sizeClass = () => {
     switch (local.size) {
       case 'sm':
-        return 'h-7 px-2.5 text-[11px]';
+        return 'h-7 px-2.5 py-1 text-[11px]';
       case 'lg':
-        return 'h-10 px-5 text-sm';
+        return 'h-10 px-5 py-2 text-sm';
       case 'icon':
-        return 'h-7 w-7 p-0 justify-center';
+        return 'h-7 w-7 p-0 justify-center shrink-0';
       default:
-        return 'h-8 px-3 text-xs';
+        return 'h-8 px-3.5 py-1.5 text-xs';
     }
   };
 
