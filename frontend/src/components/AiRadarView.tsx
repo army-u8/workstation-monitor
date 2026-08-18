@@ -97,7 +97,7 @@ export const AiRadarView: Component = () => {
           <h2 class="text-xs font-bold uppercase tracking-wider text-text-muted m-0 flex items-center gap-2">
             <span>{t().aiRadar.latencySection}</span>
             <span class="rounded bg-bg-subtle/80 px-1.5 py-0.2 text-[10px] text-text-muted mono border border-border-subtle">
-              {llmLatencies().length} 探针
+              {t().aiRadar.probesCount.replace('{count}', llmLatencies().length.toString())}
             </span>
           </h2>
         </div>
@@ -107,7 +107,7 @@ export const AiRadarView: Component = () => {
             each={llmLatencies()}
             fallback={
               <div class="col-span-full py-12 text-center text-xs text-text-muted font-mono animate-pulse">
-                正在向全球 AI API 节点发起网络连通性探测...
+                {t().aiRadar.probingGlobal}
               </div>
             }
           >
@@ -142,14 +142,16 @@ export const AiRadarView: Component = () => {
                         [getLatencyBadgeClass(item)]: true,
                       }}
                     >
-                      {item.is_reachable ? `⚡ ${item.latency_ms} ms` : '✕ 无法直连'}
+                      {item.is_reachable
+                        ? `⚡ ${item.latency_ms} ms`
+                        : `✕ ${t().aiRadar.unreachable}`}
                     </span>
                   </div>
 
                   {/* Endpoint & Status Detail */}
                   <div class="rounded-lg bg-bg-subtle/70 p-2 text-[10.5px] border border-border-subtle mt-2 space-y-1">
                     <div class="flex items-center justify-between text-text-muted mono truncate">
-                      <span>路由状态:</span>
+                      <span>{t().aiRadar.routeStatus}</span>
                       <span
                         class="font-medium"
                         classList={{
@@ -161,7 +163,7 @@ export const AiRadarView: Component = () => {
                           ? item.status_code
                             ? `HTTP ${item.status_code}`
                             : '200 OK'
-                          : '离线 / 超时'}
+                          : t().aiRadar.offlineTimeout}
                       </span>
                     </div>
 
@@ -193,28 +195,27 @@ export const AiRadarView: Component = () => {
                   when={ollamaStatus()?.is_running}
                   fallback={
                     <span class="rounded bg-status-warning/15 px-2 py-0.5 text-[10px] font-semibold text-status-warning">
-                      未启动
+                      {t().aiRadar.ollamaOffline}
                     </span>
                   }
                 >
                   <span class="rounded bg-status-success/15 px-2 py-0.5 text-[10px] font-semibold text-status-success flex items-center gap-1">
                     <span class="h-1.5 w-1.5 rounded-full bg-status-success animate-pulse" />
                     <span>
-                      运行中 {ollamaStatus()?.version ? `(v${ollamaStatus()?.version})` : ''}
+                      {t().aiRadar.ollamaRunning}{' '}
+                      {ollamaStatus()?.version ? `(v${ollamaStatus()?.version})` : ''}
                     </span>
                   </span>
                 </Show>
               </div>
-              <p class="text-xs text-text-muted m-0 mt-0.5">
-                监控本地大模型对 Apple Silicon 统一内存 / GPU 显存的占用，支持一键卸载释放。
-              </p>
+              <p class="text-xs text-text-muted m-0 mt-0.5">{t().aiRadar.ollamaDesc}</p>
             </div>
           </div>
 
           <Show when={ollamaStatus()?.is_running}>
             <div class="flex items-center gap-3">
               <div class="rounded-lg bg-bg-subtle border border-border-subtle px-3 py-1.5 text-right">
-                <div class="text-[10px] text-text-muted">总显存 / 内存占用</div>
+                <div class="text-[10px] text-text-muted">{t().aiRadar.totalVramUsage}</div>
                 <div class="mono text-xs font-bold text-accent tabular-nums">
                   {formatTotalBytes(ollamaStatus()?.total_vram_used_bytes || 0)}
                 </div>
@@ -228,8 +229,7 @@ export const AiRadarView: Component = () => {
           when={ollamaStatus()?.is_running}
           fallback={
             <div class="py-8 text-center text-xs text-text-muted">
-              本地未检测到运行中的 Ollama 服务。启动 Ollama 后点击右上角「测速 &
-              刷新」即可同步显控。
+              {t().aiRadar.ollamaNotRunning}
             </div>
           }
         >
@@ -237,7 +237,7 @@ export const AiRadarView: Component = () => {
             when={(ollamaStatus()?.loaded_models?.length || 0) > 0}
             fallback={
               <div class="py-8 text-center text-xs text-text-muted">
-                当前没有大模型加载在 Apple Silicon 统一内存或显存中。
+                {t().aiRadar.ollamaEmptyLoaded}
               </div>
             }
           >
@@ -260,13 +260,13 @@ export const AiRadarView: Component = () => {
 
                       <div class="space-y-1 text-[11px] text-text-muted font-mono mb-3">
                         <div class="flex justify-between">
-                          <span>量化等级:</span>
+                          <span>{t().aiRadar.quantizationLabel}</span>
                           <span class="text-text-secondary">
                             {model.quantization_level || 'Native'}
                           </span>
                         </div>
                         <div class="flex justify-between">
-                          <span>显存占用:</span>
+                          <span>{t().aiRadar.vramUsageLabel}</span>
                           <span class="text-text-secondary font-bold text-accent tabular-nums">
                             {formatTotalBytes(model.vram_bytes || model.size_bytes)}
                           </span>

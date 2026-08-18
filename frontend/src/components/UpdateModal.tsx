@@ -251,7 +251,7 @@ export const UpdateModal: Component = () => {
                   disabled={isLoadingBackups()}
                   class="text-[11px] text-accent hover:underline"
                 >
-                  {isLoadingBackups() ? '刷新中...' : '刷新备份'}
+                  {isLoadingBackups() ? t().update.refreshingBackups : t().update.refreshBackups}
                 </button>
               </div>
 

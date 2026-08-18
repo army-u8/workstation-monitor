@@ -127,7 +127,7 @@ export const Header: Component = () => {
               'text-text-muted hover:text-text-primary': locale() !== Locale.ZH,
             }}
           >
-            中文
+            {t().common.langZh}
           </button>
           <button
             type="button"
@@ -139,7 +139,7 @@ export const Header: Component = () => {
               'text-text-muted hover:text-text-primary': locale() !== Locale.EN,
             }}
           >
-            EN
+            {t().common.langEn}
           </button>
         </div>
 

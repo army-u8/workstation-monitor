@@ -87,7 +87,7 @@ export const WebArtifactsView: Component = () => {
       <div class="flex items-center gap-2">
         <input
           type="text"
-          placeholder="检索端口 (如 3000, 5173)、页面标题或技术框架 (Next.js, Vite)..."
+          placeholder={t().artifacts.searchPlaceholder}
           value={filterQuery()}
           onInput={(e) => setFilterQuery(e.currentTarget.value)}
           class="w-full max-w-md rounded-lg border border-border-default bg-bg-surface px-3 py-2 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent focus-visible:ring-1 focus-visible:ring-accent transition-colors"
@@ -98,7 +98,7 @@ export const WebArtifactsView: Component = () => {
             onClick={() => setFilterQuery('')}
             class="text-xs text-text-muted hover:text-text-primary px-2 py-1"
           >
-            清除
+            {t().artifacts.clearSearch}
           </button>
         </Show>
       </div>
@@ -114,8 +114,7 @@ export const WebArtifactsView: Component = () => {
               </div>
               <h3 class="text-sm font-semibold text-text-primary mb-1">{t().artifacts.empty}</h3>
               <p class="text-xs text-text-muted max-w-md mx-auto mb-4">
-                支持自动探测 Next.js、Vite、React、Vue3、Nuxt、Astro、FastAPI、Flask 以及本地 Ollama
-                等常见端口服务。
+                {t().artifacts.emptyGuide}
               </p>
               <button
                 type="button"
@@ -123,7 +122,7 @@ export const WebArtifactsView: Component = () => {
                 class="inline-flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-subtle px-3 py-1.5 text-xs text-text-primary hover:bg-bg-hover transition-colors"
               >
                 <RefreshIcon class="h-3 w-3" />
-                <span>重新扫描</span>
+                <span>{t().artifacts.rescan}</span>
               </button>
             </div>
           }
@@ -168,9 +167,9 @@ export const WebArtifactsView: Component = () => {
                 <div class="mb-3">
                   <h3
                     class="text-sm font-bold text-text-primary line-clamp-1 group-hover:text-accent transition-colors m-0"
-                    title={artifact.title || `Local Service :${artifact.port}`}
+                    title={artifact.title || `${t().artifacts.localServiceTitle}${artifact.port}`}
                   >
-                    {artifact.title || `本地服务 :${artifact.port}`}
+                    {artifact.title || `${t().artifacts.localServiceTitle}${artifact.port}`}
                   </h3>
                   <button
                     type="button"
@@ -185,7 +184,7 @@ export const WebArtifactsView: Component = () => {
                 {/* Metadata Details Grid */}
                 <div class="rounded-lg bg-bg-subtle/70 p-2.5 space-y-1.5 text-[11px] border border-border-subtle mb-4">
                   <div class="flex items-center justify-between">
-                    <span class="text-text-muted">进程 / PID:</span>
+                    <span class="text-text-muted">{t().artifacts.processPidLabel}</span>
                     <span class="mono font-medium text-text-primary truncate max-w-[150px] tabular-nums">
                       {artifact.process_name || 'unknown'}
                       {artifact.pid ? ` (${artifact.pid})` : ''}
@@ -221,7 +220,7 @@ export const WebArtifactsView: Component = () => {
                   type="button"
                   onClick={() => freeArtifactPortApi(artifact.port)}
                   class="rounded-lg border border-status-danger/30 bg-status-danger/10 px-2.5 py-1.5 text-xs font-medium text-status-danger hover:bg-status-danger/20 transition-colors"
-                  title={`释放端口 :${artifact.port}`}
+                  title={`${t().artifacts.freePortTitle}${artifact.port}`}
                 >
                   {t().artifacts.freePort}
                 </button>

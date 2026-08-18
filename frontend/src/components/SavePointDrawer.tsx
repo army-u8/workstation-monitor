@@ -104,7 +104,7 @@ export const SavePointDrawer: Component = () => {
                     )}
                   </span>
                 </div>
-                <span class="text-[11px] text-text-muted">建议在让 AI 改代码前先存档</span>
+                <span class="text-[11px] text-text-muted">{t().snapshots.recommendTip}</span>
               </div>
             </Show>
 
@@ -157,7 +157,7 @@ export const SavePointDrawer: Component = () => {
                 when={!isLoadingSnapshots()}
                 fallback={
                   <div class="py-12 text-center text-xs text-text-muted font-mono animate-pulse">
-                    正在检索时光机时间轴...
+                    {t().snapshots.timelineLoading}
                   </div>
                 }
               >
@@ -240,7 +240,7 @@ export const SavePointDrawer: Component = () => {
                               onClick={() => handleRollback(snap)}
                               disabled={isRollingBackSnapshot()}
                               class="shrink-0 rounded-lg border border-border-default bg-bg-subtle px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:bg-status-warning/15 hover:border-status-warning/50 hover:text-status-warning active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-accent"
-                              title="将项目代码还原到此存档点状态"
+                              title={t().snapshots.rollbackPointTip}
                             >
                               {isRollingBackSnapshot()
                                 ? t().snapshots.rollingBack

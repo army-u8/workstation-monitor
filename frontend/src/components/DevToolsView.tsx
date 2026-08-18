@@ -74,9 +74,7 @@ export const DevToolsView: Component = () => {
             <h1 class="text-base font-bold text-text-primary m-0 tracking-tight">
               {t().devops.toolchainTitle}
             </h1>
-            <p class="text-xs text-text-muted m-0 mt-0.5">
-              macOS 本机开发环境、编译器、运行时、$PATH 链路与环境变量全景检测
-            </p>
+            <p class="text-xs text-text-muted m-0 mt-0.5">{t().devops.toolchainSubtitle}</p>
           </div>
         </div>
 
@@ -84,7 +82,7 @@ export const DevToolsView: Component = () => {
         <div class="flex items-center gap-2.5">
           <Show when={envVarsData()?.proxy_configured}>
             <span class="inline-flex items-center gap-1.5 rounded-lg border border-status-warning/30 bg-status-warning/10 px-2.5 py-1 text-xs font-semibold text-status-warning">
-              <span>🌐 终端代理已配置</span>
+              <span>{t().devops.proxyConfigured}</span>
             </span>
           </Show>
 
@@ -112,7 +110,7 @@ export const DevToolsView: Component = () => {
               activeTab() !== 'tools',
           }}
         >
-          <span>🛠️ 工具链与运行时</span>
+          <span>{t().devops.tabToolchains}</span>
           <span
             class="rounded-full px-1.5 py-0.2 text-[10px] mono tabular-nums"
             classList={{
@@ -134,7 +132,7 @@ export const DevToolsView: Component = () => {
               activeTab() !== 'path',
           }}
         >
-          <span>🛣️ $PATH 链路拆解</span>
+          <span>{t().devops.tabPath}</span>
           <span
             class="rounded-full px-1.5 py-0.2 text-[10px] mono tabular-nums"
             classList={{
@@ -156,7 +154,7 @@ export const DevToolsView: Component = () => {
               activeTab() !== 'env',
           }}
         >
-          <span>📋 环境变量检索器</span>
+          <span>{t().devops.tabEnv}</span>
           <span
             class="rounded-full px-1.5 py-0.2 text-[10px] mono tabular-nums"
             classList={{
@@ -206,9 +204,11 @@ export const DevToolsView: Component = () => {
 
                     <div
                       class="mt-2 text-[11px] mono text-text-secondary truncate"
-                      title={tool.version || '未检测到安装'}
+                      title={tool.version || t().devops.notInstalled}
                     >
-                      {tool.version || <span class="text-text-muted">未安装</span>}
+                      {tool.version || (
+                        <span class="text-text-muted">{t().devops.notInstalled}</span>
+                      )}
                     </div>
                   </div>
 
@@ -224,9 +224,9 @@ export const DevToolsView: Component = () => {
                         type="button"
                         onClick={() => copyToClipboard(tool.path || '', tool.name)}
                         class="text-[10px] text-accent hover:underline shrink-0 ml-1"
-                        title="复制路径"
+                        title={t().devops.copyPath}
                       >
-                        复制
+                        {t().devops.copy}
                       </button>
                     </div>
                   </Show>
@@ -241,9 +241,12 @@ export const DevToolsView: Component = () => {
       <Show when={activeTab() === 'path'}>
         <section class="glass-card p-4 space-y-4">
           <div class="flex items-center justify-between text-xs text-text-muted">
-            <span>macOS 终端命令寻址优先级自上而下逐级向下探测：</span>
+            <span>{t().devops.pathPriorityHint}</span>
             <span class="mono tabular-nums">
-              共 {envVarsData()?.path_entries.length || 0} 个寻址路径
+              {t().envVars.totalPaths.replace(
+                '{count}',
+                (envVarsData()?.path_entries.length || 0).toString(),
+              )}
             </span>
           </div>
 
@@ -263,12 +266,12 @@ export const DevToolsView: Component = () => {
                       when={entry.exists}
                       fallback={
                         <span class="rounded bg-status-danger/15 px-2 py-0.5 text-[10px] font-semibold text-status-danger">
-                          目录无效 / 不存在
+                          {t().devops.pathInvalid}
                         </span>
                       }
                     >
                       <span class="rounded bg-status-success/15 px-2 py-0.5 text-[10px] font-semibold text-status-success">
-                        有效目录
+                        {t().devops.pathValid}
                       </span>
                     </Show>
 
@@ -277,7 +280,7 @@ export const DevToolsView: Component = () => {
                       onClick={() => copyToClipboard(entry.path, '$PATH Entry')}
                       class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
                     >
-                      复制
+                      {t().devops.copy}
                     </button>
                   </div>
                 </div>
@@ -294,7 +297,7 @@ export const DevToolsView: Component = () => {
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <input
               type="text"
-              placeholder="搜索环境变量名称、值或分类 (如 PATH, HOME, PROXY)..."
+              placeholder={t().devops.searchEnvPlaceholder}
               value={searchEnv()}
               onInput={(e) => setSearchEnv(e.currentTarget.value)}
               class="w-full max-w-md rounded-lg border border-border-default bg-bg-surface px-3 py-2 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent focus-visible:ring-1 focus-visible:ring-accent transition-colors"
@@ -326,10 +329,10 @@ export const DevToolsView: Component = () => {
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="border-b border-border-subtle bg-bg-subtle/70 text-[11px] font-bold text-text-muted uppercase">
-                  <th class="px-3.5 py-2.5">分类</th>
-                  <th class="px-3.5 py-2.5">变量名</th>
-                  <th class="px-3.5 py-2.5">变量值</th>
-                  <th class="px-3.5 py-2.5 text-right">操作</th>
+                  <th class="px-3.5 py-2.5">{t().devops.category}</th>
+                  <th class="px-3.5 py-2.5">{t().devops.varName}</th>
+                  <th class="px-3.5 py-2.5">{t().devops.varValue}</th>
+                  <th class="px-3.5 py-2.5 text-right">{t().devops.action}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle font-mono">
@@ -338,7 +341,7 @@ export const DevToolsView: Component = () => {
                   fallback={
                     <tr>
                       <td colspan={4} class="py-8 text-center text-text-muted">
-                        无匹配的环境变量记录
+                        {t().devops.noMatchEnv}
                       </td>
                     </tr>
                   }
@@ -378,7 +381,7 @@ export const DevToolsView: Component = () => {
                                 onClick={() => toggleSecretReveal(entry.name)}
                                 class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
                               >
-                                {isRevealed() ? '🙈 隐藏' : '👁️ 显示'}
+                                {isRevealed() ? t().devops.hideSecret : t().devops.showSecret}
                               </button>
                             </Show>
                             <button
@@ -386,7 +389,7 @@ export const DevToolsView: Component = () => {
                               onClick={() => copyToClipboard(entry.value, entry.name)}
                               class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
                             >
-                              复制
+                              {t().devops.copy}
                             </button>
                           </div>
                         </td>

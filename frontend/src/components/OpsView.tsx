@@ -74,9 +74,7 @@ export const OpsView: Component = () => {
           </span>
           <div>
             <h2 class="text-sm font-semibold text-text-primary m-0">{t().sidebar.navOps}</h2>
-            <p class="text-xs text-text-muted m-0 mt-0.5">
-              macOS 本机网络诊断、DNS 缓存刷新与端口占用清理快捷运维动作
-            </p>
+            <p class="text-xs text-text-muted m-0 mt-0.5">{t().ops.subtitle}</p>
           </div>
         </div>
       </div>
