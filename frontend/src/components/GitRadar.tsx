@@ -489,53 +489,49 @@ export const GitRadar: Component = () => {
                       <span>{t().snapshots.viewSnapshotsBtn}</span>
                     </Button>
 
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center gap-1 shrink-0">
                       <Button
                         type="button"
                         variant="secondary"
-                        size="sm"
+                        size="icon"
                         onClick={() => openAppApi(repo.path, 'code')}
                         aria-label={`VS Code: ${repo.name}`}
                         title={t().gitRadar.openCode}
                       >
-                        <CodeIcon class="h-3 w-3 text-accent" />
-                        <span>{t().gitRadar.openCode}</span>
+                        <CodeIcon class="h-3.5 w-3.5 text-accent" />
                       </Button>
 
                       <Button
                         type="button"
                         variant="secondary"
-                        size="sm"
+                        size="icon"
                         onClick={() => openAppApi(repo.path, 'cursor')}
                         aria-label={`Cursor: ${repo.name}`}
                         title={t().gitRadar.openCursor}
                       >
-                        <CodeIcon class="h-3 w-3 text-status-warning" />
-                        <span>{t().gitRadar.openCursor}</span>
+                        <CodeIcon class="h-3.5 w-3.5 text-status-warning" />
                       </Button>
 
                       <Button
                         type="button"
                         variant="secondary"
-                        size="sm"
+                        size="icon"
                         onClick={() => openAppApi(repo.path, 'terminal')}
                         aria-label={`Terminal: ${repo.name}`}
                         title={t().gitRadar.openTerminal}
                       >
-                        <TerminalIcon class="h-3 w-3 text-status-info" />
-                        <span>{t().gitRadar.openTerminal}</span>
+                        <TerminalIcon class="h-3.5 w-3.5 text-status-info" />
                       </Button>
 
                       <Button
                         type="button"
                         variant="secondary"
-                        size="sm"
+                        size="icon"
                         onClick={() => openAppApi(repo.path, 'finder')}
                         aria-label={`Finder: ${repo.name}`}
                         title={t().gitRadar.openFinder}
                       >
-                        <FolderIcon class="h-3 w-3 text-status-success" />
-                        <span>{t().gitRadar.openFinder}</span>
+                        <FolderIcon class="h-3.5 w-3.5 text-status-success" />
                       </Button>
                     </div>
                   </div>
