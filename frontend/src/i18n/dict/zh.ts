@@ -609,6 +609,22 @@ export const zh = {
     rulePrototypeDesc:
       '专为 Vibe Coding 初学者打造，单文件自包含交付，快速跑通核心交互与可视化效果。',
     kpiOllamaModelsCount: '{count} 模型 ({size})',
+    tabAgents: '本地 Agent 矩阵',
+    agentsSectionTitle: '本地 AI Coding Agent & 工具链探针',
+    agentsSectionDesc:
+      '自动探测本机已安装与正在运行的 Coding Agent（Claude Code、Cursor、Windsurf、Antigravity、Aider 等）及本地推理引擎',
+    kpiAgentsCount: '已识别 Agent',
+    agentInstalled: '已安装',
+    agentNotInstalled: '未检测到',
+    agentRunning: '运行中',
+    agentIdle: '未运行',
+    agentTypeCli: 'CLI 智能体',
+    agentTypeIde: 'AI 原生 IDE',
+    agentTypeEngine: '本地推理引擎',
+    agentTypeChat: '桌面客户端',
+    agentPath: '可执行路径',
+    openAgent: '启动 Agent',
+    copyAgentPath: '复制路径',
   },
   envVars: {
     title: '系统环境变量 & $PATH 链路全景诊断',

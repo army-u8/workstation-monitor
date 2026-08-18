@@ -469,6 +469,21 @@ pub struct OllamaUnloadRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalAgentInfo {
+    pub id: String,
+    pub name: String,
+    pub category: String,
+    pub is_installed: bool,
+    pub is_running: bool,
+    pub version: Option<String>,
+    pub path: Option<String>,
+    pub app_bundle: Option<String>,
+    pub icon: String,
+    pub description: String,
+    pub pid: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data")]
 pub enum WsEvent {
     TrafficUpdate(TrafficSummary),

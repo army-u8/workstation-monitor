@@ -440,6 +440,20 @@ export interface DetectedApiKey {
   icon: string;
 }
 
+export interface LocalAgentInfo {
+  id: string;
+  name: string;
+  category: string;
+  is_installed: boolean;
+  is_running: boolean;
+  version: string | null;
+  path: string | null;
+  app_bundle: string | null;
+  icon: string;
+  description: string;
+  pid: number | null;
+}
+
 export interface EnvVarsPayload {
   shell: string;
   user: string;

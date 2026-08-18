@@ -621,6 +621,22 @@ export const en: Dict = {
     rulePrototypeDesc:
       'Crafted for Vibe Coders, self-contained single-file delivery to quickly prototype UI and logic.',
     kpiOllamaModelsCount: '{count} Models ({size})',
+    tabAgents: 'Local Agents',
+    agentsSectionTitle: 'Local AI Coding Agents & Toolchains Probe',
+    agentsSectionDesc:
+      'Automatically detect installed and active Coding Agents (Claude Code, Cursor, Windsurf, Antigravity, Aider) and local inference engines',
+    kpiAgentsCount: 'Identified Agents',
+    agentInstalled: 'Installed',
+    agentNotInstalled: 'Not Detected',
+    agentRunning: 'Running',
+    agentIdle: 'Idle',
+    agentTypeCli: 'CLI Agent',
+    agentTypeIde: 'AI IDE',
+    agentTypeEngine: 'Local Engine',
+    agentTypeChat: 'Desktop App',
+    agentPath: 'Executable Path',
+    openAgent: 'Launch Agent',
+    copyAgentPath: 'Copy Path',
   },
   envVars: {
     title: 'Environment Variables & $PATH Inspector',

@@ -32,6 +32,7 @@ import type {
   HostEntry,
   LatencyTarget,
   LlmApiLatency,
+  LocalAgentInfo,
   MachineInfoSummary,
   ObsidianNoteDetail,
   ObsidianSearchResponse,
@@ -184,6 +185,10 @@ export const [isTestingLlmLatency, setIsTestingLlmLatency] = createSignal(false)
 export const [ollamaStatus, setOllamaStatus] = createSignal<OllamaStatusResponse | null>(null);
 export const [isLoadingOllamaStatus, setIsLoadingOllamaStatus] = createSignal(false);
 export const [isUnloadingOllama, setIsUnloadingOllama] = createSignal(false);
+
+// Local AI Coding Agents Signals
+export const [localAgents, setLocalAgents] = createSignal<LocalAgentInfo[]>([]);
+export const [isLoadingLocalAgents, setIsLoadingLocalAgents] = createSignal(false);
 
 // Environment Variables Signals
 export const [envVarsData, setEnvVarsData] = createSignal<EnvVarsPayload | null>(null);
@@ -943,6 +948,22 @@ export async function unloadOllamaModelApi(modelName: string): Promise<boolean> 
     return false;
   } finally {
     setIsUnloadingOllama(false);
+  }
+}
+
+export async function fetchLocalAgentsApi(): Promise<LocalAgentInfo[]> {
+  setIsLoadingLocalAgents(true);
+  try {
+    const res = await fetch(ApiEndpoint.AI_AGENTS);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: LocalAgentInfo[] = await res.json();
+    setLocalAgents(data);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to detect local AI agents', ToastType.ERROR);
+    return [];
+  } finally {
+    setIsLoadingLocalAgents(false);
   }
 }
 

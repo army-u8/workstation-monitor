@@ -57,6 +57,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/tools/llm-latency", get(get_llm_latency))
         .route("/api/tools/ollama/status", get(get_ollama_status))
         .route("/api/tools/ollama/unload", post(post_ollama_unload))
+        .route("/api/ai/agents", get(get_ai_agents))
         .route("/api/hosts/get", get(get_hosts))
         .route("/api/tools/speedtest", post(post_speedtest))
         .route("/api/tools/open-app", post(post_open_app))
@@ -830,6 +831,11 @@ async fn post_ollama_unload(Json(payload): Json<OllamaUnloadRequest>) -> impl In
 async fn get_env_vars() -> impl IntoResponse {
     let payload = tokio::task::spawn_blocking(EnvVarsCollector::collect).await.unwrap_or_else(|_| EnvVarsCollector::collect());
     (StatusCode::OK, Json(serde_json::to_value(payload).unwrap()))
+}
+
+async fn get_ai_agents() -> impl IntoResponse {
+    let agents = tokio::task::spawn_blocking(AiRadarManager::detect_local_agents).await.unwrap_or_else(|_| AiRadarManager::detect_local_agents());
+    (StatusCode::OK, Json(serde_json::to_value(agents).unwrap()))
 }
 
 

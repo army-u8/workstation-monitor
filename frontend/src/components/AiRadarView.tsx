@@ -6,11 +6,14 @@ import {
   envVarsData,
   fetchEnvVarsApi,
   fetchLlmLatencyApi,
+  fetchLocalAgentsApi,
   fetchOllamaStatusApi,
   formatTotalBytes,
+  isLoadingLocalAgents,
   isTestingLlmLatency,
   isUnloadingOllama,
   llmLatencies,
+  localAgents,
   ollamaStatus,
   unloadOllamaModelApi,
 } from '../services/store';
@@ -32,9 +35,10 @@ import {
   RobotIcon,
   ShieldIcon,
   SparklesIcon,
+  TerminalIcon,
 } from './Icons';
 import { t } from '../i18n';
-import type { LlmApiLatency, OllamaModelInfo } from '../types';
+import type { LlmApiLatency, LocalAgentInfo, OllamaModelInfo } from '../types';
 
 export const AiRadarView: Component = () => {
   const [activeTab, setActiveTab] = createSignal<string>('latency');
@@ -44,12 +48,14 @@ export const AiRadarView: Component = () => {
     fetchLlmLatencyApi();
     fetchOllamaStatusApi();
     fetchEnvVarsApi();
+    fetchLocalAgentsApi();
   });
 
   const refreshAll = () => {
     fetchLlmLatencyApi();
     fetchOllamaStatusApi();
     fetchEnvVarsApi();
+    fetchLocalAgentsApi();
   };
 
   const renderProviderIcon = (id: string) => {
@@ -57,8 +63,11 @@ export const AiRadarView: Component = () => {
       case 'deepseek':
         return <LayersIntersectIcon class="h-4 w-4 text-sky-400" />;
       case 'claude':
+      case 'claude_code':
+      case 'claude_desktop':
         return <SparklesIcon class="h-4 w-4 text-amber-400" />;
       case 'openai':
+      case 'chatgpt_desktop':
         return <BrainIcon class="h-4 w-4 text-emerald-400" />;
       case 'gemini':
         return <SparklesIcon class="h-4 w-4 text-indigo-400" />;
@@ -68,6 +77,18 @@ export const AiRadarView: Component = () => {
         return <BoltIcon class="h-4 w-4 text-accent" />;
       case 'ollama':
         return <RobotIcon class="h-4 w-4 text-teal-400" />;
+      case 'cursor':
+        return <CodeIcon class="h-4 w-4 text-cyan-400" />;
+      case 'windsurf':
+        return <BoltIcon class="h-4 w-4 text-teal-300" />;
+      case 'antigravity':
+        return <AntennaIcon class="h-4 w-4 text-accent" />;
+      case 'aider':
+        return <TerminalIcon class="h-4 w-4 text-emerald-400" />;
+      case 'vscode':
+        return <CodeIcon class="h-4 w-4 text-blue-400" />;
+      case 'lm_studio':
+        return <DiskIcon class="h-4 w-4 text-purple-400" />;
       default:
         return <RobotIcon class="h-4 w-4 text-text-muted" />;
     }
@@ -96,6 +117,9 @@ export const AiRadarView: Component = () => {
     const sum = list.reduce((acc, curr) => acc + (curr.latency_ms || 0), 0);
     return Math.round(sum / list.length);
   });
+
+  const installedAgentsCount = createMemo(() => localAgents().filter((a) => a.is_installed).length);
+  const runningAgentsCount = createMemo(() => localAgents().filter((a) => a.is_running).length);
 
   const aiKeyVault = createMemo(() => {
     const detected = envVarsData()?.detected_api_keys || [];
@@ -175,6 +199,21 @@ export const AiRadarView: Component = () => {
     setTimeout(() => setCopiedRuleId(null), 2000);
   };
 
+  const getAgentCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'cli_agent':
+        return t().aiRadar.agentTypeCli;
+      case 'ai_ide':
+        return t().aiRadar.agentTypeIde;
+      case 'local_engine':
+        return t().aiRadar.agentTypeEngine;
+      case 'chat_client':
+        return t().aiRadar.agentTypeChat;
+      default:
+        return category;
+    }
+  };
+
   return (
     <div class="space-y-6">
       {/* Header */}
@@ -195,12 +234,18 @@ export const AiRadarView: Component = () => {
           <button
             type="button"
             onClick={refreshAll}
-            disabled={isTestingLlmLatency()}
-            aria-busy={isTestingLlmLatency()}
+            disabled={isTestingLlmLatency() || isLoadingLocalAgents()}
+            aria-busy={isTestingLlmLatency() || isLoadingLocalAgents()}
             class="flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-surface px-3 py-1.8 text-xs font-semibold text-text-primary transition-all hover:bg-bg-hover hover:border-border-hover disabled:opacity-50 shadow-2xs"
           >
-            <RefreshIcon class={`h-3.5 w-3.5 ${isTestingLlmLatency() ? 'animate-spin' : ''}`} />
-            <span>{isTestingLlmLatency() ? t().aiRadar.testing : t().aiRadar.testLatencyBtn}</span>
+            <RefreshIcon
+              class={`h-3.5 w-3.5 ${isTestingLlmLatency() || isLoadingLocalAgents() ? 'animate-spin' : ''}`}
+            />
+            <span>
+              {isTestingLlmLatency() || isLoadingLocalAgents()
+                ? t().aiRadar.testing
+                : t().aiRadar.testLatencyBtn}
+            </span>
           </button>
         </div>
       </div>
@@ -235,30 +280,21 @@ export const AiRadarView: Component = () => {
           </div>
         </div>
 
-        {/* KPI 3: Ollama Status */}
+        {/* KPI 3: Local AI Agents */}
         <div class="glass-card-subtle p-3.5 flex flex-col justify-between">
           <div class="flex items-center justify-between text-text-muted text-[11px]">
-            <span>{t().aiRadar.kpiOllamaStatus}</span>
+            <span>{t().aiRadar.kpiAgentsCount}</span>
             <RobotIcon class="h-3.5 w-3.5 text-teal-400" />
           </div>
-          <div class="mt-2 flex items-center gap-1.5">
-            <span
-              class="h-2 w-2 rounded-full"
-              classList={{
-                'bg-status-success animate-pulse': ollamaStatus()?.is_running,
-                'bg-text-muted/40': !ollamaStatus()?.is_running,
-              }}
-            />
-            <span class="text-xs font-bold text-text-primary truncate">
-              {ollamaStatus()?.is_running
-                ? t()
-                    .aiRadar.kpiOllamaModelsCount.replace(
-                      '{count}',
-                      (ollamaStatus()?.loaded_models?.length || 0).toString(),
-                    )
-                    .replace('{size}', formatTotalBytes(ollamaStatus()?.total_vram_used_bytes || 0))
-                : t().aiRadar.ollamaOffline}
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span class="text-xl font-bold mono text-text-primary">
+              {installedAgentsCount()}/{localAgents().length}
             </span>
+            <Show when={runningAgentsCount() > 0}>
+              <span class="text-[10px] text-status-success mono font-semibold">
+                ({runningAgentsCount()} {t().aiRadar.agentRunning})
+              </span>
+            </Show>
           </div>
         </div>
 
@@ -281,7 +317,7 @@ export const AiRadarView: Component = () => {
 
       {/* Main Tabs Container */}
       <Tabs value={activeTab()} onChange={setActiveTab} class="w-full flex flex-col">
-        <Tabs.List class="flex rounded-lg bg-bg-base/80 p-1 border border-border-subtle text-[11px] shadow-2xs w-fit mb-4">
+        <Tabs.List class="flex flex-wrap rounded-lg bg-bg-base/80 p-1 border border-border-subtle text-[11px] shadow-2xs w-fit mb-4">
           <Tabs.Trigger
             value="latency"
             class="rounded-md px-3.5 py-1.5 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent flex items-center gap-1.5"
@@ -296,6 +332,19 @@ export const AiRadarView: Component = () => {
           </Tabs.Trigger>
 
           <Tabs.Trigger
+            value="agents"
+            class="rounded-md px-3.5 py-1.5 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent flex items-center gap-1.5"
+            classList={{
+              'bg-bg-active text-text-primary shadow-2xs': activeTab() === 'agents',
+              'text-text-muted hover:text-text-primary': activeTab() !== 'agents',
+            }}
+          >
+            <RobotIcon class="h-3.5 w-3.5" />
+            <span>{t().aiRadar.tabAgents}</span>
+            <span class="mono text-[10px] text-teal-400">({installedAgentsCount()})</span>
+          </Tabs.Trigger>
+
+          <Tabs.Trigger
             value="ollama"
             class="rounded-md px-3.5 py-1.5 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent flex items-center gap-1.5"
             classList={{
@@ -303,7 +352,7 @@ export const AiRadarView: Component = () => {
               'text-text-muted hover:text-text-primary': activeTab() !== 'ollama',
             }}
           >
-            <RobotIcon class="h-3.5 w-3.5" />
+            <DiskIcon class="h-3.5 w-3.5" />
             <span>{t().aiRadar.tabOllama}</span>
             <Show when={ollamaStatus()?.is_running}>
               <span class="h-1.5 w-1.5 rounded-full bg-status-success" />
@@ -438,7 +487,112 @@ export const AiRadarView: Component = () => {
           </div>
         </Tabs.Content>
 
-        {/* Tab 2: Local Ollama Model & Memory Controller */}
+        {/* Tab 2: Local AI Coding Agents Probe Matrix */}
+        <Tabs.Content value="agents" class="outline-none space-y-4">
+          <div class="glass-card p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-4 mb-4">
+              <div>
+                <h2 class="text-sm font-bold text-text-primary m-0">
+                  {t().aiRadar.agentsSectionTitle}
+                </h2>
+                <p class="text-xs text-text-muted mt-0.5">{t().aiRadar.agentsSectionDesc}</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="rounded bg-bg-subtle border border-border-subtle px-2.5 py-0.8 mono text-[11px] text-text-primary font-semibold">
+                  {installedAgentsCount()} / {localAgents().length} {t().aiRadar.agentInstalled}
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <For
+                each={localAgents()}
+                fallback={
+                  <div class="col-span-full py-10 text-center text-xs text-text-muted mono">
+                    {t().common.loading}
+                  </div>
+                }
+              >
+                {(agent: LocalAgentInfo) => (
+                  <div
+                    class="glass-card-subtle flex flex-col justify-between p-4 border transition-all"
+                    classList={{
+                      'border-accent/40 bg-accent/5': agent.is_running,
+                      'border-border-subtle hover:border-border-hover': !agent.is_running,
+                      'opacity-60': !agent.is_installed,
+                    }}
+                  >
+                    <div>
+                      {/* Agent Header */}
+                      <div class="flex items-center justify-between pb-2 border-b border-border-subtle/60">
+                        <div class="flex items-center gap-2.5">
+                          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-bg-surface border border-border-subtle shrink-0">
+                            {renderProviderIcon(agent.icon)}
+                          </div>
+                          <div>
+                            <div class="font-bold text-xs text-text-primary">{agent.name}</div>
+                            <span class="rounded bg-bg-subtle px-1.5 py-0.2 mono text-[9.5px] text-text-muted">
+                              {getAgentCategoryLabel(agent.category)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Status Badges */}
+                        <div class="flex flex-col items-end gap-1">
+                          <Show
+                            when={agent.is_installed}
+                            fallback={
+                              <span class="rounded px-1.8 py-0.5 text-[9.5px] font-semibold bg-bg-surface text-text-muted border border-border-subtle">
+                                {t().aiRadar.agentNotInstalled}
+                              </span>
+                            }
+                          >
+                            <span class="rounded px-1.8 py-0.5 text-[9.5px] font-bold bg-status-success/15 text-status-success border border-status-success/30">
+                              {agent.version ? `v${agent.version}` : t().aiRadar.agentInstalled}
+                            </span>
+                          </Show>
+
+                          <Show when={agent.is_running}>
+                            <span class="rounded-full px-1.8 py-0.2 text-[9px] font-bold bg-accent/20 text-accent border border-accent/40 flex items-center gap-1 animate-pulse">
+                              <span class="h-1 w-1 rounded-full bg-accent" />
+                              <span>
+                                {t().aiRadar.agentRunning} {agent.pid ? `(PID: ${agent.pid})` : ''}
+                              </span>
+                            </span>
+                          </Show>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p class="text-xs text-text-muted mt-2.5 mb-3 leading-relaxed">
+                        {agent.description}
+                      </p>
+
+                      {/* Executable Path */}
+                      <Show when={agent.path}>
+                        <div class="rounded-lg bg-bg-subtle/80 p-2 text-[10px] font-mono text-text-secondary border border-border-subtle truncate flex items-center justify-between gap-1.5">
+                          <span class="truncate" title={agent.path || ''}>
+                            {agent.path}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(agent.path || '', agent.name)}
+                            class="text-text-muted hover:text-text-primary p-0.5 shrink-0"
+                            title={t().aiRadar.copyAgentPath}
+                          >
+                            <CopyIcon class="h-3 w-3" />
+                          </button>
+                        </div>
+                      </Show>
+                    </div>
+                  </div>
+                )}
+              </For>
+            </div>
+          </div>
+        </Tabs.Content>
+
+        {/* Tab 3: Local Ollama Model & Memory Controller */}
         <Tabs.Content value="ollama" class="outline-none space-y-4">
           <div class="glass-card p-5">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border-subtle pb-4 mb-4">
@@ -571,7 +725,7 @@ export const AiRadarView: Component = () => {
           </div>
         </Tabs.Content>
 
-        {/* Tab 3: API Key Safe Vault */}
+        {/* Tab 4: API Key Safe Vault */}
         <Tabs.Content value="vault" class="outline-none space-y-4">
           <div class="glass-card p-5">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-4 mb-4">
@@ -635,7 +789,7 @@ export const AiRadarView: Component = () => {
                           <span
                             class="rounded px-2 py-0.5 text-[10px] font-bold uppercase"
                             classList={{
-                              'bg-status-success/15 text-status-success border border-status-success/30':
+                              'bg-status-success/15 text-status-success border-status-success/30':
                                 item.isConfigured,
                               'bg-bg-surface text-text-muted border border-border-subtle':
                                 !item.isConfigured,
@@ -684,7 +838,7 @@ export const AiRadarView: Component = () => {
           </div>
         </Tabs.Content>
 
-        {/* Tab 4: Rules & Prompt Ammo Hub */}
+        {/* Tab 5: Rules & Prompt Ammo Hub */}
         <Tabs.Content value="rules" class="outline-none space-y-4">
           <div class="glass-card p-5">
             <div class="border-b border-border-subtle pb-3 mb-4">

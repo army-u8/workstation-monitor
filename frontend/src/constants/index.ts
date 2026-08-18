@@ -214,6 +214,7 @@ export const ApiEndpoint = {
   LLM_LATENCY: '/api/tools/llm-latency',
   OLLAMA_STATUS: '/api/tools/ollama/status',
   OLLAMA_UNLOAD: '/api/tools/ollama/unload',
+  AI_AGENTS: '/api/ai/agents',
   ENV_VARS: '/api/system/env-vars',
 } as const;
 export type ApiEndpoint = (typeof ApiEndpoint)[keyof typeof ApiEndpoint];
