@@ -429,6 +429,12 @@ export const zh = {
     rollbackConfirmMsg: '系统将用归档的 v{version} 二进制替换当前版本并重启服务。',
     refreshBackups: '刷新备份',
     refreshingBackups: '刷新中...',
+    latestBadge: '当前已是最新版本',
+    latestSubtitle: '工作台已处于最新发布版本，所有核心功能与热更补丁均为最新。',
+    recheckBtn: '重新检查更新',
+    rechecking: '正在检查...',
+    currentVersionNotes: '当前版本特性与更新日志',
+    closeBtn: '关闭',
   },
   snapshots: {
     drawerTitle: '项目时光机 & 存档点 (Save Points)',

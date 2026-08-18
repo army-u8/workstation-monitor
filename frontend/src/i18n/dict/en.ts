@@ -436,6 +436,12 @@ export const en: Dict = {
     rollbackConfirmMsg: 'The server will restore archived v{version} and restart.',
     refreshBackups: 'Refresh Backups',
     refreshingBackups: 'Refreshing...',
+    latestBadge: 'Already Up to Date',
+    latestSubtitle: 'Workstation is running the latest release with all core features and patches.',
+    recheckBtn: 'Check for Updates',
+    rechecking: 'Checking...',
+    currentVersionNotes: 'Current Release Notes',
+    closeBtn: 'Close',
   },
   snapshots: {
     drawerTitle: 'Time Machine & Save Points',

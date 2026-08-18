@@ -170,7 +170,7 @@ export const Header: Component = () => {
                 <span>
                   {isCheckingUpdate()
                     ? t().update.checking
-                    : `v${updateInfo()?.current_version || '0.2.2'}`}
+                    : `v${updateInfo()?.current_version || '0.2.3'}`}
                 </span>
               </>
             }

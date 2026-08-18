@@ -2,6 +2,7 @@ import { Show, For, createMemo, createSignal, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import {
   applyUpdateApi,
+  fetchUpdateCheckApi,
   fetchVersionBackupsApi,
   isApplyingUpdate,
   isCheckingUpdate,
@@ -15,6 +16,7 @@ import {
   versionBackups,
 } from '../services/store';
 import { t } from '../i18n';
+import { RefreshIcon } from './Icons';
 
 export const UpdateModal: Component = () => {
   const [activeTab, setActiveTab] = createSignal<'upgrade' | 'history'>('upgrade');
@@ -160,82 +162,143 @@ export const UpdateModal: Component = () => {
             </button>
           </div>
 
-          {/* TAB 1: UPGRADE */}
+          {/* TAB 1: UPGRADE OR ALREADY LATEST */}
           <Show when={activeTab() === 'upgrade'}>
-            {/* Version Comparison Card */}
-            <div class="my-3.5 rounded-lg border border-border-subtle bg-bg-subtle/70 p-3.5">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="flex flex-col">
-                    <span class="text-[10px] text-text-muted">{t().update.currentVersion}</span>
-                    <span class="font-mono text-xs font-semibold text-text-secondary">
-                      v{info()?.current_version}
-                    </span>
+            <Show
+              when={info()?.has_update}
+              fallback={
+                /* ALREADY LATEST VERSION VIEW */
+                <div class="my-3.5 space-y-3">
+                  <div class="rounded-xl border border-status-success/30 bg-status-success/5 p-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-status-success/15 text-status-success text-xl font-bold">
+                        ✓
+                      </span>
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <h4 class="text-xs font-bold text-text-primary m-0">
+                            {t().update.latestBadge}
+                          </h4>
+                          <span class="rounded bg-status-success/15 px-2 py-0.2 text-[10.5px] font-mono font-semibold text-status-success">
+                            v{info()?.current_version}
+                          </span>
+                        </div>
+                        <p class="text-xs text-text-muted m-0 mt-0.5">
+                          {t().update.latestSubtitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => fetchUpdateCheckApi(true)}
+                      disabled={isCheckingUpdate()}
+                      class="shrink-0 flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary hover:border-border-hover transition-all"
+                    >
+                      <RefreshIcon
+                        class="h-3.5 w-3.5"
+                        classList={{ 'animate-spin': isCheckingUpdate() }}
+                      />
+                      <span>
+                        {isCheckingUpdate() ? t().update.rechecking : t().update.recheckBtn}
+                      </span>
+                    </button>
                   </div>
 
-                  <span class="text-text-muted font-bold text-sm px-1">➔</span>
+                  {/* Release Notes for Current Version */}
+                  <Show when={info()?.release_notes}>
+                    <div class="space-y-1.5">
+                      <div class="text-xs font-semibold text-text-secondary flex items-center justify-between">
+                        <span>{t().update.currentVersionNotes}</span>
+                      </div>
+                      <div class="max-h-48 overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/80 p-3 text-xs text-text-secondary leading-relaxed font-mono whitespace-pre-wrap selection:bg-accent/30">
+                        {info()?.release_notes}
+                      </div>
+                    </div>
+                  </Show>
+                </div>
+              }
+            >
+              {/* NEW VERSION AVAILABLE VIEW */}
+              <div class="my-3.5">
+                {/* Version Comparison Card */}
+                <div class="rounded-lg border border-border-subtle bg-bg-subtle/70 p-3.5 mb-3">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div class="flex flex-col">
+                        <span class="text-[10px] text-text-muted">{t().update.currentVersion}</span>
+                        <span class="font-mono text-xs font-semibold text-text-secondary">
+                          v{info()?.current_version}
+                        </span>
+                      </div>
 
-                  <div class="flex flex-col">
-                    <span class="text-[10px] text-text-muted">{t().update.latestVersion}</span>
-                    <span class="inline-flex items-center gap-1 font-mono text-xs font-bold text-status-success bg-status-success/15 px-2 py-0.5 rounded">
-                      {info()?.latest_version}
-                    </span>
+                      <span class="text-text-muted font-bold text-sm px-1">➔</span>
+
+                      <div class="flex flex-col">
+                        <span class="text-[10px] text-text-muted">{t().update.latestVersion}</span>
+                        <span class="inline-flex items-center gap-1 font-mono text-xs font-bold text-status-success bg-status-success/15 px-2 py-0.5 rounded">
+                          {info()?.latest_version}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Meta details */}
+                    <div class="flex items-center gap-2 text-[10px] font-mono text-text-muted">
+                      <Show when={formattedSize()}>
+                        <span class="rounded bg-bg-surface px-2 py-0.5 border border-border-subtle">
+                          📦 {formattedSize()}
+                        </span>
+                      </Show>
+                      <Show when={formattedDate()}>
+                        <span class="rounded bg-bg-surface px-2 py-0.5 border border-border-subtle">
+                          🗓️ {formattedDate()}
+                        </span>
+                      </Show>
+                    </div>
                   </div>
                 </div>
 
-                {/* Meta details */}
-                <div class="flex items-center gap-2 text-[10px] font-mono text-text-muted">
-                  <Show when={formattedSize()}>
-                    <span class="rounded bg-bg-surface px-2 py-0.5 border border-border-subtle">
-                      📦 {formattedSize()}
-                    </span>
-                  </Show>
-                  <Show when={formattedDate()}>
-                    <span class="rounded bg-bg-surface px-2 py-0.5 border border-border-subtle">
-                      🗓️ {formattedDate()}
-                    </span>
-                  </Show>
-                </div>
-              </div>
-            </div>
-
-            {/* Accelerator Channel Badge */}
-            <div class="mb-3 flex items-center justify-between px-3 py-2 rounded-md bg-accent/10 border border-accent/20 text-xs text-accent">
-              <span class="flex items-center gap-1.5 font-medium">
-                <span>⚡</span>
-                <span>{t().update.dualFeedBadge}</span>
-              </span>
-              <span class="text-[10px] font-mono opacity-80">{navigator.platform || 'macOS'}</span>
-            </div>
-
-            {/* Release Notes Preview */}
-            <div class="mb-4 space-y-1.5">
-              <div class="text-xs font-semibold text-text-secondary flex items-center justify-between">
-                <span>{t().update.releaseNotes}</span>
-                <Show when={info()?.asset_name}>
-                  <span class="text-[10px] font-mono text-text-muted truncate max-w-[240px]">
-                    {info()?.asset_name}
+                {/* Accelerator Channel Badge */}
+                <div class="mb-3 flex items-center justify-between px-3 py-2 rounded-md bg-accent/10 border border-accent/20 text-xs text-accent">
+                  <span class="flex items-center gap-1.5 font-medium">
+                    <span>⚡</span>
+                    <span>{t().update.dualFeedBadge}</span>
                   </span>
-                </Show>
-              </div>
-              <div class="max-h-44 overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/80 p-3 text-xs text-text-secondary leading-relaxed font-mono whitespace-pre-wrap selection:bg-accent/30">
-                {info()?.release_notes || 'No release notes.'}
-              </div>
-            </div>
+                  <span class="text-[10px] font-mono opacity-80">
+                    {navigator.platform || 'macOS'}
+                  </span>
+                </div>
 
-            {/* Live Updating Progress View */}
-            <Show when={isApplyingUpdate()}>
-              <div class="mb-4 rounded-lg border border-accent/30 bg-accent/5 p-4 animate-pulse">
-                <div class="flex items-center justify-between text-xs text-accent font-semibold mb-2">
-                  <span>{getStepText()}</span>
-                  <span class="font-mono">{downloadPercent()}%</span>
+                {/* Release Notes Preview */}
+                <div class="mb-4 space-y-1.5">
+                  <div class="text-xs font-semibold text-text-secondary flex items-center justify-between">
+                    <span>{t().update.releaseNotes}</span>
+                    <Show when={info()?.asset_name}>
+                      <span class="text-[10px] font-mono text-text-muted truncate max-w-[240px]">
+                        {info()?.asset_name}
+                      </span>
+                    </Show>
+                  </div>
+                  <div class="max-h-44 overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/80 p-3 text-xs text-text-secondary leading-relaxed font-mono whitespace-pre-wrap selection:bg-accent/30">
+                    {info()?.release_notes || 'No release notes.'}
+                  </div>
                 </div>
-                <div class="h-2 w-full rounded-full bg-bg-subtle overflow-hidden">
-                  <div
-                    class="h-full bg-accent transition-all duration-300 rounded-full"
-                    style={{ width: `${downloadPercent()}%` }}
-                  />
-                </div>
+
+                {/* Live Updating Progress View */}
+                <Show when={isApplyingUpdate()}>
+                  <div class="mb-4 rounded-lg border border-accent/30 bg-accent/5 p-4 animate-pulse">
+                    <div class="flex items-center justify-between text-xs text-accent font-semibold mb-2">
+                      <span>{getStepText()}</span>
+                      <span class="font-mono">{downloadPercent()}%</span>
+                    </div>
+                    <div class="h-2 w-full rounded-full bg-bg-subtle overflow-hidden">
+                      <div
+                        class="h-full bg-accent transition-all duration-300 rounded-full"
+                        style={{ width: `${downloadPercent()}%` }}
+                      />
+                    </div>
+                  </div>
+                </Show>
               </div>
             </Show>
           </Show>
@@ -315,7 +378,7 @@ export const UpdateModal: Component = () => {
                   onClick={handleClose}
                   class="rounded-lg border border-border-default bg-bg-subtle px-3 py-1.5 text-xs text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors"
                 >
-                  {t().update.dismissBtn}
+                  {info()?.has_update ? t().update.dismissBtn : t().update.closeBtn}
                 </button>
 
                 <Show when={info()?.has_update && activeTab() === 'upgrade'}>

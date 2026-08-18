@@ -258,24 +258,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // listening, so double-clicking the bundled .app just works without a transient
     // "cannot connect" error. We poll the port in a background task instead of
     // opening before `axum::serve` starts.
-    let dashboard_url = format!("http://localhost:{}", port);
-    let listen_addr = std::net::SocketAddr::new(
-        ([127, 0, 0, 1]).into(),
-        port,
-    );
-    tokio::spawn(async move {
-        for _ in 0..100 {
-            if tokio::net::TcpStream::connect(listen_addr).await.is_ok() {
-                if let Err(e) = open::that(&dashboard_url) {
-                    tracing::warn!("failed to auto-open browser ({}), trying `open` command", e);
-                    let _ = ProcCommand::new("open").arg(&dashboard_url).spawn();
+    let no_open = std::env::args().any(|a| a == "--no-open" || a == "-n")
+        || std::env::var("WORKSTATION_NO_OPEN")
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false);
+
+    if !no_open {
+        let dashboard_url = format!("http://localhost:{}", port);
+        let listen_addr = std::net::SocketAddr::new(
+            ([127, 0, 0, 1]).into(),
+            port,
+        );
+        tokio::spawn(async move {
+            for _ in 0..100 {
+                if tokio::net::TcpStream::connect(listen_addr).await.is_ok() {
+                    if let Err(e) = open::that(&dashboard_url) {
+                        tracing::warn!("failed to auto-open browser ({}), trying `open` command", e);
+                        let _ = ProcCommand::new("open").arg(&dashboard_url).spawn();
+                    }
+                    return;
                 }
-                return;
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
             }
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-        }
-        tracing::warn!("server did not become reachable; skipping auto-open of {}", dashboard_url);
-    });
+            tracing::warn!("server did not become reachable; skipping auto-open of {}", dashboard_url);
+        });
+    } else {
+        tracing::info!("Auto-open browser skipped via --no-open / WORKSTATION_NO_OPEN");
+    }
 
     axum::serve(listener, router).await?;
 

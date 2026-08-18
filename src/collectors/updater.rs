@@ -598,14 +598,15 @@ impl AutoUpdater {
 sleep 1.5
 cd "{}" 2>/dev/null || true
 export PORT="{}"
+export WORKSTATION_NO_OPEN="1"
 TARGET="$1"
 /usr/bin/xattr -cr "$TARGET" 2>/dev/null || true
 if echo "$TARGET" | grep -q "\.app/Contents/MacOS"; then
     APP_BUNDLE=$(echo "$TARGET" | sed 's|/Contents/MacOS/.*||')
     /usr/bin/xattr -cr "$APP_BUNDLE" 2>/dev/null || true
-    open -n "$APP_BUNDLE" 2>/dev/null || "$TARGET" >/dev/null 2>&1 &
+    open -n "$APP_BUNDLE" --args --no-open 2>/dev/null || "$TARGET" --no-open >/dev/null 2>&1 &
 else
-    "$TARGET" >/dev/null 2>&1 &
+    "$TARGET" --no-open >/dev/null 2>&1 &
 fi
 "#,
             current_dir, current_port
@@ -696,9 +697,16 @@ fi
 sleep 1.5
 cd "{}" 2>/dev/null || true
 export PORT="{}"
+export WORKSTATION_NO_OPEN="1"
 TARGET="$1"
 /usr/bin/xattr -cr "$TARGET" 2>/dev/null || true
-"$TARGET" >/dev/null 2>&1 &
+if echo "$TARGET" | grep -q "\.app/Contents/MacOS"; then
+    APP_BUNDLE=$(echo "$TARGET" | sed 's|/Contents/MacOS/.*||')
+    /usr/bin/xattr -cr "$APP_BUNDLE" 2>/dev/null || true
+    open -n "$APP_BUNDLE" --args --no-open 2>/dev/null || "$TARGET" --no-open >/dev/null 2>&1 &
+else
+    "$TARGET" --no-open >/dev/null 2>&1 &
+fi
 "#,
             current_dir, current_port
         );
