@@ -130,7 +130,7 @@ export const PacketSniffer: Component = () => {
                   {pkt.protocol}
                 </span>
                 <span class="truncate text-text-primary text-[10.5px]">
-                  {pkt.src_ip}:{pkt.src_port || '-'} ➔ {pkt.dst_ip}:{pkt.dst_port || '-'}
+                  {pkt.src_ip}:{pkt.src_port || '-'} → {pkt.dst_ip}:{pkt.dst_port || '-'}
                 </span>
               </div>
               <span class="shrink-0 text-text-muted text-[10px] font-medium">{pkt.length} B</span>

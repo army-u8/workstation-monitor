@@ -10,6 +10,7 @@ import {
   scanGitProjectsApi,
 } from '../services/store';
 import {
+  CloseIcon,
   CodeIcon,
   CompactIcon,
   FolderIcon,
@@ -388,9 +389,9 @@ export const GitRadar: Component = () => {
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label={t().common.cancel}
-                class="absolute right-1.5 text-[10px] text-text-muted hover:text-text-primary"
+                class="absolute right-1.5 text-text-muted hover:text-text-primary p-0.5"
               >
-                ✕
+                <CloseIcon class="h-3 w-3" />
               </button>
             </Show>
           </div>

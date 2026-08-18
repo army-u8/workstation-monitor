@@ -6,6 +6,7 @@ import {
   AppBoxIcon,
   BoltIcon,
   CleanerIcon,
+  CloseIcon,
   DevToolsIcon,
   DiskIcon,
   GitIcon,
@@ -306,7 +307,7 @@ export const Sidebar: Component = () => {
             aria-label={t().common.closeSidebar}
             class="flex h-6 w-6 items-center justify-center rounded-md text-text-muted hover:text-text-primary md:hidden hover:bg-bg-subtle"
           >
-            ✕
+            <CloseIcon class="h-4 w-4" />
           </button>
         </div>
 

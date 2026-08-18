@@ -15,8 +15,16 @@ import {
   updateStep,
   versionBackups,
 } from '../services/store';
+import {
+  BoltIcon,
+  CheckIcon,
+  ClockIcon,
+  CloseIcon,
+  PackageIcon,
+  RefreshIcon,
+  RocketIcon,
+} from './Icons';
 import { t } from '../i18n';
-import { BoltIcon, ClockIcon, PackageIcon, RefreshIcon, RocketIcon } from './Icons';
 
 export const UpdateModal: Component = () => {
   const [activeTab, setActiveTab] = createSignal<'upgrade' | 'history'>('upgrade');
@@ -90,21 +98,16 @@ export const UpdateModal: Component = () => {
           if (e.target === e.currentTarget) handleClose();
         }}
       >
-        <div
-          class="relative w-full max-w-xl overflow-hidden rounded-xl border border-border-default bg-bg-surface p-6 shadow-2xl transition-all"
-          role="dialog"
-          aria-modal="true"
-        >
+        {/* Modal Window */}
+        <div class="relative w-full max-w-lg rounded-2xl border border-border-default bg-bg-modal p-6 shadow-2xl transition-all z-10">
           {/* Header */}
-          <div class="flex items-center justify-between border-b border-border-subtle pb-4">
+          <div class="flex items-center justify-between pb-3 border-b border-border-subtle">
             <div class="flex items-center gap-2.5">
-              <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent border border-accent/20">
-                <RocketIcon class="h-5 w-5" />
-              </div>
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent border border-accent/20">
+                <RocketIcon class="h-4.5 w-4.5" />
+              </span>
               <div>
-                <h3 class="text-base font-semibold text-text-primary m-0">
-                  {t().update.modalTitle}
-                </h3>
+                <h3 class="text-sm font-bold text-text-primary m-0">{t().update.modalTitle}</h3>
                 <p class="text-xs text-text-muted m-0">
                   {info()?.has_update
                     ? t().update.newVersionAvailable
@@ -123,7 +126,7 @@ export const UpdateModal: Component = () => {
                 class="flex h-7 w-7 items-center justify-center rounded-md border border-border-subtle bg-bg-subtle text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
                 aria-label={t().update.dismissBtn}
               >
-                ✕
+                <CloseIcon class="h-4 w-4" />
               </button>
             </Show>
           </div>
@@ -171,8 +174,8 @@ export const UpdateModal: Component = () => {
                 <div class="my-3.5 space-y-3">
                   <div class="rounded-xl border border-status-success/30 bg-status-success/5 p-4 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-status-success/15 text-status-success text-xl font-bold">
-                        ✓
+                      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-status-success/15 text-status-success">
+                        <CheckIcon class="h-6 w-6" />
                       </span>
                       <div>
                         <div class="flex items-center gap-2">
@@ -232,7 +235,7 @@ export const UpdateModal: Component = () => {
                         </span>
                       </div>
 
-                      <span class="text-text-muted font-bold text-sm px-1">➔</span>
+                      <span class="text-text-muted font-bold text-xs px-1">→</span>
 
                       <div class="flex flex-col">
                         <span class="text-[10px] text-text-muted">{t().update.latestVersion}</span>

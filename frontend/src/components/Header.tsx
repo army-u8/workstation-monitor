@@ -21,7 +21,7 @@ import {
   WsConnectionStatus,
   pathToSectionMap,
 } from '../constants';
-import { MoonIcon, RefreshIcon, RocketIcon, SunIcon, SystemThemeIcon } from './Icons';
+import { CompactIcon, MoonIcon, RefreshIcon, RocketIcon, SunIcon, SystemThemeIcon } from './Icons';
 
 export const Header: Component = () => {
   const [timeStr, setTimeStr] = createSignal('00:00:00');
@@ -63,7 +63,7 @@ export const Header: Component = () => {
           aria-label={t().common.openSidebar}
           class="flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-border-default bg-bg-subtle text-text-secondary hover:text-text-primary hover:border-border-hover transition-all active:scale-95 lg:hidden"
         >
-          ☰
+          <CompactIcon class="h-4 w-4" />
         </button>
 
         <div class="flex items-center gap-2 text-xs">

@@ -247,7 +247,7 @@ export function copyToClipboard(text: string, label = 'Content') {
   navigator.clipboard
     .writeText(text)
     .then(() => {
-      showToast(`✓ ${t().common.copied} ${label}: ${text}`, ToastType.SUCCESS);
+      showToast(`${t().common.copied} ${label}: ${text}`, ToastType.SUCCESS);
     })
     .catch(() => {
       showToast(t().common.copyFailed, ToastType.ERROR);
@@ -380,7 +380,7 @@ export async function runSpeedTestApi(): Promise<void> {
       throw new Error(json.error || `HTTP ${res.status}`);
     }
     setSpeedTestResult(json);
-    showToast(`✓ ${json.download_mbps.toFixed(1)} Mbps (${json.server})`, ToastType.SUCCESS);
+    showToast(`${json.download_mbps.toFixed(1)} Mbps (${json.server})`, ToastType.SUCCESS);
   } catch (err: any) {
     showToast(`${err.message}`, ToastType.ERROR);
   }
@@ -462,7 +462,7 @@ export async function quickCaptureObsidianApi(payload: QuickCapturePayload): Pro
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json: OpsResponse = await res.json();
     if (json.success) {
-      showToast(`✓ ${json.message}`, ToastType.SUCCESS);
+      showToast(`${json.message}`, ToastType.SUCCESS);
       // Refresh vault summary in background
       fetchObsidianVaultApi();
       return true;

@@ -9,7 +9,10 @@ import {
   IconBrandChrome,
   IconBrandGithub,
   IconBroadcast,
+  IconCamera,
   IconCheck,
+  IconCircle,
+  IconCircleDot,
   IconClock,
   IconCode,
   IconCompass,
@@ -31,10 +34,12 @@ import {
   IconKey,
   IconLayersIntersect,
   IconLayoutGrid,
+  IconLink,
   IconList,
   IconMenu2,
   IconMoon,
   IconPackage,
+  IconPhoto,
   IconPlug,
   IconRefresh,
   IconRobot,
@@ -44,10 +49,12 @@ import {
   IconShield,
   IconSparkles,
   IconSun,
+  IconTarget,
   IconTerminal2,
   IconTrash,
   IconUser,
   IconWorld,
+  IconX,
 } from '@tabler/icons-solidjs';
 
 // Navigation & Section Tabler Icons
@@ -117,3 +124,10 @@ export const EyeOpenIcon = IconEye;
 export const EyeClosedIcon = IconEyeOff;
 export const CopyIcon = IconCopy;
 export const CheckIcon = IconCheck;
+export const CameraIcon = IconCamera;
+export const LinkIcon = IconLink;
+export const CloseIcon = IconX;
+export const CircleIcon = IconCircle;
+export const CircleDotIcon = IconCircleDot;
+export const TargetIcon = IconTarget;
+export const PhotoIcon = IconPhoto;

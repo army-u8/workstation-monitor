@@ -1,7 +1,7 @@
 import { For, Show, createSignal, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import { copyToClipboard, fetchHostsApi, hostsList, pingHostApi } from '../services/store';
-import { RefreshIcon } from './Icons';
+import { CloseIcon, RefreshIcon } from './Icons';
 import { t } from '../i18n';
 
 export const HostsManager: Component = () => {
@@ -69,9 +69,9 @@ export const HostsManager: Component = () => {
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label={t().common.cancel}
-                class="absolute right-2 text-xs text-text-muted hover:text-text-primary"
+                class="absolute right-2 text-text-muted hover:text-text-primary p-0.5"
               >
-                ✕
+                <CloseIcon class="h-3 w-3" />
               </button>
             </Show>
           </div>

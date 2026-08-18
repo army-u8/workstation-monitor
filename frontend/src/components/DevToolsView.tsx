@@ -9,12 +9,17 @@ import {
 } from '../services/store';
 import {
   BrainIcon,
+  CopyIcon,
   DevToolsIcon,
+  EyeClosedIcon,
+  EyeOpenIcon,
   KeyIcon,
+  NoteIcon,
   RefreshIcon,
   RobotIcon,
   SearchIcon,
   ServerIcon,
+  TargetIcon,
 } from './Icons';
 import { t } from '../i18n';
 import type { DetectedApiKey, EnvVarEntry, PathEntry } from '../types';
@@ -561,7 +566,7 @@ export const DevToolsView: Component = () => {
           <div class="glass-card flex flex-col md:flex-row md:items-center justify-between gap-3 p-4">
             <div>
               <div class="flex items-center gap-2">
-                <span class="text-lg">🎯</span>
+                <TargetIcon class="h-4.5 w-4.5 text-accent" />
                 <h3 class="text-xs font-bold text-text-primary m-0">
                   {t().devops.detectedLocalTitle}
                 </h3>
@@ -695,7 +700,12 @@ export const DevToolsView: Component = () => {
                             class="text-[10px] text-text-muted hover:text-text-primary px-1"
                             title={isRevealed() ? t().devops.hideSecret : t().devops.showSecret}
                           >
-                            {isRevealed() ? '🙈' : '👁️'}
+                            <Show
+                              when={isRevealed()}
+                              fallback={<EyeOpenIcon class="h-3.5 w-3.5" />}
+                            >
+                              <EyeClosedIcon class="h-3.5 w-3.5" />
+                            </Show>
                           </button>
                           <button
                             type="button"
@@ -703,7 +713,7 @@ export const DevToolsView: Component = () => {
                             class="text-[10px] text-text-muted hover:text-accent px-1"
                             title={t().devops.copy}
                           >
-                            📋
+                            <CopyIcon class="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
@@ -741,7 +751,7 @@ export const DevToolsView: Component = () => {
                 class="w-full flex items-center justify-between text-left transition-colors"
               >
                 <div class="flex items-center gap-2">
-                  <span class="text-sm">📚</span>
+                  <NoteIcon class="h-4 w-4 text-accent" />
                   <span class="text-xs font-bold text-text-secondary">
                     {t().devops.allCatalogTitle}
                   </span>

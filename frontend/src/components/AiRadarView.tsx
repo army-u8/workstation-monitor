@@ -15,6 +15,7 @@ import {
   AntennaIcon,
   BoltIcon,
   BrainIcon,
+  CloseIcon,
   FlameIcon,
   LayersIntersectIcon,
   RefreshIcon,
@@ -147,7 +148,12 @@ export const AiRadarView: Component = () => {
                     >
                       <Show
                         when={item.is_reachable}
-                        fallback={<span>✕ {t().aiRadar.unreachable}</span>}
+                        fallback={
+                          <span class="flex items-center gap-0.5">
+                            <CloseIcon class="h-3 w-3" />
+                            <span>{t().aiRadar.unreachable}</span>
+                          </span>
+                        }
                       >
                         <BoltIcon class="h-3 w-3" />
                         <span>{item.latency_ms} ms</span>

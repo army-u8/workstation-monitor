@@ -12,7 +12,15 @@ import {
   rollbackSnapshotApi,
   snapshotsData,
 } from '../services/store';
-import { AlertWarningIcon, HistoryIcon, TbBranchIcon } from './Icons';
+import {
+  AlertWarningIcon,
+  CameraIcon,
+  ClockIcon,
+  CloseIcon,
+  HistoryIcon,
+  TbBranchIcon,
+  UserIcon,
+} from './Icons';
 import { t } from '../i18n';
 import type { SavePointSnapshot } from '../types';
 
@@ -88,7 +96,7 @@ export const SavePointDrawer: Component = () => {
               class="rounded-lg p-1.5 text-text-muted hover:bg-bg-hover hover:text-text-primary transition-colors"
               aria-label={t().common.cancel}
             >
-              ✕
+              <CloseIcon class="h-4 w-4" />
             </button>
           </div>
 
@@ -114,7 +122,7 @@ export const SavePointDrawer: Component = () => {
             <div class="rounded-xl border border-accent/40 bg-accent/5 p-4 shadow-2xs">
               <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-2">
-                  <span class="text-base">📸</span>
+                  <CameraIcon class="h-4 w-4 text-accent" />
                   <h3 class="text-xs font-bold text-text-primary m-0">
                     {t().snapshots.recordTitle}
                   </h3>
@@ -192,7 +200,12 @@ export const SavePointDrawer: Component = () => {
                               !snap.is_head && !snap.is_save_point,
                           }}
                         >
-                          {snap.is_head ? '●' : snap.is_save_point ? '📸' : '○'}
+                          <Show
+                            when={snap.is_save_point}
+                            fallback={<span class="h-1.5 w-1.5 rounded-full bg-current" />}
+                          >
+                            <CameraIcon class="h-2.5 w-2.5" />
+                          </Show>
                         </span>
 
                         <div class="flex items-start justify-between gap-2">
@@ -230,8 +243,14 @@ export const SavePointDrawer: Component = () => {
                             </h4>
 
                             <div class="flex items-center gap-3 text-[10.5px] text-text-muted">
-                              <span>⏱️ {snap.relative_time}</span>
-                              <span>👤 {snap.author}</span>
+                              <span class="flex items-center gap-1">
+                                <ClockIcon class="h-3 w-3" />
+                                <span>{snap.relative_time}</span>
+                              </span>
+                              <span class="flex items-center gap-1">
+                                <UserIcon class="h-3 w-3" />
+                                <span>{snap.author}</span>
+                              </span>
                             </div>
                           </div>
 

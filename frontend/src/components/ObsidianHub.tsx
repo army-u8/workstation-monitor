@@ -9,7 +9,7 @@ import {
   quickCaptureObsidianApi,
   searchObsidianApi,
 } from '../services/store';
-import { FolderIcon, RefreshIcon, SearchIcon } from './Icons';
+import { CheckIcon, CloseIcon, FolderIcon, RefreshIcon, SearchIcon } from './Icons';
 import { t } from '../i18n';
 import type { ObsidianNoteDetail, ObsidianSearchResponse } from '../types';
 
@@ -156,13 +156,17 @@ export const ObsidianHub: Component = () => {
                 <Show
                   when={obsidianSummary()?.git_dirty}
                   fallback={
-                    <span class="rounded-md bg-status-success/15 border border-status-success/30 px-2 py-0.5 text-[9.5px] font-bold text-status-success">
-                      ✓ {t().obsidian.clean}
+                    <span class="rounded-md bg-status-success/15 border border-status-success/30 px-2 py-0.5 text-[9.5px] font-bold text-status-success flex items-center gap-1">
+                      <CheckIcon class="h-3 w-3" />
+                      <span>{t().obsidian.clean}</span>
                     </span>
                   }
                 >
-                  <span class="rounded-md bg-status-warning/15 border border-status-warning/30 px-2 py-0.5 text-[9.5px] font-bold text-status-warning animate-pulse">
-                    ● {obsidianSummary()?.git_uncommitted_count} {t().obsidian.dirty}
+                  <span class="rounded-md bg-status-warning/15 border border-status-warning/30 px-2 py-0.5 text-[9.5px] font-bold text-status-warning animate-pulse flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-status-warning" />
+                    <span>
+                      {obsidianSummary()?.git_uncommitted_count} {t().obsidian.dirty}
+                    </span>
                   </span>
                 </Show>
               </div>
@@ -398,9 +402,9 @@ export const ObsidianHub: Component = () => {
                 <button
                   type="button"
                   onClick={() => handleSearch('')}
-                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-text-muted hover:text-text-primary"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary p-0.5"
                 >
-                  ✕
+                  <CloseIcon class="h-3 w-3" />
                 </button>
               </Show>
             </div>
@@ -413,9 +417,9 @@ export const ObsidianHub: Component = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedTag(null)}
-                    class="hover:opacity-80"
+                    class="hover:opacity-80 p-0.5"
                   >
-                    ✕
+                    <CloseIcon class="h-3 w-3" />
                   </button>
                 </span>
               </div>
@@ -621,7 +625,7 @@ export const ObsidianHub: Component = () => {
                     aria-label={t().obsidian.closeReader}
                     class="rounded-lg border border-border-default bg-bg-surface p-1 text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
                   >
-                    ✕
+                    <CloseIcon class="h-4 w-4" />
                   </button>
                 </div>
               </div>

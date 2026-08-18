@@ -3,7 +3,9 @@ import type { Component } from 'solid-js';
 import { copyToClipboard, fetchMachineInfoApi, machineInfo, openAppApi } from '../services/store';
 import {
   AppBoxIcon,
+  CheckIcon,
   ChromeIcon,
+  CloseIcon,
   CodeIcon,
   FolderIcon,
   MonitorIcon,
@@ -300,9 +302,9 @@ export const MachineInfo: Component = () => {
                   type="button"
                   onClick={() => setSearchQuery('')}
                   aria-label={t().common.cancel}
-                  class="absolute right-2 text-xs text-text-muted hover:text-text-primary"
+                  class="absolute right-2 text-text-muted hover:text-text-primary p-0.5"
                 >
-                  ✕
+                  <CloseIcon class="h-3 w-3" />
                 </button>
               </Show>
             </div>
@@ -383,8 +385,19 @@ export const MachineInfo: Component = () => {
 
                 {/* Bottom Action */}
                 <div class="mt-3.5 flex items-center justify-between border-t border-border-subtle pt-2.5 text-[10.5px]">
-                  <span class="text-text-muted mono font-semibold">
-                    {app.is_installed ? '✓ Ready' : '✗ Not installed'}
+                  <span class="text-text-muted mono font-semibold flex items-center gap-1">
+                    <Show
+                      when={app.is_installed}
+                      fallback={
+                        <>
+                          <CloseIcon class="h-3 w-3 text-status-danger" />
+                          <span>Not installed</span>
+                        </>
+                      }
+                    >
+                      <CheckIcon class="h-3 w-3 text-status-success" />
+                      <span>Ready</span>
+                    </Show>
                   </span>
 
                   <Show when={app.is_installed}>

@@ -7,7 +7,17 @@ import {
   isLoadingArtifacts,
   webArtifacts,
 } from '../services/store';
-import { BoltIcon, CompactIcon, GlobeIcon, GridIcon, ListIcon, RefreshIcon } from './Icons';
+import {
+  BoltIcon,
+  CloseIcon,
+  CompactIcon,
+  GlobeIcon,
+  GridIcon,
+  LinkIcon,
+  ListIcon,
+  PhotoIcon,
+  RefreshIcon,
+} from './Icons';
 import { ArtifactsLayoutMode, ArtifactsSortBy, StorageKey } from '../constants';
 import { t } from '../i18n';
 import type { WebArtifactInfo } from '../types';
@@ -114,7 +124,7 @@ export const WebArtifactsView: Component = () => {
             <div class="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div class="flex items-center gap-2">
                 <div class="flex h-6 w-6 items-center justify-center rounded bg-accent/15 text-accent text-sm">
-                  🖼️
+                  <PhotoIcon class="h-4 w-4" />
                 </div>
                 <h3 class="text-xs font-bold text-text-primary">
                   {t().artifacts.overviewCardTitle}
@@ -384,9 +394,9 @@ export const WebArtifactsView: Component = () => {
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label={t().common.cancel}
-                class="absolute right-2 text-xs text-text-muted hover:text-text-primary"
+                class="absolute right-2 text-text-muted hover:text-text-primary p-0.5"
               >
-                ✕
+                <CloseIcon class="h-3 w-3" />
               </button>
             </Show>
           </div>
@@ -540,7 +550,8 @@ export const WebArtifactsView: Component = () => {
                         class="mt-1 flex items-center gap-1 mono text-[10px] text-text-muted hover:text-accent truncate w-full text-left"
                         title={artifact.url}
                       >
-                        <span>🔗 {artifact.url}</span>
+                        <LinkIcon class="h-3 w-3 shrink-0" />
+                        <span class="truncate">{artifact.url}</span>
                       </button>
                     </div>
 
@@ -663,7 +674,8 @@ export const WebArtifactsView: Component = () => {
                             class="mono text-[10px] text-text-muted hover:text-accent truncate text-left mt-0.5 flex items-center gap-1"
                             title={artifact.url}
                           >
-                            <span>🔗 {artifact.url}</span>
+                            <LinkIcon class="h-3 w-3 shrink-0" />
+                            <span class="truncate">{artifact.url}</span>
                           </button>
                         </div>
                       </td>

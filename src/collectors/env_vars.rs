@@ -289,59 +289,59 @@ impl EnvVarsCollector {
         let upper = name.to_uppercase();
 
         if upper.contains("OPENAI") {
-            ("OpenAI".to_string(), "ai".to_string(), "🤖".to_string())
+            ("OpenAI".to_string(), "ai".to_string(), "openai".to_string())
         } else if upper.contains("ANTHROPIC") || upper.contains("CLAUDE") {
-            ("Anthropic Claude".to_string(), "ai".to_string(), "🧠".to_string())
+            ("Anthropic Claude".to_string(), "ai".to_string(), "anthropic".to_string())
         } else if upper.contains("DEEPSEEK") {
-            ("DeepSeek".to_string(), "ai".to_string(), "⚡".to_string())
+            ("DeepSeek".to_string(), "ai".to_string(), "deepseek".to_string())
         } else if upper.contains("GEMINI") || upper.contains("GOOGLE") {
-            ("Google Gemini".to_string(), "ai".to_string(), "✨".to_string())
+            ("Google Gemini".to_string(), "ai".to_string(), "gemini".to_string())
         } else if upper.contains("GROQ") {
-            ("Groq".to_string(), "ai".to_string(), "🚀".to_string())
+            ("Groq".to_string(), "ai".to_string(), "groq".to_string())
         } else if upper.contains("MISTRAL") {
-            ("Mistral AI".to_string(), "ai".to_string(), "🌪️".to_string())
+            ("Mistral AI".to_string(), "ai".to_string(), "mistral".to_string())
         } else if upper.contains("OPENROUTER") {
-            ("OpenRouter".to_string(), "ai".to_string(), "🌌".to_string())
+            ("OpenRouter".to_string(), "ai".to_string(), "openrouter".to_string())
         } else if upper.contains("SILICONFLOW") {
-            ("SiliconFlow".to_string(), "ai".to_string(), "🌊".to_string())
+            ("SiliconFlow".to_string(), "ai".to_string(), "siliconflow".to_string())
         } else if upper.contains("MOONSHOT") || upper.contains("KIMI") {
-            ("Moonshot Kimi".to_string(), "ai".to_string(), "🌙".to_string())
+            ("Moonshot Kimi".to_string(), "ai".to_string(), "moonshot".to_string())
         } else if upper.contains("ZHIPU") || upper.contains("GLM") {
-            ("Zhipu AI".to_string(), "ai".to_string(), "🔮".to_string())
+            ("Zhipu AI".to_string(), "ai".to_string(), "zhipu".to_string())
         } else if upper.contains("OLLAMA") {
-            ("Ollama".to_string(), "ai".to_string(), "🦙".to_string())
+            ("Ollama".to_string(), "ai".to_string(), "ollama".to_string())
         } else if upper.contains("ELEVENLABS") {
-            ("ElevenLabs".to_string(), "ai".to_string(), "🎙️".to_string())
+            ("ElevenLabs".to_string(), "ai".to_string(), "elevenlabs".to_string())
         } else if upper.contains("HUGGINGFACE") || upper.contains("HF_") {
-            ("HuggingFace".to_string(), "ai".to_string(), "🤗".to_string())
+            ("HuggingFace".to_string(), "ai".to_string(), "huggingface".to_string())
         } else if upper.contains("TAVILY") {
-            ("Tavily AI".to_string(), "ai".to_string(), "🔍".to_string())
+            ("Tavily AI".to_string(), "ai".to_string(), "tavily".to_string())
         } else if upper.contains("PERPLEXITY") {
-            ("Perplexity AI".to_string(), "ai".to_string(), "💡".to_string())
+            ("Perplexity AI".to_string(), "ai".to_string(), "perplexity".to_string())
         } else if upper.contains("COHERE") {
-            ("Cohere".to_string(), "ai".to_string(), "🧬".to_string())
+            ("Cohere".to_string(), "ai".to_string(), "cohere".to_string())
         } else if upper.contains("GITHUB") || upper.contains("GH_") {
-            ("GitHub".to_string(), "cloud".to_string(), "🐙".to_string())
+            ("GitHub".to_string(), "cloud".to_string(), "github".to_string())
         } else if upper.contains("AWS_") {
-            ("Amazon Web Services".to_string(), "cloud".to_string(), "☁️".to_string())
+            ("Amazon Web Services".to_string(), "cloud".to_string(), "aws".to_string())
         } else if upper.contains("CLOUDFLARE") {
-            ("Cloudflare".to_string(), "cloud".to_string(), "🛡️".to_string())
+            ("Cloudflare".to_string(), "cloud".to_string(), "cloudflare".to_string())
         } else if upper.contains("VERCEL") {
-            ("Vercel".to_string(), "cloud".to_string(), "▲".to_string())
+            ("Vercel".to_string(), "cloud".to_string(), "vercel".to_string())
         } else if upper.contains("SUPABASE") {
-            ("Supabase".to_string(), "cloud".to_string(), "⚡".to_string())
+            ("Supabase".to_string(), "cloud".to_string(), "supabase".to_string())
         } else if upper.contains("STRIPE") {
-            ("Stripe".to_string(), "cloud".to_string(), "💳".to_string())
+            ("Stripe".to_string(), "cloud".to_string(), "stripe".to_string())
         } else if upper.contains("SENTRY") {
-            ("Sentry".to_string(), "cloud".to_string(), "🎯".to_string())
+            ("Sentry".to_string(), "cloud".to_string(), "sentry".to_string())
         } else if upper.contains("RESEND") {
-            ("Resend".to_string(), "cloud".to_string(), "✉️".to_string())
+            ("Resend".to_string(), "cloud".to_string(), "resend".to_string())
         } else if upper.contains("ASANA") {
-            ("Asana".to_string(), "saas".to_string(), "📋".to_string())
+            ("Asana".to_string(), "saas".to_string(), "asana".to_string())
         } else if upper.contains("TENCENT") {
-            ("Tencent".to_string(), "saas".to_string(), "🐧".to_string())
+            ("Tencent".to_string(), "saas".to_string(), "tencent".to_string())
         } else {
-            ("Custom Credential".to_string(), "custom".to_string(), "🔑".to_string())
+            ("Custom Credential".to_string(), "custom".to_string(), "key".to_string())
         }
     }
 

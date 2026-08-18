@@ -2,6 +2,7 @@ import { For, Show, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
 import { Tabs } from '@kobalte/core/tabs';
 import { copyToClipboard, killPortApi, openConfirmDialog, sockets } from '../services/store';
+import { CloseIcon } from './Icons';
 import { SocketCategoryFilter, SocketState, SocketTab } from '../constants';
 import type { SocketEntry } from '../types';
 import { t } from '../i18n';
@@ -158,9 +159,9 @@ export const SocketInspector: Component = () => {
                   type="button"
                   onClick={() => setSearchQuery('')}
                   aria-label={t().common.cancel}
-                  class="absolute right-2 text-xs text-text-muted hover:text-text-primary"
+                  class="absolute right-2 text-text-muted hover:text-text-primary p-0.5"
                 >
-                  ✕
+                  <CloseIcon class="h-3 w-3" />
                 </button>
               </Show>
             </div>
