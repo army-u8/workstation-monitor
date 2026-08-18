@@ -24,8 +24,8 @@ export const SystemCleaner: Component = () => {
   const handleCleanItem = (item: CleanerItem) => {
     openConfirmDialog({
       title: t().confirmDialog.cleanTitle,
-      message: t().confirmDialog.cleanWarning
-        .replace('{count}', '1')
+      message: t()
+        .confirmDialog.cleanWarning.replace('{count}', '1')
         .replace('{size}', item.size_human),
       confirmText: t().confirmDialog.cleanConfirmBtn,
       isDestructive: true,
@@ -43,8 +43,8 @@ export const SystemCleaner: Component = () => {
 
     openConfirmDialog({
       title: t().confirmDialog.cleanTitle,
-      message: t().confirmDialog.cleanWarning
-        .replace('{count}', cleanable.length.toString())
+      message: t()
+        .confirmDialog.cleanWarning.replace('{count}', cleanable.length.toString())
         .replace('{size}', formatTotalReclaimable()),
       confirmText: t().confirmDialog.cleanConfirmBtn,
       isDestructive: true,
@@ -87,7 +87,8 @@ export const SystemCleaner: Component = () => {
         <div>
           <h2 class="text-xs font-semibold text-text-primary">{t().cleaner.title}</h2>
           <p class="mt-0.5 text-[11px] text-text-muted">
-            {t().cleaner.totalReclaimable}: <strong class="mono text-status-success">{formatTotalReclaimable()}</strong>
+            {t().cleaner.totalReclaimable}:{' '}
+            <strong class="mono text-status-success">{formatTotalReclaimable()}</strong>
           </p>
         </div>
 

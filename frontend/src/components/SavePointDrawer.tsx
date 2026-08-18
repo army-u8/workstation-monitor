@@ -35,8 +35,8 @@ export const SavePointDrawer: Component = () => {
 
     openConfirmDialog({
       title: t().snapshots.confirmRollbackTitle,
-      message: t().snapshots.confirmRollbackWarning
-        .replace('{hash}', snap.short_hash)
+      message: t()
+        .snapshots.confirmRollbackWarning.replace('{hash}', snap.short_hash)
         .replace('{title}', snap.title),
       confirmText: t().snapshots.confirmRollbackBtn,
       isDestructive: true,
@@ -76,9 +76,7 @@ export const SavePointDrawer: Component = () => {
                     )}
                   </Show>
                 </div>
-                <p class="text-xs text-text-muted m-0 mt-0.5">
-                  {t().snapshots.drawerSubtitle}
-                </p>
+                <p class="text-xs text-text-muted m-0 mt-0.5">{t().snapshots.drawerSubtitle}</p>
               </div>
             </div>
 
@@ -102,7 +100,7 @@ export const SavePointDrawer: Component = () => {
                   <span>
                     {t().snapshots.uncommittedNotice.replace(
                       '{count}',
-                      (snapshotsData()?.uncommitted_count || 0).toString()
+                      (snapshotsData()?.uncommitted_count || 0).toString(),
                     )}
                   </span>
                 </div>
@@ -119,13 +117,9 @@ export const SavePointDrawer: Component = () => {
                     {t().snapshots.recordTitle}
                   </h3>
                 </div>
-                <span class="text-[10px] text-text-muted">
-                  {t().snapshots.backupNotice}
-                </span>
+                <span class="text-[10px] text-text-muted">{t().snapshots.backupNotice}</span>
               </div>
-              <p class="text-xs text-text-muted mb-3">
-                {t().snapshots.recordDesc}
-              </p>
+              <p class="text-xs text-text-muted mb-3">{t().snapshots.recordDesc}</p>
 
               <form onSubmit={handleCreate} class="flex gap-2">
                 <input
@@ -181,7 +175,8 @@ export const SavePointDrawer: Component = () => {
                         class="relative rounded-lg border p-3 transition-all"
                         classList={{
                           'border-accent/60 bg-accent/5 shadow-xs': snap.is_head,
-                          'border-border-default bg-bg-surface hover:border-border-hover': !snap.is_head,
+                          'border-border-default bg-bg-surface hover:border-border-hover':
+                            !snap.is_head,
                         }}
                       >
                         {/* Timeline Node Icon */}
@@ -189,8 +184,10 @@ export const SavePointDrawer: Component = () => {
                           class="absolute -left-[27px] top-3.5 flex h-4 w-4 items-center justify-center rounded-full border-2 bg-bg-surface text-[9px]"
                           classList={{
                             'border-accent text-accent ring-2 ring-accent/30': snap.is_head,
-                            'border-status-success text-status-success': !snap.is_head && snap.is_save_point,
-                            'border-border-subtle text-text-muted': !snap.is_head && !snap.is_save_point,
+                            'border-status-success text-status-success':
+                              !snap.is_head && snap.is_save_point,
+                            'border-border-subtle text-text-muted':
+                              !snap.is_head && !snap.is_save_point,
                           }}
                         >
                           {snap.is_head ? '●' : snap.is_save_point ? '📸' : '○'}
@@ -245,7 +242,9 @@ export const SavePointDrawer: Component = () => {
                               class="shrink-0 rounded-lg border border-border-default bg-bg-subtle px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:bg-status-warning/15 hover:border-status-warning/50 hover:text-status-warning active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-accent"
                               title="将项目代码还原到此存档点状态"
                             >
-                              {isRollingBackSnapshot() ? t().snapshots.rollingBack : t().snapshots.rollbackBtn}
+                              {isRollingBackSnapshot()
+                                ? t().snapshots.rollingBack
+                                : t().snapshots.rollbackBtn}
                             </button>
                           </Show>
                         </div>

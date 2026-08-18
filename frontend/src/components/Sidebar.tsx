@@ -128,7 +128,9 @@ export const Sidebar: Component = () => {
           label: () => t().sidebar.navMachineInfo,
           badge: () => {
             const info = machineInfo();
-            return info?.core_apps ? `${info.core_apps.filter((a) => a.is_installed).length}` : null;
+            return info?.core_apps
+              ? `${info.core_apps.filter((a) => a.is_installed).length}`
+              : null;
           },
         },
         {
@@ -270,27 +272,27 @@ export const Sidebar: Component = () => {
 
       {/* Main Sidebar: Fixed height, fixed width, independent scroll */}
       <aside
-        class="fixed top-0 bottom-0 left-0 z-50 flex h-screen w-60 shrink-0 flex-col border-r border-border-default bg-bg-surface transition-transform duration-200 ease-in-out md:static md:z-0 md:translate-x-0 select-none overflow-hidden"
+        class="fixed top-0 bottom-0 left-0 z-50 flex h-screen w-60 shrink-0 flex-col border-r border-border-default bg-bg-sidebar/95 backdrop-blur-md transition-transform duration-200 ease-in-out md:static md:z-0 md:translate-x-0 select-none overflow-hidden"
         classList={{
           'translate-x-0': isSidebarOpen(),
           '-translate-x-full': !isSidebarOpen(),
         }}
       >
         {/* Brand Header with official @solidjs/router <A> */}
-        <div class="flex h-13 shrink-0 items-center justify-between border-b border-border-subtle px-4">
+        <div class="flex h-12 shrink-0 items-center justify-between border-b border-border-default/60 px-4">
           <A
             href={RoutePath.OVERVIEW}
             onClick={() => setIsSidebarOpen(false)}
-            class="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-accent rounded"
+            class="flex items-center gap-2.5 hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-accent rounded-md"
           >
-            <div class="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-white font-mono text-xs font-bold shadow-xs">
-              WM
+            <div class="flex h-6.5 w-6.5 items-center justify-center rounded-lg bg-linear-to-br from-accent to-sky-600 text-white font-mono text-[11px] font-bold shadow-xs border border-white/15">
+              ⌘
             </div>
             <div class="flex flex-col">
               <span class="text-xs font-bold tracking-tight text-text-primary">
                 {t().common.workstation}
               </span>
-              <span class="text-[10px] text-text-muted">
+              <span class="text-[9.5px] text-text-muted font-medium">
                 {t().sidebar.brandSubtitle}
               </span>
             </div>
@@ -307,11 +309,14 @@ export const Sidebar: Component = () => {
         </div>
 
         {/* Navigation Categories and Items - Official <A> Navigation */}
-        <nav class="flex-1 overflow-y-auto px-2.5 py-3 space-y-4 min-h-0" aria-label="Sidebar Navigation">
+        <nav
+          class="flex-1 overflow-y-auto px-2.5 py-3 space-y-3.5 min-h-0"
+          aria-label="Sidebar Navigation"
+        >
           <For each={groups}>
             {(group) => (
               <div class="space-y-0.5">
-                <div class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                <div class="px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-wider text-text-muted/80">
                   {group.category()}
                 </div>
                 <div class="space-y-0.5">
@@ -325,13 +330,15 @@ export const Sidebar: Component = () => {
                         <A
                           href={path}
                           onClick={() => setIsSidebarOpen(false)}
-                          activeClass="bg-bg-active text-accent font-semibold border-border-default shadow-xs"
+                          activeClass="bg-bg-active/90 text-accent font-semibold border-border-hover/60 shadow-xs"
                           inactiveClass="border-transparent text-text-secondary hover:bg-bg-hover hover:text-text-primary"
-                          class="group flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors border focus-visible:ring-2 focus-visible:ring-accent"
+                          class="group relative flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all border focus-visible:ring-2 focus-visible:ring-accent"
                         >
                           <Icon
-                            class={`h-3.5 w-3.5 transition-colors ${
-                              isActive() ? 'text-accent' : 'text-text-muted group-hover:text-text-primary'
+                            class={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                              isActive()
+                                ? 'text-accent'
+                                : 'text-text-muted group-hover:text-text-primary'
                             }`}
                           />
                           <span class="truncate">{item.label()}</span>
@@ -347,13 +354,14 @@ export const Sidebar: Component = () => {
         </nav>
 
         {/* System Real-time Vitals Footer */}
-        <div class="shrink-0 border-t border-border-subtle p-3 text-xs bg-bg-subtle/50">
-          <div class="flex items-center justify-between text-[11px] text-text-muted mb-2">
-            <span>{t().common.vitalsSummary}</span>
+        <div class="shrink-0 border-t border-border-default/60 p-3 text-xs bg-bg-surface/50">
+          <div class="flex items-center justify-between text-[10.5px] text-text-muted mb-2">
+            <span class="font-medium tracking-tight">{t().common.vitalsSummary}</span>
             <span
               class="flex h-1.5 w-1.5 rounded-full"
               classList={{
-                'bg-status-success': wsStatus() === WsConnectionStatus.ONLINE,
+                'bg-status-success shadow-[0_0_8px_rgba(52,211,153,0.6)]':
+                  wsStatus() === WsConnectionStatus.ONLINE,
                 'bg-status-warning animate-pulse': wsStatus() === WsConnectionStatus.CONNECTING,
                 'bg-status-error': wsStatus() === WsConnectionStatus.OFFLINE,
               }}
@@ -361,16 +369,18 @@ export const Sidebar: Component = () => {
             />
           </div>
 
-          <div class="space-y-1.5">
+          <div class="space-y-2">
             {/* CPU Bar */}
             <div class="space-y-0.5">
               <div class="flex justify-between text-[10px] text-text-secondary">
                 <span>{t().common.cpu}</span>
-                <span class="mono">{stats()?.cpu_usage?.toFixed(1) || '0.0'}%</span>
+                <span class="mono tabular-nums text-text-primary font-medium">
+                  {stats()?.cpu_usage?.toFixed(1) || '0.0'}%
+                </span>
               </div>
-              <div class="h-1 w-full rounded-full bg-bg-surface overflow-hidden">
+              <div class="h-1 w-full rounded-full bg-bg-subtle overflow-hidden">
                 <div
-                  class="h-full bg-accent transition-all duration-300"
+                  class="h-full bg-accent transition-all duration-300 rounded-full"
                   style={{ width: `${Math.min(stats()?.cpu_usage || 0, 100)}%` }}
                 />
               </div>
@@ -380,11 +390,13 @@ export const Sidebar: Component = () => {
             <div class="space-y-0.5">
               <div class="flex justify-between text-[10px] text-text-secondary">
                 <span>{t().common.memory}</span>
-                <span class="mono">{stats()?.memory_percent?.toFixed(1) || '0.0'}%</span>
+                <span class="mono tabular-nums text-text-primary font-medium">
+                  {stats()?.memory_percent?.toFixed(1) || '0.0'}%
+                </span>
               </div>
-              <div class="h-1 w-full rounded-full bg-bg-surface overflow-hidden">
+              <div class="h-1 w-full rounded-full bg-bg-subtle overflow-hidden">
                 <div
-                  class="h-full bg-status-info transition-all duration-300"
+                  class="h-full bg-status-info transition-all duration-300 rounded-full"
                   style={{ width: `${Math.min(stats()?.memory_percent || 0, 100)}%` }}
                 />
               </div>
@@ -393,10 +405,10 @@ export const Sidebar: Component = () => {
             {/* Battery Indicator if present */}
             <Show when={battery()}>
               {(bat) => (
-                <div class="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-border-subtle">
+                <div class="flex items-center justify-between text-[10px] text-text-muted pt-1.5 border-t border-border-subtle">
                   <span>{t().common.batteryTooltip}</span>
                   <span
-                    class="mono font-semibold"
+                    class="mono font-semibold tabular-nums"
                     classList={{
                       'text-status-success': bat().percentage > 20,
                       'text-status-warning': bat().percentage <= 20,

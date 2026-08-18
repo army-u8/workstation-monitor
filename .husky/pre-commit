@@ -1,0 +1,9 @@
+#!/bin/sh
+echo "🔍 [Pre-commit] Checking frontend ESLint & Prettier with lint-staged..."
+cd frontend && npx lint-staged || exit 1
+cd ..
+
+echo "🦀 [Pre-commit] Running Rust cargo check and cargo test..."
+cargo test --offline --bin workstation-monitor || exit 1
+
+echo "✨ [Pre-commit] All pre-commit quality gates passed!"

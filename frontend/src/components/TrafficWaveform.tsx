@@ -4,8 +4,8 @@ import { formatSpeed, traffic } from '../services/store';
 import { t } from '../i18n';
 
 export const TrafficWaveform: Component = () => {
-  let canvasRef: HTMLCanvasElement | undefined;
-  let containerRef: HTMLDivElement | undefined;
+  let canvasRef: HTMLCanvasElement | null = null;
+  let containerRef: HTMLDivElement | null = null;
 
   const maxPoints = 60;
   const rxData: number[] = new Array(maxPoints).fill(0);
@@ -14,7 +14,12 @@ export const TrafficWaveform: Component = () => {
   let peakSpeed = 0;
 
   const [peakDisplay, setPeakDisplay] = createSignal('0 B/s');
-  const [hoverData, setHoverData] = createSignal<{ rx: number; tx: number; time: string; x: number } | null>(null);
+  const [hoverData, setHoverData] = createSignal<{
+    rx: number;
+    tx: number;
+    time: string;
+    x: number;
+  } | null>(null);
 
   const render = () => {
     if (!canvasRef || !containerRef) return;
@@ -50,10 +55,28 @@ export const TrafficWaveform: Component = () => {
     const getY = (val: number) => h - (Math.min(val, maxY) / maxY) * (h - 14) - 4;
 
     // 2. Draw RX Series (Download) - Emerald
-    drawSmoothSeries(ctx, rxData, '#10b981', 'rgba(16, 185, 129, 0.15)', 'rgba(16, 185, 129, 0.00)', stepX, getY, h);
+    drawSmoothSeries(
+      ctx,
+      rxData,
+      '#10b981',
+      'rgba(16, 185, 129, 0.15)',
+      'rgba(16, 185, 129, 0.00)',
+      stepX,
+      getY,
+      h,
+    );
 
     // 3. Draw TX Series (Upload) - Sky
-    drawSmoothSeries(ctx, txData, '#0284c7', 'rgba(2, 132, 199, 0.15)', 'rgba(2, 132, 199, 0.00)', stepX, getY, h);
+    drawSmoothSeries(
+      ctx,
+      txData,
+      '#0284c7',
+      'rgba(2, 132, 199, 0.15)',
+      'rgba(2, 132, 199, 0.00)',
+      stepX,
+      getY,
+      h,
+    );
 
     // 4. Hover cursor
     const hov = hoverData();
@@ -76,7 +99,7 @@ export const TrafficWaveform: Component = () => {
     gradBottom: string,
     stepX: number,
     getY: (val: number) => number,
-    h: number
+    h: number,
   ) => {
     const len = data.length;
     if (len < 2) return;
@@ -168,7 +191,9 @@ export const TrafficWaveform: Component = () => {
 
   const activeInterfaces = () => {
     const ifaces = traffic()?.interfaces || [];
-    return ifaces.filter((i) => i.rx_speed > 0 || i.tx_speed > 0 || i.name === 'en0' || i.name === 'lo0');
+    return ifaces.filter(
+      (i) => i.rx_speed > 0 || i.tx_speed > 0 || i.name === 'en0' || i.name === 'lo0',
+    );
   };
 
   return (
@@ -185,7 +210,8 @@ export const TrafficWaveform: Component = () => {
             <span class="h-1.5 w-1.5 rounded-full bg-status-success" />
             <span class="text-text-muted">RX</span>
             <span class="mono font-semibold text-text-primary">
-              {formatSpeed(traffic()?.total_rx_speed || 0).num} {formatSpeed(traffic()?.total_rx_speed || 0).unit}
+              {formatSpeed(traffic()?.total_rx_speed || 0).num}{' '}
+              {formatSpeed(traffic()?.total_rx_speed || 0).unit}
             </span>
           </div>
 
@@ -193,7 +219,8 @@ export const TrafficWaveform: Component = () => {
             <span class="h-1.5 w-1.5 rounded-full bg-accent" />
             <span class="text-text-muted">TX</span>
             <span class="mono font-semibold text-text-primary">
-              {formatSpeed(traffic()?.total_tx_speed || 0).num} {formatSpeed(traffic()?.total_tx_speed || 0).unit}
+              {formatSpeed(traffic()?.total_tx_speed || 0).num}{' '}
+              {formatSpeed(traffic()?.total_tx_speed || 0).unit}
             </span>
           </div>
 
@@ -206,11 +233,11 @@ export const TrafficWaveform: Component = () => {
 
       {/* Canvas chart container */}
       <div
-        ref={containerRef}
+        ref={(el) => (containerRef = el)}
         class="relative mb-2.5 h-40 w-full overflow-hidden rounded-md border border-border-subtle bg-bg-input"
       >
         <canvas
-          ref={canvasRef}
+          ref={(el) => (canvasRef = el)}
           class="h-full w-full block cursor-crosshair"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
@@ -221,7 +248,7 @@ export const TrafficWaveform: Component = () => {
           <div
             class="pointer-events-none absolute top-2 z-10 rounded border border-border-default bg-bg-modal/95 p-1.5 font-mono text-[9.5px] text-text-primary shadow-lg backdrop-blur-md"
             style={{
-              left: `${Math.min(Math.max((hoverData()?.x || 0) - 40, 8), (containerRef?.clientWidth || 300) - 120)}px`,
+              left: `${Math.min(Math.max((hoverData()?.x || 0) - 40, 8), ((containerRef as HTMLDivElement | null)?.clientWidth || 300) - 120)}px`,
             }}
           >
             <div class="text-[9px] text-text-muted">{hoverData()?.time}</div>
@@ -246,8 +273,14 @@ export const TrafficWaveform: Component = () => {
               <div class="flex items-center gap-1.5 rounded border border-border-subtle bg-bg-subtle px-2 py-0.5 text-[10px]">
                 <span class="mono font-semibold text-text-primary">{iface.name}</span>
                 <div class="mono flex gap-1 text-[9.5px] text-text-muted">
-                  <span>↓{rxF.num}{rxF.unit}</span>
-                  <span>↑{txF.num}{txF.unit}</span>
+                  <span>
+                    ↓{rxF.num}
+                    {rxF.unit}
+                  </span>
+                  <span>
+                    ↑{txF.num}
+                    {txF.unit}
+                  </span>
                 </div>
               </div>
             );

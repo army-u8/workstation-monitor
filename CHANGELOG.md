@@ -1,5 +1,16 @@
 更新日志（中文）
 
+[0.2.3] - 2026-08-17
+新增
+- 深度基于 `design-taste-frontend` 顶级反模板化设计准则，完成全站 UI 视觉与交互重构：
+  - **黑曜石暗黑科技与 Hairline 金属微光**：底色与卡片重构为深邃有层次的黑曜石深色层级（`#0a0d14` ➔ `#121723` ➔ `#181f2f`），顶部引入 `inset 0 1px 0 0 rgba(255, 255, 255, 0.08)` 类似 Apple 硬件倒角的金属微光；
+  - **Tabular Mono 等宽数字防抖**：全站硬件占用百分比、网速、时延、端口 PID 统一开启 `tabular-nums`，实时数值跳动时彻底消除视觉抖动；
+  - **侧边栏与顶栏磨砂毛玻璃重塑**：流线型胶囊导航项、极简控件与心跳微缩仪表盘；
+  - **专属视图精修**：AI 测速网格梯队色彩化、本地 Web 产物画廊微卡片、DevTools $PATH 链路节点连线与环境变量密钥一键脱敏。
+- 前端工程化与代码规范全面升级：
+  - **ESLint 9 Flat Config + Prettier**：集成 TypeScript、Solid.js 响应式规则与自动化代码美化；
+  - **Git Pre-commit 自动化质量门禁**：基于 Husky 与 lint-staged，每次 `git commit` 时自动执行暂存区代码修复与 Rust `cargo test` 全量单元测试。
+
 [0.2.2] - 2026-08-17
 新增
 - 深度融合 Hermes Studio Web 端热更新最佳实践，重构下一代热更新与版本时光机系统：
@@ -91,7 +102,7 @@
 - 修复 macOS 应用在后台启动时底下 Dock 栏图标一直上下跳动的问题（添加 LSUIElement 守护进程配置）。
 - 修复检查更新提示文案中未替换版本模板变量（v{version}）的 UI 问题。
 
-[0.1.1] - 2026-08-17
+[.0.1.1] - 2026-08-17
 新增
 - 多架构 macOS 原生发布体系：新增 Apple Silicon (aarch64)、Intel (x64) 以及 Universal 2 (Fat Binary) 的原生打包支持。
 - 高清 Retina 图标支持：生成 10层 standard Apple Retina 分辨率的 .icns 应用与 DMG 卷标图标。
@@ -100,6 +111,17 @@
 ---
 
 Changelog (English)
+
+[0.2.3] - 2026-08-17
+Added
+- Full UI/UX Redesign (design-taste-frontend Anti-Slop Principles):
+  - **Obsidian Dark Tech & Hairline Metal Glow**: Deep background hierarchy (`#0a0d14` ➔ `#121723` ➔ `#181f2f`) with `inset 0 1px 0 0 rgba(255, 255, 255, 0.08)` hairline top highlight.
+  - **Tabular Mono Typography**: Eliminated layout jitter with global `tabular-nums` on all stats, bandwidth, latency, and PIDs.
+  - **Refined Navigation & Vitals**: Frosted glass header, capsule active navigation, and compact hardware vitals with live pulse.
+  - **Dedicated Views Polish**: Tier-colored AI radar, web artifacts cards, $PATH chain timeline, and secret masking.
+- Frontend Code Quality & Tooling:
+  - **ESLint 9 Flat Config + Prettier**: Standardized Solid.js TypeScript linting and code formatting.
+  - **Git Pre-Commit Hook**: Automated commit-time formatting (lint-staged) and Rust backend testing (`cargo test`).
 
 [0.2.2] - 2026-08-17
 Added

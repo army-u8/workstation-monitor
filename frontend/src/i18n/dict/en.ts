@@ -340,8 +340,10 @@ export const en: Dict = {
     openCode: 'VS Code',
     openTerminal: 'Terminal',
     quickCaptureTitle: '⚡ Quick Capture & Fleeting Thoughts',
-    quickCaptureDesc: 'Capture fleeting notes, tasks and snippets instantly into your local Obsidian vault.',
-    quickCapturePlaceholder: 'Type a thought, task, code snippet or learning note... (Press Enter to save)',
+    quickCaptureDesc:
+      'Capture fleeting notes, tasks and snippets instantly into your local Obsidian vault.',
+    quickCapturePlaceholder:
+      'Type a thought, task, code snippet or learning note... (Press Enter to save)',
     targetDaily: "Today's Daily Note",
     targetInbox: 'Inbox (QuickCapture.md)',
     tagPlaceholder: 'Tags (e.g. AI, idea, todo)',
@@ -364,16 +366,19 @@ export const en: Dict = {
   },
   confirmDialog: {
     cleanTitle: 'Confirm System Cleanup?',
-    cleanWarning: 'About to delete {count} selected cache and build items, freeing ~{size} of disk space. This action cannot be undone.',
+    cleanWarning:
+      'About to delete {count} selected cache and build items, freeing ~{size} of disk space. This action cannot be undone.',
     cleanConfirmBtn: 'Confirm & Clean Now',
     killProcessTitle: 'Force Kill Process?',
-    killProcessWarning: 'About to send SIGKILL to process {name} (PID: {pid}). Any unsaved changes will be lost.',
+    killProcessWarning:
+      'About to send SIGKILL to process {name} (PID: {pid}). Any unsaved changes will be lost.',
     killProcessConfirmBtn: 'Force Terminate',
     killPortTitle: 'Kill Process on Port?',
     killPortWarning: 'About to terminate process {name} (PID: {pid}) listening on port :{port}.',
     killPortConfirmBtn: 'Free Port',
     flushDnsTitle: 'Confirm Flush DNS Cache?',
-    flushDnsWarning: 'About to execute dscacheutil -flushcache to clear macOS system DNS resolution cache.',
+    flushDnsWarning:
+      'About to execute dscacheutil -flushcache to clear macOS system DNS resolution cache.',
     flushDnsConfirmBtn: 'Flush DNS Now',
   },
   update: {
@@ -420,7 +425,8 @@ export const en: Dict = {
     rollbackBtn: '⏪ Rollback to This',
     rollingBack: 'Rolling back...',
     confirmRollbackTitle: 'Rollback to this Save Point?',
-    confirmRollbackWarning: 'This will restore your project code to [{hash}] "{title}". An automatic hidden safety backup will be created before rollback.',
+    confirmRollbackWarning:
+      'This will restore your project code to [{hash}] "{title}". An automatic hidden safety backup will be created before rollback.',
     confirmRollbackBtn: 'Confirm Rollback',
     emptySnapshots: 'No save points recorded yet. Create your first save point above!',
     quickSnapshotBtn: '📸 Save Point',
@@ -432,14 +438,17 @@ export const en: Dict = {
   },
   artifacts: {
     title: 'Local Live Web Artifacts & Port Auto-Healer',
-    subtitle: 'Sniffs active Next.js / Vite / Vue / React web dev servers and resolves port conflicts in 1 second',
+    subtitle:
+      'Sniffs active Next.js / Vite / Vue / React web dev servers and resolves port conflicts in 1 second',
     refreshBtn: 'Scan Web Ports',
     scanning: 'Sniffing local ports and web services...',
-    empty: 'No active local web servers found. Run npm run dev or uvicorn in your terminal to see live cards here!',
+    empty:
+      'No active local web servers found. Run npm run dev or uvicorn in your terminal to see live cards here!',
     openBrowser: 'Open in Browser',
     freePort: 'Free Port',
     killConfirmTitle: 'Terminate Port Process?',
-    killConfirmWarning: 'About to terminate process {process} (PID: {pid}) listening on port :{port}.',
+    killConfirmWarning:
+      'About to terminate process {process} (PID: {pid}) listening on port :{port}.',
     conflictNotice: '⚠️ Port in use',
     responseTime: 'Response Time',
     framework: 'Framework',
@@ -449,12 +458,14 @@ export const en: Dict = {
   },
   aiRadar: {
     title: 'Global LLM API Radar & Local Ollama Controller',
-    subtitle: 'Benchmark DeepSeek / Claude / OpenAI / Gemini connectivity & monitor Ollama VRAM with 1-click unload',
+    subtitle:
+      'Benchmark DeepSeek / Claude / OpenAI / Gemini connectivity & monitor Ollama VRAM with 1-click unload',
     testLatencyBtn: 'Run Speed Benchmark',
     testing: 'Probing API Latency...',
     latencySection: 'Global LLM API Latency & Route Diagnostic',
     ollamaSection: 'Local LLM (Ollama) GPU/Unified Memory Hub',
-    ollamaNotRunning: 'Ollama local daemon is not running. Start Ollama to monitor and manage loaded model memory.',
+    ollamaNotRunning:
+      'Ollama local daemon is not running. Start Ollama to monitor and manage loaded model memory.',
     loadedModels: 'Active Models in GPU/VRAM',
     installedModels: 'Downloaded Models Library',
     unloadBtn: 'Release VRAM',
@@ -469,7 +480,8 @@ export const en: Dict = {
   },
   envVars: {
     title: 'Environment Variables & $PATH Inspector',
-    subtitle: 'Inspect system environment variables, $PATH resolution chain, and masked API secrets',
+    subtitle:
+      'Inspect system environment variables, $PATH resolution chain, and masked API secrets',
     refreshBtn: 'Refresh Variables',
     pathTitle: '🛣️ $PATH Chain Resolution',
     pathSubtitle: 'CLI commands search directories in this exact priority order',

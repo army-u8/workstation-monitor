@@ -1,11 +1,6 @@
 import { Show, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
-import {
-  flushDnsApi,
-  killPortApi,
-  openConfirmDialog,
-  pingHostApi,
-} from '../services/store';
+import { flushDnsApi, killPortApi, openConfirmDialog, pingHostApi } from '../services/store';
 import { DEFAULT_PROBE_HOST } from '../constants';
 import type { PingResponse } from '../types';
 import { t } from '../i18n';
@@ -31,8 +26,8 @@ export const OpsView: Component = () => {
 
     openConfirmDialog({
       title: t().confirmDialog.killPortTitle,
-      message: t().confirmDialog.killPortWarning
-        .replace('{name}', 'Process')
+      message: t()
+        .confirmDialog.killPortWarning.replace('{name}', 'Process')
         .replace('{pid}', '-')
         .replace('{port}', p.toString()),
       confirmText: t().confirmDialog.killPortConfirmBtn,
@@ -78,9 +73,7 @@ export const OpsView: Component = () => {
             <OpsIcon class="h-5 w-5" />
           </span>
           <div>
-            <h2 class="text-sm font-semibold text-text-primary m-0">
-              {t().sidebar.navOps}
-            </h2>
+            <h2 class="text-sm font-semibold text-text-primary m-0">{t().sidebar.navOps}</h2>
             <p class="text-xs text-text-muted m-0 mt-0.5">
               macOS 本机网络诊断、DNS 缓存刷新与端口占用清理快捷运维动作
             </p>
@@ -97,9 +90,7 @@ export const OpsView: Component = () => {
               <span class="text-base">🌐</span>
               <h3 class="text-xs font-semibold text-text-primary m-0">{t().devops.dnsTitle}</h3>
             </div>
-            <p class="mt-2 text-xs text-text-muted leading-relaxed">
-              {t().devops.dnsDesc}
-            </p>
+            <p class="mt-2 text-xs text-text-muted leading-relaxed">{t().devops.dnsDesc}</p>
           </div>
 
           <button
@@ -121,9 +112,7 @@ export const OpsView: Component = () => {
               <span class="text-base">🔌</span>
               <h3 class="text-xs font-semibold text-text-primary m-0">{t().devops.portTitle}</h3>
             </div>
-            <p class="mt-2 text-xs text-text-muted leading-relaxed">
-              {t().devops.portDesc}
-            </p>
+            <p class="mt-2 text-xs text-text-muted leading-relaxed">{t().devops.portDesc}</p>
           </div>
 
           <form onSubmit={handleFreePort} class="mt-4 flex gap-2" aria-label={t().devops.portTitle}>
@@ -156,9 +145,7 @@ export const OpsView: Component = () => {
               <span class="text-base">📡</span>
               <h3 class="text-xs font-semibold text-text-primary m-0">{t().devops.pingTitle}</h3>
             </div>
-            <p class="mt-2 text-xs text-text-muted leading-relaxed">
-              {t().devops.pingDesc}
-            </p>
+            <p class="mt-2 text-xs text-text-muted leading-relaxed">{t().devops.pingDesc}</p>
           </div>
 
           <form onSubmit={handlePing} class="mt-4 flex gap-2" aria-label={t().devops.pingTitle}>
@@ -197,7 +184,8 @@ export const OpsView: Component = () => {
                   }}
                 />
                 <span class="text-xs font-semibold text-text-primary">
-                  {t().devops.pingResultTitle}: <span class="mono text-accent font-bold">{res().host}</span>
+                  {t().devops.pingResultTitle}:{' '}
+                  <span class="mono text-accent font-bold">{res().host}</span>
                 </span>
                 <span
                   class="rounded px-2 py-0.5 text-[10px] font-mono font-semibold uppercase"

@@ -43,7 +43,10 @@ export const PacketSniffer: Component = () => {
   };
 
   return (
-    <section aria-label={t().sniffer.title} class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5">
+    <section
+      aria-label={t().sniffer.title}
+      class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5"
+    >
       {/* Header & Controls */}
       <div class="mb-2.5 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
@@ -89,13 +92,20 @@ export const PacketSniffer: Component = () => {
 
       {/* Permission tip if unprivileged with SolidJS Show */}
       <Show when={!stats()?.sniffer_active && stats()?.sniffer_error}>
-        <div class="mb-2 rounded border border-status-warning/20 bg-status-warning-bg p-2 text-[10px] text-status-warning font-mono" role="alert">
+        <div
+          class="mb-2 rounded border border-status-warning/20 bg-status-warning-bg p-2 text-[10px] text-status-warning font-mono"
+          role="alert"
+        >
           {t().sniffer.sudoTip}
         </div>
       </Show>
 
       {/* Terminal table stream */}
-      <div class="overflow-hidden rounded-md border border-border-subtle bg-bg-input font-mono text-[9.5px]" role="log" aria-live="polite">
+      <div
+        class="overflow-hidden rounded-md border border-border-subtle bg-bg-input font-mono text-[9.5px]"
+        role="log"
+        aria-live="polite"
+      >
         {/* Table Header */}
         <div class="grid grid-cols-[50px_60px_110px_14px_110px_35px_1fr] border-b border-border-default bg-bg-subtle px-2 py-1 font-sans text-[9px] font-medium text-text-muted">
           <span>{t().sniffer.thTime}</span>
@@ -126,15 +136,25 @@ export const PacketSniffer: Component = () => {
                 <div class="grid grid-cols-[50px_60px_110px_14px_110px_35px_1fr] items-center px-2 py-0.5 hover:bg-bg-hover">
                   <span class="text-text-muted">{timeStr}</span>
                   <span>
-                    <span class={`rounded px-1 py-0.2 text-[8.5px] font-medium ${getProtoBadge(p.protocol)}`}>
+                    <span
+                      class={`rounded px-1 py-0.2 text-[8.5px] font-medium ${getProtoBadge(p.protocol)}`}
+                    >
                       {p.protocol}
                     </span>
                   </span>
-                  <span class="truncate text-text-secondary" title={src}>{src}</span>
-                  <span class="text-text-muted" aria-hidden="true">→</span>
-                  <span class="truncate text-text-secondary" title={dst}>{dst}</span>
+                  <span class="truncate text-text-secondary" title={src}>
+                    {src}
+                  </span>
+                  <span class="text-text-muted" aria-hidden="true">
+                    →
+                  </span>
+                  <span class="truncate text-text-secondary" title={dst}>
+                    {dst}
+                  </span>
                   <span class="text-text-muted">{p.length}B</span>
-                  <span class="truncate text-text-primary" title={p.info}>{p.info}</span>
+                  <span class="truncate text-text-primary" title={p.info}>
+                    {p.info}
+                  </span>
                 </div>
               );
             }}

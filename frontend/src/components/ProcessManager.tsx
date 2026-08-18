@@ -45,8 +45,8 @@ export const ProcessManager: Component = () => {
   const confirmKill = (proc: ProcessInfo) => {
     openConfirmDialog({
       title: t().confirmDialog.killProcessTitle,
-      message: t().confirmDialog.killProcessWarning
-        .replace('{name}', proc.name)
+      message: t()
+        .confirmDialog.killProcessWarning.replace('{name}', proc.name)
         .replace('{pid}', proc.pid.toString()),
       confirmText: t().confirmDialog.killProcessConfirmBtn,
       isDestructive: true,
@@ -57,7 +57,10 @@ export const ProcessManager: Component = () => {
   };
 
   return (
-    <section aria-label={t().processes.title} class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5">
+    <section
+      aria-label={t().processes.title}
+      class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5"
+    >
       {/* Header & Controls */}
       <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-2">
@@ -77,14 +80,19 @@ export const ProcessManager: Component = () => {
           />
 
           {/* Sort Toggles */}
-          <div class="flex items-center rounded border border-border-default bg-bg-subtle p-0.5" role="group" aria-label="Sort Processes">
+          <div
+            class="flex items-center rounded border border-border-default bg-bg-subtle p-0.5"
+            role="group"
+            aria-label="Sort Processes"
+          >
             <button
               type="button"
               onClick={() => setSortBy(ProcessSortBy.CPU)}
               aria-pressed={sortBy() === ProcessSortBy.CPU}
               class="rounded px-2 py-0.5 text-[10px] transition-colors focus-visible:ring-1 focus-visible:ring-accent"
               classList={{
-                'bg-bg-active text-text-primary font-semibold shadow-xs': sortBy() === ProcessSortBy.CPU,
+                'bg-bg-active text-text-primary font-semibold shadow-xs':
+                  sortBy() === ProcessSortBy.CPU,
                 'text-text-muted hover:text-text-primary': sortBy() !== ProcessSortBy.CPU,
               }}
             >
@@ -96,7 +104,8 @@ export const ProcessManager: Component = () => {
               aria-pressed={sortBy() === ProcessSortBy.MEM}
               class="rounded px-2 py-0.5 text-[10px] transition-colors focus-visible:ring-1 focus-visible:ring-accent"
               classList={{
-                'bg-bg-active text-text-primary font-semibold shadow-xs': sortBy() === ProcessSortBy.MEM,
+                'bg-bg-active text-text-primary font-semibold shadow-xs':
+                  sortBy() === ProcessSortBy.MEM,
                 'text-text-muted hover:text-text-primary': sortBy() !== ProcessSortBy.MEM,
               }}
             >
@@ -180,9 +189,7 @@ export const ProcessManager: Component = () => {
                             }}
                           />
                         </div>
-                        <span class="mono text-[11px] text-text-secondary">
-                          {cpu.toFixed(1)}%
-                        </span>
+                        <span class="mono text-[11px] text-text-secondary">{cpu.toFixed(1)}%</span>
                       </div>
                     </td>
 
@@ -200,14 +207,14 @@ export const ProcessManager: Component = () => {
 
                     {/* Disk I/O */}
                     <td class="py-1.5 px-3 font-mono text-[9.5px] text-text-muted">
-                      <span>↓{formatIO(proc.disk_read_bytes)} ↑{formatIO(proc.disk_written_bytes)}</span>
+                      <span>
+                        ↓{formatIO(proc.disk_read_bytes)} ↑{formatIO(proc.disk_written_bytes)}
+                      </span>
                     </td>
 
                     {/* Status */}
                     <td class="py-1.5 px-3 text-center">
-                      <span class="text-[9.5px] text-text-muted font-mono">
-                        {proc.status}
-                      </span>
+                      <span class="text-[9.5px] text-text-muted font-mono">{proc.status}</span>
                     </td>
 
                     {/* Actions with Secondary Confirmation */}

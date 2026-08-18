@@ -12,5 +12,5 @@ render(
       <App />
     </HashRouter>
   ),
-  root!
+  root!,
 );

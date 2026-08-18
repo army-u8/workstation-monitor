@@ -56,21 +56,19 @@ export const AiRadarView: Component = () => {
   };
 
   return (
-    <div class="space-y-8">
+    <div class="space-y-6">
       {/* Header */}
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <div class="flex items-center gap-2">
-            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent text-base">
+          <div class="flex items-center gap-2.5">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent text-base border border-accent/20">
               📡
             </span>
-            <h1 class="text-base font-bold text-text-primary m-0">
+            <h1 class="text-base font-bold text-text-primary m-0 tracking-tight">
               {t().aiRadar.title}
             </h1>
           </div>
-          <p class="text-xs text-text-muted mt-1 m-0">
-            {t().aiRadar.subtitle}
-          </p>
+          <p class="text-xs text-text-muted mt-1 m-0">{t().aiRadar.subtitle}</p>
         </div>
 
         {/* Action Controls */}
@@ -82,9 +80,12 @@ export const AiRadarView: Component = () => {
               fetchOllamaStatusApi();
             }}
             disabled={isTestingLlmLatency()}
-            class="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-white shadow-xs hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+            class="flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.8 text-xs font-semibold text-white shadow-sm hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
           >
-            <RefreshIcon class="h-3.5 w-3.5" classList={{ 'animate-spin': isTestingLlmLatency() }} />
+            <RefreshIcon
+              class="h-3.5 w-3.5"
+              classList={{ 'animate-spin': isTestingLlmLatency() }}
+            />
             <span>{isTestingLlmLatency() ? t().aiRadar.testing : t().aiRadar.testLatencyBtn}</span>
           </button>
         </div>
@@ -95,13 +96,13 @@ export const AiRadarView: Component = () => {
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-xs font-bold uppercase tracking-wider text-text-muted m-0 flex items-center gap-2">
             <span>{t().aiRadar.latencySection}</span>
-            <span class="rounded bg-bg-subtle px-1.5 py-0.2 text-[10px] text-text-muted mono">
+            <span class="rounded bg-bg-subtle/80 px-1.5 py-0.2 text-[10px] text-text-muted mono border border-border-subtle">
               {llmLatencies().length} 探针
             </span>
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <For
             each={llmLatencies()}
             fallback={
@@ -112,9 +113,8 @@ export const AiRadarView: Component = () => {
           >
             {(item: LlmApiLatency) => (
               <div
-                class="flex flex-col justify-between rounded-xl border bg-bg-surface p-4 shadow-xs transition-all hover:border-border-hover"
+                class="glass-card flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px]"
                 classList={{
-                  'border-border-default': item.is_reachable,
                   'border-status-danger/40 bg-status-danger/5': !item.is_reachable,
                 }}
               >
@@ -123,10 +123,13 @@ export const AiRadarView: Component = () => {
                     <div class="flex items-center gap-2">
                       <span class="text-xl">{getProviderIcon(item.provider_id)}</span>
                       <div>
-                        <h3 class="text-xs font-bold text-text-primary m-0 truncate" title={item.name}>
+                        <h3
+                          class="text-xs font-bold text-text-primary m-0 truncate"
+                          title={item.name}
+                        >
                           {item.name}
                         </h3>
-                        <span class="text-[10px] text-text-muted mono truncate block max-w-[140px]">
+                        <span class="text-[10px] text-text-muted mono truncate block max-w-[130px]">
                           {item.provider_id}
                         </span>
                       </div>
@@ -134,7 +137,7 @@ export const AiRadarView: Component = () => {
 
                     {/* Latency / Reachability Badge */}
                     <span
-                      class="rounded-full border px-2 py-0.5 text-[10.5px] font-bold mono"
+                      class="rounded-full border px-2 py-0.5 text-[10px] font-bold mono tabular-nums"
                       classList={{
                         [getLatencyBadgeClass(item)]: true,
                       }}
@@ -147,13 +150,26 @@ export const AiRadarView: Component = () => {
                   <div class="rounded-lg bg-bg-subtle/70 p-2 text-[10.5px] border border-border-subtle mt-2 space-y-1">
                     <div class="flex items-center justify-between text-text-muted mono truncate">
                       <span>路由状态:</span>
-                      <span class="font-medium" classList={{ 'text-status-success': item.is_reachable, 'text-status-danger': !item.is_reachable }}>
-                        {item.is_reachable ? (item.status_code ? `HTTP ${item.status_code}` : '200 OK') : '离线 / 超时'}
+                      <span
+                        class="font-medium"
+                        classList={{
+                          'text-status-success': item.is_reachable,
+                          'text-status-danger': !item.is_reachable,
+                        }}
+                      >
+                        {item.is_reachable
+                          ? item.status_code
+                            ? `HTTP ${item.status_code}`
+                            : '200 OK'
+                          : '离线 / 超时'}
                       </span>
                     </div>
 
                     <Show when={item.error_message}>
-                      <div class="text-[10px] text-status-danger leading-tight truncate" title={item.error_message || ''}>
+                      <div
+                        class="text-[10px] text-status-danger leading-tight truncate"
+                        title={item.error_message || ''}
+                      >
                         ⚠️ {item.error_message}
                       </div>
                     </Show>
@@ -166,15 +182,13 @@ export const AiRadarView: Component = () => {
       </div>
 
       {/* Section 2: Local Ollama Model & Memory Controller */}
-      <div class="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-xs">
+      <div class="glass-card p-5">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border-subtle pb-4 mb-4">
           <div class="flex items-center gap-2.5">
             <span class="text-2xl">🦙</span>
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-sm font-bold text-text-primary m-0">
-                  {t().aiRadar.ollamaSection}
-                </h2>
+                <h2 class="text-sm font-bold text-text-primary m-0">{t().aiRadar.ollamaSection}</h2>
                 <Show
                   when={ollamaStatus()?.is_running}
                   fallback={
@@ -185,7 +199,9 @@ export const AiRadarView: Component = () => {
                 >
                   <span class="rounded bg-status-success/15 px-2 py-0.5 text-[10px] font-semibold text-status-success flex items-center gap-1">
                     <span class="h-1.5 w-1.5 rounded-full bg-status-success animate-pulse" />
-                    <span>运行中 {ollamaStatus()?.version ? `(v${ollamaStatus()?.version})` : ''}</span>
+                    <span>
+                      运行中 {ollamaStatus()?.version ? `(v${ollamaStatus()?.version})` : ''}
+                    </span>
                   </span>
                 </Show>
               </div>
@@ -198,68 +214,62 @@ export const AiRadarView: Component = () => {
           <Show when={ollamaStatus()?.is_running}>
             <div class="flex items-center gap-3">
               <div class="rounded-lg bg-bg-subtle border border-border-subtle px-3 py-1.5 text-right">
-                <span class="text-[10.5px] text-text-muted block">{t().aiRadar.vramUsage}</span>
-                <span class="text-sm font-bold text-accent mono">
+                <div class="text-[10px] text-text-muted">总显存 / 内存占用</div>
+                <div class="mono text-xs font-bold text-accent tabular-nums">
                   {formatTotalBytes(ollamaStatus()?.total_vram_used_bytes || 0)}
-                </span>
+                </div>
               </div>
             </div>
           </Show>
         </div>
 
-        {/* Content Area */}
+        {/* Model Cards */}
         <Show
           when={ollamaStatus()?.is_running}
           fallback={
             <div class="py-8 text-center text-xs text-text-muted">
-              <p class="mb-2">⚠️ {t().aiRadar.ollamaNotRunning}</p>
-              <p class="text-[11px] mono text-text-muted">在终端运行 <code class="rounded bg-bg-subtle px-1.5 py-0.5 text-text-primary">ollama serve</code> 即可唤醒本地大模型引擎。</p>
+              本地未检测到运行中的 Ollama 服务。启动 Ollama 后点击右上角「测速 &
+              刷新」即可同步显控。
             </div>
           }
         >
-          {/* Loaded Models List */}
-          <div>
-            <h3 class="text-xs font-semibold text-text-secondary mb-3 flex items-center gap-1.5">
-              <span>{t().aiRadar.loadedModels}</span>
-              <span class="rounded bg-bg-subtle px-1.5 py-0.2 mono text-[10px] text-text-muted">
-                {ollamaStatus()?.loaded_models.length || 0}
-              </span>
-            </h3>
-
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <For
-                each={ollamaStatus()?.loaded_models || []}
-                fallback={
-                  <div class="col-span-full rounded-xl border border-dashed border-border-subtle p-6 text-center text-xs text-text-muted">
-                    当前显存中没有活跃运行的大模型，显存已处于空载节能状态。
-                  </div>
-                }
-              >
+          <Show
+            when={(ollamaStatus()?.loaded_models?.length || 0) > 0}
+            fallback={
+              <div class="py-8 text-center text-xs text-text-muted">
+                当前没有大模型加载在 Apple Silicon 统一内存或显存中。
+              </div>
+            }
+          >
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <For each={ollamaStatus()?.loaded_models}>
                 {(model: OllamaModelInfo) => (
-                  <div class="flex flex-col justify-between rounded-xl border border-accent/30 bg-accent/5 p-4 shadow-2xs">
+                  <div class="glass-card-subtle p-3.5 flex flex-col justify-between">
                     <div>
-                      <div class="flex items-start justify-between mb-2">
-                        <div class="truncate">
-                          <h4 class="text-xs font-bold text-text-primary truncate m-0" title={model.name}>
-                            {model.name}
-                          </h4>
-                          <span class="text-[10px] text-text-muted mono">
-                            {model.family} · {model.parameter_size}
-                          </span>
-                        </div>
-                        <span class="rounded bg-accent/20 px-1.5 py-0.2 text-[10px] font-bold text-accent mono shrink-0">
-                          {formatTotalBytes(model.vram_bytes)}
+                      <div class="flex items-center justify-between mb-2">
+                        <span
+                          class="font-mono text-xs font-bold text-text-primary truncate"
+                          title={model.name}
+                        >
+                          {model.name}
+                        </span>
+                        <span class="rounded bg-accent/15 px-1.5 py-0.2 text-[10px] font-mono text-accent">
+                          {model.parameter_size || 'LLM'}
                         </span>
                       </div>
 
-                      <div class="rounded-lg bg-bg-surface/80 p-2 text-[10.5px] border border-border-subtle space-y-1 mb-3">
-                        <div class="flex items-center justify-between text-text-muted">
-                          <span>{t().aiRadar.quantization}:</span>
-                          <span class="mono font-medium text-text-primary">{model.quantization_level}</span>
+                      <div class="space-y-1 text-[11px] text-text-muted font-mono mb-3">
+                        <div class="flex justify-between">
+                          <span>量化等级:</span>
+                          <span class="text-text-secondary">
+                            {model.quantization_level || 'Native'}
+                          </span>
                         </div>
-                        <div class="flex items-center justify-between text-text-muted">
-                          <span>{t().aiRadar.format}:</span>
-                          <span class="mono font-medium text-text-primary">{model.format}</span>
+                        <div class="flex justify-between">
+                          <span>显存占用:</span>
+                          <span class="text-text-secondary font-bold text-accent tabular-nums">
+                            {formatTotalBytes(model.vram_bytes || model.size_bytes)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -268,19 +278,17 @@ export const AiRadarView: Component = () => {
                       type="button"
                       onClick={() => unloadOllamaModelApi(model.name)}
                       disabled={isUnloadingOllama()}
-                      class="w-full rounded-lg bg-status-danger/15 border border-status-danger/30 py-1.5 text-xs font-semibold text-status-danger hover:bg-status-danger hover:text-white transition-all active:scale-95 disabled:opacity-50"
-                      title="从显存中卸载此模型以释放 Unified Memory"
+                      class="w-full rounded-md border border-status-danger/30 bg-status-danger/10 py-1.5 text-center text-xs font-medium text-status-danger hover:bg-status-danger/20 transition-colors"
                     >
-                      {isUnloadingOllama() ? t().aiRadar.unloading : `💥 ${t().aiRadar.unloadBtn}`}
+                      {t().aiRadar.unloadBtn}
                     </button>
                   </div>
                 )}
               </For>
             </div>
-          </div>
+          </Show>
         </Show>
       </div>
     </div>
   );
 };
-export default AiRadarView;

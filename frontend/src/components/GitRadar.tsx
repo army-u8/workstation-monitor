@@ -78,7 +78,7 @@ export const GitRadar: Component = () => {
           p.branch.toLowerCase().includes(q) ||
           p.path.toLowerCase().includes(q) ||
           p.last_commit_msg.toLowerCase().includes(q) ||
-          p.last_commit_author.toLowerCase().includes(q)
+          p.last_commit_author.toLowerCase().includes(q),
       );
     }
 
@@ -120,7 +120,9 @@ export const GitRadar: Component = () => {
               </div>
               <button
                 type="button"
-                onClick={() => copyToClipboard(gitAccount()?.git.config_path || '~/.gitconfig', 'Config Path')}
+                onClick={() =>
+                  copyToClipboard(gitAccount()?.git.config_path || '~/.gitconfig', 'Config Path')
+                }
                 class="mono text-[9px] text-text-muted hover:text-accent focus-visible:ring-1 focus-visible:ring-accent rounded"
                 title={gitAccount()?.git.config_path}
               >
@@ -157,10 +159,14 @@ export const GitRadar: Component = () => {
 
           <div class="mt-2.5 flex items-center justify-between border-t border-border-subtle pt-2 text-[10px] text-text-muted mono">
             <span class="truncate">
-              {t().gitRadar.defaultBranch}: <strong class="text-text-primary">{gitAccount()?.git.default_branch || 'main'}</strong>
+              {t().gitRadar.defaultBranch}:{' '}
+              <strong class="text-text-primary">
+                {gitAccount()?.git.default_branch || 'main'}
+              </strong>
             </span>
             <span class="truncate">
-              {t().gitRadar.editor}: <span class="text-text-secondary">{gitAccount()?.git.editor || 'vim'}</span>
+              {t().gitRadar.editor}:{' '}
+              <span class="text-text-secondary">{gitAccount()?.git.editor || 'vim'}</span>
             </span>
           </div>
         </div>
@@ -216,8 +222,12 @@ export const GitRadar: Component = () => {
             <span
               class="mono rounded px-1.5 py-0.2 font-medium text-[9.5px]"
               classList={{
-                'bg-status-success/15 text-status-success': Boolean(gitAccount()?.github?.is_authenticated),
-                'bg-status-warning/15 text-status-warning': Boolean(!gitAccount()?.github?.is_authenticated && gitAccount()?.github?.username),
+                'bg-status-success/15 text-status-success': Boolean(
+                  gitAccount()?.github?.is_authenticated,
+                ),
+                'bg-status-warning/15 text-status-warning': Boolean(
+                  !gitAccount()?.github?.is_authenticated && gitAccount()?.github?.username,
+                ),
                 'bg-bg-subtle text-text-muted': Boolean(!gitAccount()?.github?.username),
               }}
             >
@@ -255,8 +265,10 @@ export const GitRadar: Component = () => {
             aria-label={t().gitRadar.filterDirtyOnly}
             class="rounded border px-2 py-1 text-[10.5px] transition-colors focus-visible:ring-1 focus-visible:ring-accent"
             classList={{
-              'bg-status-warning/15 border-status-warning/30 text-status-warning font-medium': dirtyOnly(),
-              'bg-bg-input border-border-subtle text-text-muted hover:text-text-primary': !dirtyOnly(),
+              'bg-status-warning/15 border-status-warning/30 text-status-warning font-medium':
+                dirtyOnly(),
+              'bg-bg-input border-border-subtle text-text-muted hover:text-text-primary':
+                !dirtyOnly(),
             }}
           >
             {t().gitRadar.filterDirtyOnly}
@@ -345,7 +357,8 @@ export const GitRadar: Component = () => {
               class="flex h-6 w-6 items-center justify-center rounded transition-colors focus-visible:ring-1 focus-visible:ring-accent"
               classList={{
                 'bg-bg-active text-text-primary': layoutMode() === GitRepoLayoutMode.COMPACT,
-                'text-text-muted hover:text-text-primary': layoutMode() !== GitRepoLayoutMode.COMPACT,
+                'text-text-muted hover:text-text-primary':
+                  layoutMode() !== GitRepoLayoutMode.COMPACT,
               }}
             >
               <CompactIcon class="h-3.5 w-3.5" />
@@ -459,7 +472,10 @@ export const GitRadar: Component = () => {
 
                     {/* Last Commit Box */}
                     <div class="mt-2 rounded bg-bg-subtle/70 p-2 text-[10px] text-text-secondary border border-border-subtle">
-                      <div class="truncate font-medium text-text-primary" title={repo.last_commit_msg}>
+                      <div
+                        class="truncate font-medium text-text-primary"
+                        title={repo.last_commit_msg}
+                      >
                         {repo.last_commit_msg}
                       </div>
                       <div class="mt-1 flex items-center justify-between text-[9px] text-text-muted mono">
@@ -541,12 +557,24 @@ export const GitRadar: Component = () => {
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle text-[10.5px] text-text-muted">
-                  <th scope="col" class="py-2 px-3 font-medium">{t().gitRadar.thRepo}</th>
-                  <th scope="col" class="py-2 px-3 font-medium w-36">{t().gitRadar.thBranch}</th>
-                  <th scope="col" class="py-2 px-3 font-medium w-32">{t().gitRadar.thStatus}</th>
-                  <th scope="col" class="py-2 px-3 font-medium">{t().gitRadar.thCommit}</th>
-                  <th scope="col" class="py-2 px-3 font-medium w-44">{t().gitRadar.thPath}</th>
-                  <th scope="col" class="py-2 px-3 font-medium w-36 text-right">{t().gitRadar.thActions}</th>
+                  <th scope="col" class="py-2 px-3 font-medium">
+                    {t().gitRadar.thRepo}
+                  </th>
+                  <th scope="col" class="py-2 px-3 font-medium w-36">
+                    {t().gitRadar.thBranch}
+                  </th>
+                  <th scope="col" class="py-2 px-3 font-medium w-32">
+                    {t().gitRadar.thStatus}
+                  </th>
+                  <th scope="col" class="py-2 px-3 font-medium">
+                    {t().gitRadar.thCommit}
+                  </th>
+                  <th scope="col" class="py-2 px-3 font-medium w-44">
+                    {t().gitRadar.thPath}
+                  </th>
+                  <th scope="col" class="py-2 px-3 font-medium w-36 text-right">
+                    {t().gitRadar.thActions}
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle text-[11px]">
@@ -602,7 +630,10 @@ export const GitRadar: Component = () => {
 
                       {/* Commit Info */}
                       <td class="py-2 px-3 max-w-[260px]">
-                        <div class="truncate text-text-primary text-[10.5px]" title={repo.last_commit_msg}>
+                        <div
+                          class="truncate text-text-primary text-[10.5px]"
+                          title={repo.last_commit_msg}
+                        >
                           {repo.last_commit_msg}
                         </div>
                         <div class="mono text-[9px] text-text-muted truncate">
@@ -703,7 +734,11 @@ export const GitRadar: Component = () => {
                         'bg-status-warning': repo.is_dirty,
                         'bg-status-success': !repo.is_dirty,
                       }}
-                      title={repo.is_dirty ? `${repo.uncommitted_count} ${t().gitRadar.dirty}` : t().gitRadar.clean}
+                      title={
+                        repo.is_dirty
+                          ? `${repo.uncommitted_count} ${t().gitRadar.dirty}`
+                          : t().gitRadar.clean
+                      }
                     />
 
                     <span class="font-bold text-xs text-text-primary truncate" title={repo.name}>
@@ -726,7 +761,9 @@ export const GitRadar: Component = () => {
                   {/* Center: Latest Commit Message */}
                   <div class="hidden md:flex items-center gap-2 min-w-0 flex-1 px-2 text-[10.5px] text-text-secondary truncate">
                     <span class="truncate text-text-muted">{repo.last_commit_msg}</span>
-                    <span class="mono text-[9px] text-text-muted shrink-0">({repo.last_commit_time})</span>
+                    <span class="mono text-[9px] text-text-muted shrink-0">
+                      ({repo.last_commit_time})
+                    </span>
                   </div>
 
                   {/* Right: Quick Action Buttons */}

@@ -19,9 +19,7 @@ export const AppLayout: ParentComponent = (props) => {
 
         {/* Dynamic Scrollable Main Body */}
         <main class="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-4">
-          <div class="mx-auto flex w-full max-w-[1600px] flex-col gap-3">
-            {props.children}
-          </div>
+          <div class="mx-auto flex w-full max-w-[1600px] flex-col gap-3">{props.children}</div>
         </main>
 
         {/* Bottom Fixed Status Bar */}
@@ -39,4 +37,3 @@ export const AppLayout: ParentComponent = (props) => {
     </div>
   );
 };
-

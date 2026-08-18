@@ -51,9 +51,7 @@ export const UpdateModal: Component = () => {
   };
 
   const handleRollback = async (version: string) => {
-    const confirmed = window.confirm(
-      t().update.rollbackConfirmMsg.replace('{version}', version)
-    );
+    const confirmed = window.confirm(t().update.rollbackConfirmMsg.replace('{version}', version));
     if (confirmed) {
       await rollbackUpdateApi(version);
     }
@@ -108,7 +106,10 @@ export const UpdateModal: Component = () => {
                 <p class="text-xs text-text-muted m-0">
                   {info()?.has_update
                     ? t().update.newVersionAvailable
-                    : t().update.alreadyLatest.replace('{version}', (info()?.current_version || '').replace(/^v/, ''))}
+                    : t().update.alreadyLatest.replace(
+                        '{version}',
+                        (info()?.current_version || '').replace(/^v/, ''),
+                      )}
                 </p>
               </div>
             </div>
@@ -204,9 +205,7 @@ export const UpdateModal: Component = () => {
                 <span>⚡</span>
                 <span>{t().update.dualFeedBadge}</span>
               </span>
-              <span class="text-[10px] font-mono opacity-80">
-                {navigator.platform || 'macOS'}
-              </span>
+              <span class="text-[10px] font-mono opacity-80">{navigator.platform || 'macOS'}</span>
             </div>
 
             {/* Release Notes Preview */}

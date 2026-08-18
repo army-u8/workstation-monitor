@@ -35,7 +35,7 @@ export const HostsManager: Component = () => {
       (h) =>
         h.ip.toLowerCase().includes(q) ||
         h.domain.toLowerCase().includes(q) ||
-        h.line_number.toString().includes(q)
+        h.line_number.toString().includes(q),
     );
   };
 
@@ -92,11 +92,21 @@ export const HostsManager: Component = () => {
         <table class="w-full text-left text-xs border-collapse">
           <thead>
             <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle text-[10.5px] text-text-muted">
-              <th scope="col" class="py-2 px-3 font-medium w-16 text-center">{t().hosts.thLine}</th>
-              <th scope="col" class="py-2 px-3 font-medium w-36">{t().hosts.thIp}</th>
-              <th scope="col" class="py-2 px-3 font-medium">{t().hosts.thDomain}</th>
-              <th scope="col" class="py-2 px-3 font-medium w-24 text-center">{t().hosts.thStatus}</th>
-              <th scope="col" class="py-2 px-3 font-medium w-24 text-right">{t().common.actions}</th>
+              <th scope="col" class="py-2 px-3 font-medium w-16 text-center">
+                {t().hosts.thLine}
+              </th>
+              <th scope="col" class="py-2 px-3 font-medium w-36">
+                {t().hosts.thIp}
+              </th>
+              <th scope="col" class="py-2 px-3 font-medium">
+                {t().hosts.thDomain}
+              </th>
+              <th scope="col" class="py-2 px-3 font-medium w-24 text-center">
+                {t().hosts.thStatus}
+              </th>
+              <th scope="col" class="py-2 px-3 font-medium w-24 text-right">
+                {t().common.actions}
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border-subtle font-mono text-[11px]">

@@ -70,11 +70,7 @@ const getSystemPreferredTheme = (): 'dark' | 'light' => {
 const getInitialTheme = (): ThemeMode => {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(StorageKey.THEME);
-    if (
-      saved === ThemeMode.SYSTEM ||
-      saved === ThemeMode.DARK ||
-      saved === ThemeMode.LIGHT
-    ) {
+    if (saved === ThemeMode.SYSTEM || saved === ThemeMode.DARK || saved === ThemeMode.LIGHT) {
       return saved as ThemeMode;
     }
   }
@@ -154,14 +150,19 @@ export const [gitProjects, setGitProjects] = createSignal<GitProjectInfo[]>([]);
 export const [gitAccount, setGitAccount] = createSignal<GitAccountSummary | null>(null);
 export const [hostsList, setHostsList] = createSignal<HostEntry[]>([]);
 export const [speedTestResult, setSpeedTestResult] = createSignal<SpeedTestResult | null>(null);
-export const [obsidianSummary, setObsidianSummary] = createSignal<ObsidianVaultSummary | null>(null);
+export const [obsidianSummary, setObsidianSummary] = createSignal<ObsidianVaultSummary | null>(
+  null,
+);
 
 export const [updateInfo, setUpdateInfo] = createSignal<UpdateCheckResponse | null>(null);
 export const [isCheckingUpdate, setIsCheckingUpdate] = createSignal(false);
 export const [isApplyingUpdate, setIsApplyingUpdate] = createSignal(false);
 export const [isUpdateModalOpen, setIsUpdateModalOpen] = createSignal(false);
-export const [updateStep, setUpdateStep] = createSignal<'idle' | 'downloading' | 'installing' | 'restarting' | 'reconnecting'>('idle');
-export const [updateProgressPayload, setUpdateProgressPayload] = createSignal<UpdateProgressResponse | null>(null);
+export const [updateStep, setUpdateStep] = createSignal<
+  'idle' | 'downloading' | 'installing' | 'restarting' | 'reconnecting'
+>('idle');
+export const [updateProgressPayload, setUpdateProgressPayload] =
+  createSignal<UpdateProgressResponse | null>(null);
 export const [versionBackups, setVersionBackups] = createSignal<VersionBackupInfo[]>([]);
 export const [isLoadingBackups, setIsLoadingBackups] = createSignal(false);
 
@@ -191,7 +192,9 @@ export const [isLoadingEnvVars, setIsLoadingEnvVars] = createSignal(false);
 export const [activeSection, setActiveSection] = createSignal<NavSectionId>(NavSectionId.OVERVIEW);
 export const [isSidebarOpen, setIsSidebarOpen] = createSignal(false);
 
-export const [wsStatus, setWsStatus] = createSignal<WsConnectionStatus>(WsConnectionStatus.CONNECTING);
+export const [wsStatus, setWsStatus] = createSignal<WsConnectionStatus>(
+  WsConnectionStatus.CONNECTING,
+);
 export const wsStatusText = () => {
   const s = wsStatus();
   if (s === WsConnectionStatus.ONLINE) return t().common.connected;
@@ -200,11 +203,17 @@ export const wsStatusText = () => {
 };
 
 export const [isSnifferPaused, setIsSnifferPaused] = createSignal(false);
-export const [packetFilter, setPacketFilter] = createSignal<PacketProtocolFilter>(PacketProtocolFilter.ALL);
-export const [quickFilter, setQuickFilter] = createSignal<SocketCategoryFilter>(SocketCategoryFilter.ALL);
+export const [packetFilter, setPacketFilter] = createSignal<PacketProtocolFilter>(
+  PacketProtocolFilter.ALL,
+);
+export const [quickFilter, setQuickFilter] = createSignal<SocketCategoryFilter>(
+  SocketCategoryFilter.ALL,
+);
 export const [searchQuery, setSearchQuery] = createSignal('');
 export const [currentTab, setCurrentTab] = createSignal<SocketTab>(SocketTab.LISTENING);
-export const [toasts, setToasts] = createSignal<Array<{ id: number; message: string; type?: ToastType }>>([]);
+export const [toasts, setToasts] = createSignal<
+  Array<{ id: number; message: string; type?: ToastType }>
+>([]);
 export const [confirmModal, setConfirmModal] = createSignal<ConfirmModalConfig | null>(null);
 
 export function openConfirmDialog(config: Omit<ConfirmModalConfig, 'isOpen'>) {
@@ -375,7 +384,10 @@ export async function runSpeedTestApi(): Promise<void> {
   }
 }
 
-export async function openAppApi(path: string, app: 'code' | 'cursor' | 'terminal' | 'finder' = 'finder'): Promise<void> {
+export async function openAppApi(
+  path: string,
+  app: 'code' | 'cursor' | 'terminal' | 'finder' = 'finder',
+): Promise<void> {
   try {
     const res = await fetch(ApiEndpoint.OPEN_APP, {
       method: HTTP_METHODS.POST,
@@ -538,7 +550,10 @@ export async function flushDnsApi(): Promise<void> {
   }
 }
 
-export async function pingHostApi(host: string, count = DEFAULT_PING_COUNT): Promise<PingResponse | null> {
+export async function pingHostApi(
+  host: string,
+  count = DEFAULT_PING_COUNT,
+): Promise<PingResponse | null> {
   try {
     const res = await fetch(ApiEndpoint.PING, {
       method: HTTP_METHODS.POST,
@@ -745,11 +760,15 @@ export function closeSnapshotDrawer() {
   setActiveSnapshotPath(null);
 }
 
-export async function fetchSnapshotsApi(projectPath: string): Promise<SnapshotsListResponse | null> {
+export async function fetchSnapshotsApi(
+  projectPath: string,
+): Promise<SnapshotsListResponse | null> {
   if (!projectPath) return null;
   setIsLoadingSnapshots(true);
   try {
-    const res = await fetch(`${ApiEndpoint.SNAPSHOTS_LIST}?path=${encodeURIComponent(projectPath)}`);
+    const res = await fetch(
+      `${ApiEndpoint.SNAPSHOTS_LIST}?path=${encodeURIComponent(projectPath)}`,
+    );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data: SnapshotsListResponse = await res.json();
     setSnapshotsData(data);
@@ -793,7 +812,7 @@ export async function createSnapshotApi(projectPath: string, title: string): Pro
 export async function rollbackSnapshotApi(
   projectPath: string,
   targetCommit: string,
-  createSafetyBackup = true
+  createSafetyBackup = true,
 ): Promise<boolean> {
   if (isRollingBackSnapshot() || !projectPath || !targetCommit) return false;
   setIsRollingBackSnapshot(true);
@@ -849,8 +868,8 @@ export async function fetchWebArtifactsApi(): Promise<WebArtifactInfo[]> {
 export async function freeArtifactPortApi(port: number, processName?: string, pid?: number) {
   openConfirmDialog({
     title: t().artifacts.killConfirmTitle,
-    message: t().artifacts.killConfirmWarning
-      .replace('{port}', port.toString())
+    message: t()
+      .artifacts.killConfirmWarning.replace('{port}', port.toString())
       .replace('{process}', processName || 'unknown')
       .replace('{pid}', (pid || 0).toString()),
     confirmText: t().artifacts.freePort,
@@ -953,7 +972,10 @@ let socket: WebSocket | null = null;
 let reconnectTimer: any = null;
 
 export function initWebSocket() {
-  if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+  if (
+    socket &&
+    (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)
+  ) {
     return;
   }
 

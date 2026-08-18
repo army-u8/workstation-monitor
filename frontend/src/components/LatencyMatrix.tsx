@@ -49,7 +49,11 @@ export const LatencyMatrix: Component = () => {
       <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <For
           each={latencyList()}
-          fallback={<div class="col-span-full py-6 text-center text-xs text-text-muted font-mono">{t().latency.probing}</div>}
+          fallback={
+            <div class="col-span-full py-6 text-center text-xs text-text-muted font-mono">
+              {t().latency.probing}
+            </div>
+          }
         >
           {(target) => {
             const history = () => latencyHistory[target.host] || [];
@@ -78,7 +82,9 @@ export const LatencyMatrix: Component = () => {
               <div class="flex flex-col justify-between rounded border border-border-subtle bg-bg-input p-2 transition-colors hover:border-border-default">
                 <div class="flex items-start justify-between">
                   <div class="truncate">
-                    <div class="text-[11px] font-medium text-text-primary truncate">{target.name}</div>
+                    <div class="text-[11px] font-medium text-text-primary truncate">
+                      {target.name}
+                    </div>
                     <div class="mono text-[9px] text-text-muted">
                       {target.host}:{target.port}
                     </div>
@@ -86,7 +92,9 @@ export const LatencyMatrix: Component = () => {
                 </div>
 
                 <div class="mt-2 flex items-end justify-between">
-                  <span class={`mono text-sm font-semibold leading-none ${valColor}`}>{valText}</span>
+                  <span class={`mono text-sm font-semibold leading-none ${valColor}`}>
+                    {valText}
+                  </span>
                   {renderSparkline(history(), strokeColor)}
                 </div>
               </div>

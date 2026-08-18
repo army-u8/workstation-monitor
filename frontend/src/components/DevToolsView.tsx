@@ -65,13 +65,13 @@ export const DevToolsView: Component = () => {
   return (
     <div class="flex flex-col gap-5" aria-label={t().sidebar.navDevtools}>
       {/* Header Banner */}
-      <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-default bg-bg-surface p-4 shadow-xs">
+      <div class="glass-card flex flex-wrap items-center justify-between gap-3 p-4">
         <div class="flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/15 text-accent text-xl">
-            <DevToolsIcon class="h-5 w-5" />
+          <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent text-lg border border-accent/20">
+            <DevToolsIcon class="h-4.5 w-4.5" />
           </span>
           <div>
-            <h1 class="text-base font-bold text-text-primary m-0">
+            <h1 class="text-base font-bold text-text-primary m-0 tracking-tight">
               {t().devops.toolchainTitle}
             </h1>
             <p class="text-xs text-text-muted m-0 mt-0.5">
@@ -81,9 +81,9 @@ export const DevToolsView: Component = () => {
         </div>
 
         {/* Action & Stats */}
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
           <Show when={envVarsData()?.proxy_configured}>
-            <span class="inline-flex items-center gap-1.5 rounded-lg border border-status-warning/30 bg-status-warning/10 px-3 py-1 text-xs font-semibold text-status-warning">
+            <span class="inline-flex items-center gap-1.5 rounded-lg border border-status-warning/30 bg-status-warning/10 px-2.5 py-1 text-xs font-semibold text-status-warning">
               <span>🌐 终端代理已配置</span>
             </span>
           </Show>
@@ -92,7 +92,7 @@ export const DevToolsView: Component = () => {
             type="button"
             onClick={() => fetchEnvVarsApi()}
             disabled={isLoadingEnvVars()}
-            class="flex items-center gap-1.5 rounded-lg bg-bg-subtle border border-border-default px-3 py-1.5 text-xs font-medium text-text-primary hover:bg-bg-hover active:scale-95 disabled:opacity-50 transition-all"
+            class="flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.8 text-xs font-semibold text-white shadow-sm hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
           >
             <RefreshIcon class="h-3.5 w-3.5" classList={{ 'animate-spin': isLoadingEnvVars() }} />
             <span>{t().envVars.refreshBtn}</span>
@@ -107,13 +107,14 @@ export const DevToolsView: Component = () => {
           onClick={() => setActiveTab('tools')}
           class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all"
           classList={{
-            'bg-accent text-white shadow-2xs': activeTab() === 'tools',
-            'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default': activeTab() !== 'tools',
+            'bg-accent text-white shadow-xs': activeTab() === 'tools',
+            'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default':
+              activeTab() !== 'tools',
           }}
         >
           <span>🛠️ 工具链与运行时</span>
           <span
-            class="rounded-full px-1.5 py-0.2 text-[10.5px] mono"
+            class="rounded-full px-1.5 py-0.2 text-[10px] mono tabular-nums"
             classList={{
               'bg-white/20 text-white': activeTab() === 'tools',
               'bg-bg-subtle text-text-muted': activeTab() !== 'tools',
@@ -128,13 +129,14 @@ export const DevToolsView: Component = () => {
           onClick={() => setActiveTab('path')}
           class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all"
           classList={{
-            'bg-accent text-white shadow-2xs': activeTab() === 'path',
-            'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default': activeTab() !== 'path',
+            'bg-accent text-white shadow-xs': activeTab() === 'path',
+            'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default':
+              activeTab() !== 'path',
           }}
         >
           <span>🛣️ $PATH 链路拆解</span>
           <span
-            class="rounded-full px-1.5 py-0.2 text-[10.5px] mono"
+            class="rounded-full px-1.5 py-0.2 text-[10px] mono tabular-nums"
             classList={{
               'bg-white/20 text-white': activeTab() === 'path',
               'bg-bg-subtle text-text-muted': activeTab() !== 'path',
@@ -149,13 +151,14 @@ export const DevToolsView: Component = () => {
           onClick={() => setActiveTab('env')}
           class="flex items-center gap-2 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all"
           classList={{
-            'bg-accent text-white shadow-2xs': activeTab() === 'env',
-            'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default': activeTab() !== 'env',
+            'bg-accent text-white shadow-xs': activeTab() === 'env',
+            'bg-bg-surface text-text-muted hover:text-text-primary border border-border-default':
+              activeTab() !== 'env',
           }}
         >
           <span>📋 环境变量检索器</span>
           <span
-            class="rounded-full px-1.5 py-0.2 text-[10.5px] mono"
+            class="rounded-full px-1.5 py-0.2 text-[10px] mono tabular-nums"
             classList={{
               'bg-white/20 text-white': activeTab() === 'env',
               'bg-bg-subtle text-text-muted': activeTab() !== 'env',
@@ -168,7 +171,7 @@ export const DevToolsView: Component = () => {
 
       {/* TAB 1: Toolchains & Runtimes Matrix */}
       <Show when={activeTab() === 'tools'}>
-        <section class="rounded-xl border border-border-default bg-bg-surface p-4 shadow-xs">
+        <section class="glass-card p-4">
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             <For
               each={tools()}
@@ -180,10 +183,9 @@ export const DevToolsView: Component = () => {
             >
               {(tool) => (
                 <div
-                  class="flex flex-col justify-between rounded-xl border p-3.5 transition-all hover:border-border-hover"
+                  class="glass-card-subtle flex flex-col justify-between p-3.5 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px]"
                   classList={{
-                    'border-border-default bg-bg-input/60 shadow-2xs': tool.is_installed,
-                    'border-border-subtle/50 bg-bg-subtle/20 opacity-55': !tool.is_installed,
+                    'opacity-55 border-border-subtle/50': !tool.is_installed,
                   }}
                 >
                   <div>
@@ -194,49 +196,40 @@ export const DevToolsView: Component = () => {
                       <span
                         class="h-2 w-2 rounded-full shrink-0"
                         classList={{
-                          'bg-status-success shadow-xs shadow-status-success/50': tool.is_installed,
+                          'bg-status-success shadow-[0_0_6px_rgba(52,211,153,0.6)]':
+                            tool.is_installed,
                           'bg-text-muted': !tool.is_installed,
                         }}
                         title={tool.is_installed ? 'Installed & Ready' : 'Not Found'}
                       />
                     </div>
 
-                    <div class="mt-2">
-                      <Show
-                        when={tool.is_installed}
-                        fallback={
-                          <span class="text-[11px] text-text-muted italic">
-                            {t().common.absent}
-                          </span>
-                        }
-                      >
-                        <span
-                          class="mono text-xs font-semibold text-accent block truncate"
-                          title={tool.version || ''}
-                        >
-                          {tool.version || t().common.ready}
-                        </span>
-                      </Show>
+                    <div
+                      class="mt-2 text-[11px] mono text-text-secondary truncate"
+                      title={tool.version || '未检测到安装'}
+                    >
+                      {tool.version || <span class="text-text-muted">未安装</span>}
                     </div>
                   </div>
 
-                  <div class="mt-3 pt-2 border-t border-border-subtle/50">
-                    <Show
-                      when={tool.path}
-                      fallback={
-                        <span class="text-[10px] text-text-muted font-mono">PATH: -</span>
-                      }
-                    >
+                  <Show when={tool.path}>
+                    <div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between">
+                      <span
+                        class="text-[10px] text-text-muted mono truncate max-w-[120px]"
+                        title={tool.path || ''}
+                      >
+                        {tool.path}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => copyToClipboard(tool.path || '', 'Tool Path')}
-                        class="mono text-[10px] text-text-muted truncate hover:text-accent text-left block w-full focus-visible:ring-1 focus-visible:ring-accent rounded transition-colors"
-                        title={`点击复制: ${tool.path}`}
+                        onClick={() => copyToClipboard(tool.path || '', tool.name)}
+                        class="text-[10px] text-accent hover:underline shrink-0 ml-1"
+                        title="复制路径"
                       >
-                        📁 {tool.path}
+                        复制
                       </button>
-                    </Show>
-                  </div>
+                    </div>
+                  </Show>
                 </div>
               )}
             </For>
@@ -246,72 +239,45 @@ export const DevToolsView: Component = () => {
 
       {/* TAB 2: $PATH Resolution Chain */}
       <Show when={activeTab() === 'path'}>
-        <section class="rounded-xl border border-border-default bg-bg-surface p-5 shadow-xs space-y-4">
-          <div>
-            <h2 class="text-sm font-bold text-text-primary m-0">
-              {t().envVars.pathTitle}
-            </h2>
-            <p class="text-xs text-text-muted m-0 mt-0.5">
-              {t().envVars.pathSubtitle}
-            </p>
+        <section class="glass-card p-4 space-y-4">
+          <div class="flex items-center justify-between text-xs text-text-muted">
+            <span>macOS 终端命令寻址优先级自上而下逐级向下探测：</span>
+            <span class="mono tabular-nums">
+              共 {envVarsData()?.path_entries.length || 0} 个寻址路径
+            </span>
           </div>
 
           <div class="space-y-2">
-            <For
-              each={envVarsData()?.path_entries || []}
-              fallback={
-                <div class="py-8 text-center text-xs text-text-muted">正在加载 PATH 目录...</div>
-              }
-            >
+            <For each={envVarsData()?.path_entries}>
               {(entry: PathEntry) => (
-                <div
-                  class="flex items-center justify-between gap-3 rounded-lg border p-2.5 transition-colors hover:border-border-hover"
-                  classList={{
-                    'border-border-default bg-bg-subtle/40': entry.exists,
-                    'border-status-warning/40 bg-status-warning/5': !entry.exists,
-                  }}
-                >
-                  <div class="flex items-center gap-3 truncate">
-                    <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-accent/15 text-[10px] font-bold text-accent mono">
-                      #{entry.index}
+                <div class="glass-card-subtle flex items-center justify-between p-3 transition-colors hover:bg-bg-subtle">
+                  <div class="flex items-center gap-3">
+                    <span class="flex h-6 w-6 items-center justify-center rounded-md bg-bg-surface mono text-[10.5px] font-bold text-text-secondary border border-border-subtle tabular-nums">
+                      {entry.index + 1}
                     </span>
-                    <span
-                      class="mono text-xs font-medium truncate"
-                      classList={{
-                        'text-text-primary': entry.exists,
-                        'text-status-warning line-through opacity-75': !entry.exists,
-                      }}
-                      title={entry.path}
-                    >
-                      {entry.path}
-                    </span>
+                    <span class="mono text-xs font-medium text-text-primary">{entry.path}</span>
                   </div>
 
-                  <div class="flex items-center gap-2 shrink-0">
-                    <span
-                      class="rounded-full px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1"
-                      classList={{
-                        'bg-status-success/15 text-status-success': entry.exists,
-                        'bg-status-warning/15 text-status-warning': !entry.exists,
-                      }}
+                  <div class="flex items-center gap-2">
+                    <Show
+                      when={entry.exists}
+                      fallback={
+                        <span class="rounded bg-status-danger/15 px-2 py-0.5 text-[10px] font-semibold text-status-danger">
+                          目录无效 / 不存在
+                        </span>
+                      }
                     >
-                      <span
-                        class="h-1.5 w-1.5 rounded-full"
-                        classList={{
-                          'bg-status-success': entry.exists,
-                          'bg-status-warning': !entry.exists,
-                        }}
-                      />
-                      <span>{entry.exists ? t().envVars.pathExists : t().envVars.pathMissing}</span>
-                    </span>
+                      <span class="rounded bg-status-success/15 px-2 py-0.5 text-[10px] font-semibold text-status-success">
+                        有效目录
+                      </span>
+                    </Show>
 
                     <button
                       type="button"
-                      onClick={() => copyToClipboard(entry.path, 'PATH Entry')}
-                      class="rounded border border-border-default bg-bg-surface px-2 py-1 text-[10.5px] text-text-muted hover:text-accent hover:border-accent transition-colors"
-                      title="复制此路径"
+                      onClick={() => copyToClipboard(entry.path, '$PATH Entry')}
+                      class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
                     >
-                      📋
+                      复制
                     </button>
                   </div>
                 </div>
@@ -323,45 +289,47 @@ export const DevToolsView: Component = () => {
 
       {/* TAB 3: Environment Variables Browser */}
       <Show when={activeTab() === 'env'}>
-        <section class="rounded-xl border border-border-default bg-bg-surface p-5 shadow-xs space-y-4">
-          {/* Top Controls: Search & Category Filter */}
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <section class="glass-card p-4 space-y-4">
+          {/* Filter Bar */}
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <input
               type="text"
-              placeholder={t().envVars.searchPlaceholder}
+              placeholder="搜索环境变量名称、值或分类 (如 PATH, HOME, PROXY)..."
               value={searchEnv()}
               onInput={(e) => setSearchEnv(e.currentTarget.value)}
-              class="w-full max-w-md rounded-lg border border-border-default bg-bg-subtle/50 px-3 py-2 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
+              class="w-full max-w-md rounded-lg border border-border-default bg-bg-surface px-3 py-2 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent focus-visible:ring-1 focus-visible:ring-accent transition-colors"
             />
 
-            <div class="flex flex-wrap items-center gap-1.5">
+            {/* Category Filter Pills */}
+            <div class="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
               <For each={categories()}>
                 {(cat) => (
                   <button
                     type="button"
                     onClick={() => setSelectedCategory(cat)}
-                    class="rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors"
+                    class="rounded-lg px-2.5 py-1 text-[11px] font-medium transition-all"
                     classList={{
-                      'bg-accent text-white font-semibold': selectedCategory() === cat,
-                      'bg-bg-subtle text-text-muted hover:text-text-primary border border-border-subtle': selectedCategory() !== cat,
+                      'bg-accent text-white shadow-2xs': selectedCategory() === cat,
+                      'bg-bg-subtle text-text-muted hover:text-text-primary border border-border-subtle':
+                        selectedCategory() !== cat,
                     }}
                   >
-                    {cat === 'ALL' ? '全部' : cat}
+                    {cat}
                   </button>
                 )}
               </For>
             </div>
           </div>
 
-          {/* Table / List of Variables */}
-          <div class="overflow-x-auto rounded-lg border border-border-default">
+          {/* Table */}
+          <div class="overflow-x-auto rounded-lg border border-border-subtle">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
-                <tr class="border-b border-border-default bg-bg-subtle/70 text-text-muted font-semibold">
-                  <th class="p-2.5 w-1/4">变量名 (KEY)</th>
-                  <th class="p-2.5 w-1/6">分类</th>
-                  <th class="p-2.5 w-1/2">变量值 (VALUE)</th>
-                  <th class="p-2.5 text-right w-16">操作</th>
+                <tr class="border-b border-border-subtle bg-bg-subtle/70 text-[11px] font-bold text-text-muted uppercase">
+                  <th class="px-3.5 py-2.5">分类</th>
+                  <th class="px-3.5 py-2.5">变量名</th>
+                  <th class="px-3.5 py-2.5">变量值</th>
+                  <th class="px-3.5 py-2.5 text-right">操作</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle font-mono">
@@ -369,56 +337,56 @@ export const DevToolsView: Component = () => {
                   each={filteredEnvVars()}
                   fallback={
                     <tr>
-                      <td colspan="4" class="p-8 text-center text-text-muted">
-                        未匹配到符合条件的环境变量。
+                      <td colspan={4} class="py-8 text-center text-text-muted">
+                        无匹配的环境变量记录
                       </td>
                     </tr>
                   }
                 >
-                  {(item: EnvVarEntry) => {
-                    const isRevealed = () => revealedSecrets()[item.name];
+                  {(entry: EnvVarEntry) => {
+                    const isSecret = entry.is_secret;
+                    const isRevealed = () => Boolean(revealedSecrets()[entry.name]);
+                    const displayValue = () => {
+                      if (!isSecret) return entry.value;
+                      return isRevealed() ? entry.value : maskSecretValue(entry.value);
+                    };
 
                     return (
-                      <tr class="hover:bg-bg-hover/50 transition-colors">
-                        <td class="p-2.5 font-bold text-accent break-all select-all">
-                          {item.name}
-                        </td>
-                        <td class="p-2.5 text-[11px] text-text-muted">
-                          <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.5 text-[10px] text-text-secondary">
-                            {item.category}
+                      <tr class="hover:bg-bg-subtle/50 transition-colors">
+                        <td class="px-3.5 py-2 whitespace-nowrap">
+                          <span class="rounded bg-bg-surface px-1.5 py-0.5 text-[10px] text-text-secondary border border-border-subtle">
+                            {entry.category}
                           </span>
                         </td>
-                        <td class="p-2.5 text-text-primary break-all">
-                          <Show
-                            when={item.is_secret && !isRevealed()}
-                            fallback={
-                              <span class="select-all">{item.value}</span>
+                        <td class="px-3.5 py-2 font-bold text-text-primary whitespace-nowrap">
+                          {entry.name}
+                        </td>
+                        <td class="px-3.5 py-2 text-text-secondary break-all max-w-md">
+                          <span
+                            class={
+                              isSecret && !isRevealed() ? 'tracking-widest text-text-muted' : ''
                             }
                           >
-                            <span class="text-text-muted font-sans italic">
-                              🔒 {maskSecretValue(item.value)}
-                            </span>
-                          </Show>
+                            {displayValue()}
+                          </span>
                         </td>
-                        <td class="p-2.5 text-right">
+                        <td class="px-3.5 py-2 text-right whitespace-nowrap">
                           <div class="flex items-center justify-end gap-1.5">
-                            <Show when={item.is_secret}>
+                            <Show when={isSecret}>
                               <button
                                 type="button"
-                                onClick={() => toggleSecretReveal(item.name)}
-                                class="rounded p-1 text-text-muted hover:text-accent transition-colors"
-                                title={isRevealed() ? t().envVars.hideSecret : t().envVars.showSecret}
+                                onClick={() => toggleSecretReveal(entry.name)}
+                                class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
                               >
-                                {isRevealed() ? '👁️' : '🔒'}
+                                {isRevealed() ? '🙈 隐藏' : '👁️ 显示'}
                               </button>
                             </Show>
                             <button
                               type="button"
-                              onClick={() => copyToClipboard(item.value, item.name)}
-                              class="rounded p-1 text-text-muted hover:text-accent transition-colors"
-                              title="复制变量值"
+                              onClick={() => copyToClipboard(entry.value, entry.name)}
+                              class="rounded border border-border-default bg-bg-surface px-2 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-colors"
                             >
-                              📋
+                              复制
                             </button>
                           </div>
                         </td>
@@ -434,4 +402,3 @@ export const DevToolsView: Component = () => {
     </div>
   );
 };
-export default DevToolsView;

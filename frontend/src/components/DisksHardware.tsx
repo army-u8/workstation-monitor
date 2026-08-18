@@ -59,14 +59,20 @@ export const DisksHardware: Component = () => {
         <div class="mb-2.5 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <h2 class="text-xs font-semibold text-text-primary">{t().disks.disksTitle}</h2>
-            <span class="text-[10px] text-text-muted mono">{disks().length} {t().disks.volumesCount}</span>
+            <span class="text-[10px] text-text-muted mono">
+              {disks().length} {t().disks.volumesCount}
+            </span>
           </div>
         </div>
 
         <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           <For
             each={disks()}
-            fallback={<div class="col-span-full py-8 text-center text-xs text-text-muted font-mono">{t().disks.scanning}</div>}
+            fallback={
+              <div class="col-span-full py-8 text-center text-xs text-text-muted font-mono">
+                {t().disks.scanning}
+              </div>
+            }
           >
             {(disk) => {
               const usedPct = disk.used_percent;
@@ -82,7 +88,10 @@ export const DisksHardware: Component = () => {
                         {disk.file_system}
                       </span>
                     </div>
-                    <div class="mono text-[10px] text-text-muted mt-0.5 truncate" title={disk.mount_point}>
+                    <div
+                      class="mono text-[10px] text-text-muted mt-0.5 truncate"
+                      title={disk.mount_point}
+                    >
                       {disk.mount_point}
                     </div>
                   </div>
@@ -90,9 +99,15 @@ export const DisksHardware: Component = () => {
                   <div class="mt-3 flex flex-col gap-1.5">
                     <div class="flex items-baseline justify-between text-[10.5px]">
                       <span class="text-text-muted">
-                        {t().disks.used} <strong class="text-text-primary">{formatTotalBytes(disk.used_bytes)}</strong> / {formatTotalBytes(disk.total_bytes)}
+                        {t().disks.used}{' '}
+                        <strong class="text-text-primary">
+                          {formatTotalBytes(disk.used_bytes)}
+                        </strong>{' '}
+                        / {formatTotalBytes(disk.total_bytes)}
                       </span>
-                      <span class="mono font-semibold text-text-primary">{usedPct.toFixed(1)}%</span>
+                      <span class="mono font-semibold text-text-primary">
+                        {usedPct.toFixed(1)}%
+                      </span>
                     </div>
 
                     <div class="h-1 w-full overflow-hidden rounded-full bg-bg-subtle border border-border-subtle">
@@ -111,7 +126,9 @@ export const DisksHardware: Component = () => {
 
                     <div class="flex items-center justify-between text-[10px] text-text-muted pt-1 border-t border-border-subtle">
                       <span>{t().disks.remainingAvailable}</span>
-                      <span class="mono text-text-primary font-medium">{formatTotalBytes(disk.available_bytes)}</span>
+                      <span class="mono text-text-primary font-medium">
+                        {formatTotalBytes(disk.available_bytes)}
+                      </span>
                     </div>
                   </div>
                 </div>

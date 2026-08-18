@@ -362,10 +362,12 @@ export const zh = {
   },
   confirmDialog: {
     cleanTitle: '确认执行系统清理？',
-    cleanWarning: '即将清理所选的 {count} 项系统缓存与构建垃圾，预计释放 {size} 磁盘空间。此操作无法撤销。',
+    cleanWarning:
+      '即将清理所选的 {count} 项系统缓存与构建垃圾，预计释放 {size} 磁盘空间。此操作无法撤销。',
     cleanConfirmBtn: '确认立即清理',
     killProcessTitle: '强制结束进程？',
-    killProcessWarning: '即将向进程 {name} (PID: {pid}) 发送强制终止信号 (SIGKILL)。所有未保存的数据将丢失。',
+    killProcessWarning:
+      '即将向进程 {name} (PID: {pid}) 发送强制终止信号 (SIGKILL)。所有未保存的数据将丢失。',
     killProcessConfirmBtn: '确认强制结束',
     killPortTitle: '终止占用端口的进程？',
     killPortWarning: '即将终止监听端口 :{port} 的进程 {name} (PID: {pid})。',
@@ -418,7 +420,8 @@ export const zh = {
     rollbackBtn: '⏪ 穿越回此存档',
     rollingBack: '时光倒流中...',
     confirmRollbackTitle: '确认时光倒流回此存档？',
-    confirmRollbackWarning: '即将把代码安全还原至存档 [{hash}]「{title}」。系统会在回滚前自动为你生成一份隐式安全备份，随时可再次恢复。',
+    confirmRollbackWarning:
+      '即将把代码安全还原至存档 [{hash}]「{title}」。系统会在回滚前自动为你生成一份隐式安全备份，随时可再次恢复。',
     confirmRollbackBtn: '确认时光倒流',
     emptySnapshots: '暂无历史存档点，点击上方即可创建第一个好用状态！',
     quickSnapshotBtn: '📸 记录存档',
@@ -430,10 +433,12 @@ export const zh = {
   },
   artifacts: {
     title: '本地 Web 产物即时画廊 & 端口自愈',
-    subtitle: '智能嗅探本地正在运行的 Next.js / Vite / Vue / React 网页与端口，1 秒排查并解决端口冲突',
+    subtitle:
+      '智能嗅探本地正在运行的 Next.js / Vite / Vue / React 网页与端口，1 秒排查并解决端口冲突',
     refreshBtn: '刷新产物雷达',
     scanning: '正在嗅探本地端口与网页...',
-    empty: '暂未发现本地正在运行的 Web 开发服务。在终端运行 npm run dev 或 uvicorn，即可自动在此呈现实时画廊！',
+    empty:
+      '暂未发现本地正在运行的 Web 开发服务。在终端运行 npm run dev 或 uvicorn，即可自动在此呈现实时画廊！',
     openBrowser: '打开网页',
     freePort: '腾出端口',
     killConfirmTitle: '确认终止该端口服务？',
@@ -447,7 +452,8 @@ export const zh = {
   },
   aiRadar: {
     title: '全球主流 LLM API 测速雷达 & 本地大模型显控',
-    subtitle: '一键测试 DeepSeek / Claude / OpenAI / Gemini 连通性与时延，监控 Ollama 本地模型显存并一键释放',
+    subtitle:
+      '一键测试 DeepSeek / Claude / OpenAI / Gemini 连通性与时延，监控 Ollama 本地模型显存并一键释放',
     testLatencyBtn: '开始测速',
     testing: '正在测速中...',
     latencySection: '全球主流 AI API 连通性 & 梯子时延',

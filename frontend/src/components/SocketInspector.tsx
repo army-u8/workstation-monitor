@@ -11,7 +11,7 @@ export const SocketInspector: Component = () => {
   const [activeTab, setActiveTab] = createSignal<SocketTab>(SocketTab.LISTENING);
   const [searchQuery, setSearchQuery] = createSignal('');
   const [categoryFilter, setCategoryFilter] = createSignal<SocketCategoryFilter>(
-    SocketCategoryFilter.ALL
+    SocketCategoryFilter.ALL,
   );
 
   const isMatchingCategory = (port: number, processName: string) => {
@@ -84,8 +84,8 @@ export const SocketInspector: Component = () => {
   const confirmKillPort = (item: SocketEntry) => {
     openConfirmDialog({
       title: t().confirmDialog.killPortTitle,
-      message: t().confirmDialog.killPortWarning
-        .replace('{name}', item.process_name || 'Process')
+      message: t()
+        .confirmDialog.killPortWarning.replace('{name}', item.process_name || 'Process')
         .replace('{pid}', item.pid?.toString() || '-')
         .replace('{port}', item.local_port.toString()),
       confirmText: t().confirmDialog.killPortConfirmBtn,
@@ -97,7 +97,10 @@ export const SocketInspector: Component = () => {
   };
 
   return (
-    <section aria-label={t().sockets.listeningTab} class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5">
+    <section
+      aria-label={t().sockets.listeningTab}
+      class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5"
+    >
       {/* Kobalte Tabs Component for Accessible Tab Switching */}
       <Tabs
         value={activeTab()}
@@ -106,7 +109,10 @@ export const SocketInspector: Component = () => {
       >
         {/* Controls Toolbar with TabList */}
         <div class="mb-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
-          <Tabs.List class="flex rounded-md bg-bg-input p-0.5 border border-border-subtle text-[11px]" aria-label="Sockets tab navigation">
+          <Tabs.List
+            class="flex rounded-md bg-bg-input p-0.5 border border-border-subtle text-[11px]"
+            aria-label="Sockets tab navigation"
+          >
             <Tabs.Trigger
               value={SocketTab.LISTENING}
               class="rounded px-2.5 py-0.5 font-medium transition-colors outline-none focus-visible:ring-1 focus-visible:ring-accent"
@@ -165,14 +171,20 @@ export const SocketInspector: Component = () => {
 
             {/* Category Filter Pills (Only on Listening Tab) */}
             <Show when={activeTab() === SocketTab.LISTENING}>
-              <div class="flex items-center rounded-md border border-border-subtle bg-bg-input p-0.5 text-[10px]" role="group" aria-label="Category filter">
+              <div
+                class="flex items-center rounded-md border border-border-subtle bg-bg-input p-0.5 text-[10px]"
+                role="group"
+                aria-label="Category filter"
+              >
                 <button
                   type="button"
                   onClick={() => setCategoryFilter(SocketCategoryFilter.ALL)}
                   class="rounded px-1.5 py-0.2 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
                   classList={{
-                    'bg-bg-active text-text-primary font-medium': categoryFilter() === SocketCategoryFilter.ALL,
-                    'text-text-muted hover:text-text-primary': categoryFilter() !== SocketCategoryFilter.ALL,
+                    'bg-bg-active text-text-primary font-medium':
+                      categoryFilter() === SocketCategoryFilter.ALL,
+                    'text-text-muted hover:text-text-primary':
+                      categoryFilter() !== SocketCategoryFilter.ALL,
                   }}
                 >
                   {t().sockets.filterAll}
@@ -182,8 +194,10 @@ export const SocketInspector: Component = () => {
                   onClick={() => setCategoryFilter(SocketCategoryFilter.WEB)}
                   class="rounded px-1.5 py-0.2 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
                   classList={{
-                    'bg-bg-active text-text-primary font-medium': categoryFilter() === SocketCategoryFilter.WEB,
-                    'text-text-muted hover:text-text-primary': categoryFilter() !== SocketCategoryFilter.WEB,
+                    'bg-bg-active text-text-primary font-medium':
+                      categoryFilter() === SocketCategoryFilter.WEB,
+                    'text-text-muted hover:text-text-primary':
+                      categoryFilter() !== SocketCategoryFilter.WEB,
                   }}
                 >
                   {t().sockets.filterWeb}
@@ -193,8 +207,10 @@ export const SocketInspector: Component = () => {
                   onClick={() => setCategoryFilter(SocketCategoryFilter.DB)}
                   class="rounded px-1.5 py-0.2 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
                   classList={{
-                    'bg-bg-active text-text-primary font-medium': categoryFilter() === SocketCategoryFilter.DB,
-                    'text-text-muted hover:text-text-primary': categoryFilter() !== SocketCategoryFilter.DB,
+                    'bg-bg-active text-text-primary font-medium':
+                      categoryFilter() === SocketCategoryFilter.DB,
+                    'text-text-muted hover:text-text-primary':
+                      categoryFilter() !== SocketCategoryFilter.DB,
                   }}
                 >
                   {t().sockets.filterDb}
@@ -204,8 +220,10 @@ export const SocketInspector: Component = () => {
                   onClick={() => setCategoryFilter(SocketCategoryFilter.DEV)}
                   class="rounded px-1.5 py-0.2 transition-colors focus-visible:ring-1 focus-visible:ring-accent"
                   classList={{
-                    'bg-bg-active text-text-primary font-medium': categoryFilter() === SocketCategoryFilter.DEV,
-                    'text-text-muted hover:text-text-primary': categoryFilter() !== SocketCategoryFilter.DEV,
+                    'bg-bg-active text-text-primary font-medium':
+                      categoryFilter() === SocketCategoryFilter.DEV,
+                    'text-text-muted hover:text-text-primary':
+                      categoryFilter() !== SocketCategoryFilter.DEV,
                   }}
                 >
                   {t().sockets.filterDev}
@@ -221,12 +239,24 @@ export const SocketInspector: Component = () => {
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle text-[10.5px] text-text-muted">
-                  <th scope="col" class="py-1.5 px-3 font-medium w-16">{t().sockets.thProto}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-24">{t().sockets.thLocalPort}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">{t().sockets.thBindAddr}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">{t().sockets.thProcess}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">{t().sockets.thPid}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">{t().common.actions}</th>
+                  <th scope="col" class="py-1.5 px-3 font-medium w-16">
+                    {t().sockets.thProto}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium w-24">
+                    {t().sockets.thLocalPort}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium">
+                    {t().sockets.thBindAddr}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium">
+                    {t().sockets.thProcess}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">
+                    {t().sockets.thPid}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">
+                    {t().common.actions}
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle">
@@ -262,7 +292,12 @@ export const SocketInspector: Component = () => {
                           </Tooltip.Trigger>
                           <Tooltip.Portal>
                             <Tooltip.Content class="z-50 rounded bg-bg-modal px-2 py-1 text-[10px] text-text-primary shadow-md border border-border-default animate-in fade-in duration-100 font-sans">
-                              <span>{t().sockets.copyPortTooltip.replace('{port}', item.local_port.toString())}</span>
+                              <span>
+                                {t().sockets.copyPortTooltip.replace(
+                                  '{port}',
+                                  item.local_port.toString(),
+                                )}
+                              </span>
                             </Tooltip.Content>
                           </Tooltip.Portal>
                         </Tooltip>
@@ -274,7 +309,9 @@ export const SocketInspector: Component = () => {
 
                       <td class="py-1.5 px-3 font-medium text-text-primary truncate max-w-[200px]">
                         {item.process_name || (
-                          <span class="text-text-muted font-normal italic">{t().sockets.kernel}</span>
+                          <span class="text-text-muted font-normal italic">
+                            {t().sockets.kernel}
+                          </span>
                         )}
                       </td>
 
@@ -318,12 +355,24 @@ export const SocketInspector: Component = () => {
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle text-[10.5px] text-text-muted">
-                  <th scope="col" class="py-1.5 px-3 font-medium w-16">{t().sockets.thProto}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">{t().sockets.thLocalAddr}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">{t().sockets.thRemoteAddr}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-24">{t().sockets.thState}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium">{t().sockets.thProcess}</th>
-                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">{t().sockets.thPid}</th>
+                  <th scope="col" class="py-1.5 px-3 font-medium w-16">
+                    {t().sockets.thProto}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium">
+                    {t().sockets.thLocalAddr}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium">
+                    {t().sockets.thRemoteAddr}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium w-24">
+                    {t().sockets.thState}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium">
+                    {t().sockets.thProcess}
+                  </th>
+                  <th scope="col" class="py-1.5 px-3 font-medium w-20 text-right">
+                    {t().sockets.thPid}
+                  </th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-border-subtle">
@@ -338,7 +387,10 @@ export const SocketInspector: Component = () => {
                   }
                 >
                   {(item) => {
-                    const remote = item.remote_ip && item.remote_port ? `${item.remote_ip}:${item.remote_port}` : '-';
+                    const remote =
+                      item.remote_ip && item.remote_port
+                        ? `${item.remote_ip}:${item.remote_port}`
+                        : '-';
                     return (
                       <tr class="hover:bg-bg-hover transition-colors">
                         <td class="py-1.5 px-3 font-mono">
@@ -351,17 +403,21 @@ export const SocketInspector: Component = () => {
                           {item.local_ip}:{item.local_port}
                         </td>
 
-                        <td class="py-1.5 px-3 font-mono text-[11px] text-text-muted">
-                          {remote}
-                        </td>
+                        <td class="py-1.5 px-3 font-mono text-[11px] text-text-muted">{remote}</td>
 
                         <td class="py-1.5 px-3 font-mono">
                           <span
                             class="rounded px-1.5 py-0.2 text-[9px] font-medium"
                             classList={{
-                              'bg-status-success-bg text-status-success': item.state === SocketState.ESTABLISHED,
-                              'bg-status-warning-bg text-status-warning': item.state === SocketState.TIME_WAIT || item.state === SocketState.CLOSE_WAIT,
-                              'bg-bg-subtle text-text-muted': item.state !== SocketState.ESTABLISHED && item.state !== SocketState.TIME_WAIT && item.state !== SocketState.CLOSE_WAIT,
+                              'bg-status-success-bg text-status-success':
+                                item.state === SocketState.ESTABLISHED,
+                              'bg-status-warning-bg text-status-warning':
+                                item.state === SocketState.TIME_WAIT ||
+                                item.state === SocketState.CLOSE_WAIT,
+                              'bg-bg-subtle text-text-muted':
+                                item.state !== SocketState.ESTABLISHED &&
+                                item.state !== SocketState.TIME_WAIT &&
+                                item.state !== SocketState.CLOSE_WAIT,
                             }}
                           >
                             {item.state}

@@ -1,11 +1,6 @@
 import { For, Show, createSignal, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
-import {
-  copyToClipboard,
-  fetchMachineInfoApi,
-  machineInfo,
-  openAppApi,
-} from '../services/store';
+import { copyToClipboard, fetchMachineInfoApi, machineInfo, openAppApi } from '../services/store';
 import {
   AppBoxIcon,
   ChromeIcon,
@@ -52,8 +47,10 @@ export const MachineInfo: Component = () => {
     });
   };
 
-  const installedCount = () => (machineInfo()?.core_apps || []).filter((a) => a.is_installed).length;
-  const safariApp = () => (machineInfo()?.core_apps || []).find((a) => a.name.toLowerCase().includes('safari'));
+  const installedCount = () =>
+    (machineInfo()?.core_apps || []).filter((a) => a.is_installed).length;
+  const safariApp = () =>
+    (machineInfo()?.core_apps || []).find((a) => a.name.toLowerCase().includes('safari'));
 
   const renderAppIcon = (iconType: string) => {
     switch (iconType) {
@@ -114,7 +111,9 @@ export const MachineInfo: Component = () => {
 
         <Show
           when={machineInfo()}
-          fallback={<div class="py-6 text-center text-xs text-text-muted mono">{t().common.loading}</div>}
+          fallback={
+            <div class="py-6 text-center text-xs text-text-muted mono">{t().common.loading}</div>
+          }
         >
           {(info) => (
             <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 text-xs">
@@ -225,7 +224,8 @@ export const MachineInfo: Component = () => {
             <div class="flex items-center gap-2">
               <h2 class="text-sm font-bold text-text-primary">{t().machineInfo.coreAppsTitle}</h2>
               <span class="rounded bg-bg-subtle border border-border-subtle px-1.5 py-0.2 mono text-[10px] text-text-muted">
-                {installedCount()} / {(machineInfo()?.core_apps || []).length} {t().machineInfo.installedCount}
+                {installedCount()} / {(machineInfo()?.core_apps || []).length}{' '}
+                {t().machineInfo.installedCount}
               </span>
             </div>
             <p class="text-[11px] text-text-muted mt-0.5">{t().machineInfo.coreAppsSubtitle}</p>
@@ -240,7 +240,8 @@ export const MachineInfo: Component = () => {
               class="rounded border px-2.5 py-1 text-[11px] transition-colors focus-visible:ring-1 focus-visible:ring-accent"
               classList={{
                 'bg-accent/15 border-accent/40 text-accent font-medium': installedOnly(),
-                'bg-bg-input border-border-subtle text-text-muted hover:text-text-primary': !installedOnly(),
+                'bg-bg-input border-border-subtle text-text-muted hover:text-text-primary':
+                  !installedOnly(),
               }}
             >
               {installedOnly() ? t().machineInfo.filterInstalled : t().machineInfo.filterAll}
@@ -313,10 +314,13 @@ export const MachineInfo: Component = () => {
                             class="rounded px-1.5 py-0.2 mono text-[9px] font-medium"
                             classList={{
                               'bg-status-success/15 text-status-success': app.is_installed,
-                              'bg-bg-subtle text-text-muted border border-border-subtle': !app.is_installed,
+                              'bg-bg-subtle text-text-muted border border-border-subtle':
+                                !app.is_installed,
                             }}
                           >
-                            {app.is_installed ? t().machineInfo.installed : t().machineInfo.notInstalled}
+                            {app.is_installed
+                              ? t().machineInfo.installed
+                              : t().machineInfo.notInstalled}
                           </span>
                         }
                       >

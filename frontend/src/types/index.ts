@@ -314,7 +314,15 @@ export interface UpdateApplyResponse {
 }
 
 export interface UpdateProgressResponse {
-  status: 'Idle' | 'Checking' | 'Downloading' | 'Extracting' | 'Replacing' | 'Restarting' | 'Failed' | 'Success';
+  status:
+    | 'Idle'
+    | 'Checking'
+    | 'Downloading'
+    | 'Extracting'
+    | 'Replacing'
+    | 'Restarting'
+    | 'Failed'
+    | 'Success';
   payload?: {
     percent?: number;
     downloaded_bytes?: number;
@@ -440,6 +448,3 @@ export type WsEvent =
   | { type: 'DisksUpdate'; data: DiskInfo[] }
   | { type: 'BatteryUpdate'; data: BatteryInfo | null }
   | { type: 'DevToolsUpdate'; data: DevToolInfo[] };
-
-
-

@@ -50,11 +50,16 @@ export const ConfirmModal: Component = () => {
               <div
                 class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-base shadow-xs"
                 classList={{
-                  'bg-status-danger-bg text-status-danger border-status-danger/25': modal().isDestructive !== false,
-                  'bg-status-warning-bg text-status-warning border-status-warning/25': modal().isDestructive === false,
+                  'bg-status-danger-bg text-status-danger border-status-danger/25':
+                    modal().isDestructive !== false,
+                  'bg-status-warning-bg text-status-warning border-status-warning/25':
+                    modal().isDestructive === false,
                 }}
               >
-                <Show when={modal().isDestructive !== false} fallback={<span aria-hidden="true">⚠️</span>}>
+                <Show
+                  when={modal().isDestructive !== false}
+                  fallback={<span aria-hidden="true">⚠️</span>}
+                >
                   <svg
                     class="h-5 w-5 text-status-danger"
                     xmlns="http://www.w3.org/2000/svg"
@@ -77,9 +82,7 @@ export const ConfirmModal: Component = () => {
                 <h2 id="confirm-dialog-title" class="text-sm font-bold text-text-primary">
                   {modal().title}
                 </h2>
-                <p class="mt-1.5 text-xs leading-relaxed text-text-secondary">
-                  {modal().message}
-                </p>
+                <p class="mt-1.5 text-xs leading-relaxed text-text-secondary">{modal().message}</p>
               </div>
             </div>
 
@@ -100,8 +103,10 @@ export const ConfirmModal: Component = () => {
                 disabled={isProcessing()}
                 class="flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors focus-visible:ring-2 disabled:opacity-50"
                 classList={{
-                  'bg-status-danger hover:bg-status-danger/90 focus-visible:ring-status-danger': modal().isDestructive !== false,
-                  'bg-accent hover:bg-accent-hover focus-visible:ring-accent': modal().isDestructive === false,
+                  'bg-status-danger hover:bg-status-danger/90 focus-visible:ring-status-danger':
+                    modal().isDestructive !== false,
+                  'bg-accent hover:bg-accent-hover focus-visible:ring-accent':
+                    modal().isDestructive === false,
                 }}
               >
                 <Show when={isProcessing()}>
