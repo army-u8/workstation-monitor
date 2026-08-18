@@ -35,7 +35,7 @@ export const SpeedTester: Component = () => {
           aria-label={t().speedtest.startBtn}
           class="mt-3 sm:mt-0"
         >
-          <SpeedIcon class={`h-4 w-4 ${isTesting() ? 'animate-bounce' : ''}`} />
+          <SpeedIcon class={`h-4 w-4 ${isTesting() ? 'animate-pulse opacity-80' : ''}`} />
           <span>{isTesting() ? t().speedtest.testing : t().speedtest.startBtn}</span>
         </Button>
       </section>

@@ -197,36 +197,36 @@ export const TrafficWaveform: Component = () => {
   };
 
   return (
-    <section class="flex flex-col rounded-lg border border-border-default bg-bg-surface p-3.5">
+    <section class="glass-card p-4">
       {/* Panel Header */}
-      <div class="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
-          <h2 class="text-xs font-semibold text-text-primary">{t().traffic.title}</h2>
-          <span class="text-[10px] text-text-muted mono">{t().traffic.window}</span>
+          <h2 class="type-section text-text-primary m-0">{t().traffic.title}</h2>
+          <span class="type-caption mono">{t().traffic.window}</span>
         </div>
 
         <div class="flex items-center gap-2">
-          <div class="flex items-center gap-1.5 rounded bg-bg-subtle border border-border-subtle px-2 py-0.5 text-[10px]">
-            <span class="h-1.5 w-1.5 rounded-full bg-status-success" />
-            <span class="text-text-muted">RX</span>
-            <span class="mono font-semibold text-text-primary">
+          <div class="flex items-center gap-1.5 rounded-md bg-bg-subtle border border-border-subtle px-2.5 py-0.8 text-[10.5px]">
+            <span class="h-1.5 w-1.5 rounded-full bg-status-success shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
+            <span class="text-text-muted font-medium">RX</span>
+            <span class="type-data-mono text-text-primary">
               {formatSpeed(traffic()?.total_rx_speed || 0).num}{' '}
               {formatSpeed(traffic()?.total_rx_speed || 0).unit}
             </span>
           </div>
 
-          <div class="flex items-center gap-1.5 rounded bg-bg-subtle border border-border-subtle px-2 py-0.5 text-[10px]">
-            <span class="h-1.5 w-1.5 rounded-full bg-accent" />
-            <span class="text-text-muted">TX</span>
-            <span class="mono font-semibold text-text-primary">
+          <div class="flex items-center gap-1.5 rounded-md bg-bg-subtle border border-border-subtle px-2.5 py-0.8 text-[10.5px]">
+            <span class="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(56,189,248,0.7)]" />
+            <span class="text-text-muted font-medium">TX</span>
+            <span class="type-data-mono text-text-primary">
               {formatSpeed(traffic()?.total_tx_speed || 0).num}{' '}
               {formatSpeed(traffic()?.total_tx_speed || 0).unit}
             </span>
           </div>
 
-          <div class="hidden items-center gap-1 text-[10px] text-text-muted sm:flex">
-            <span>{t().traffic.peak}:</span>
-            <span class="mono text-text-secondary">{peakDisplay()}</span>
+          <div class="hidden items-center gap-1.5 text-[10.5px] text-text-muted sm:flex ml-1">
+            <span class="font-medium">{t().traffic.peak}:</span>
+            <span class="type-data-mono text-text-secondary">{peakDisplay()}</span>
           </div>
         </div>
       </div>
