@@ -21,6 +21,7 @@ import {
   TbBranchIcon,
   UserIcon,
 } from './Icons';
+import { Button, Input } from './ui';
 import { t } from '../i18n';
 import type { SavePointSnapshot } from '../types';
 
@@ -132,20 +133,21 @@ export const SavePointDrawer: Component = () => {
               <p class="text-xs text-text-muted mb-3">{t().snapshots.recordDesc}</p>
 
               <form onSubmit={handleCreate} class="flex gap-2">
-                <input
+                <Input
                   type="text"
                   placeholder={t().snapshots.recordPlaceholder}
                   value={newTitle()}
                   onInput={(e) => setNewTitle(e.currentTarget.value)}
-                  class="flex-1 rounded-lg border border-border-default bg-bg-surface px-3 py-2 text-xs text-text-primary placeholder:text-text-muted outline-hidden focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
+                  class="flex-1"
                 />
-                <button
+                <Button
                   type="submit"
+                  variant="default"
                   disabled={isCreatingSnapshot()}
-                  class="shrink-0 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-white shadow-xs hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+                  loading={isCreatingSnapshot()}
                 >
                   {isCreatingSnapshot() ? t().snapshots.recording : t().snapshots.recordBtn}
-                </button>
+                </Button>
               </form>
             </div>
 
@@ -256,17 +258,19 @@ export const SavePointDrawer: Component = () => {
 
                           {/* Rollback Action Button */}
                           <Show when={!snap.is_head}>
-                            <button
+                            <Button
                               type="button"
+                              variant="outline"
+                              size="sm"
                               onClick={() => handleRollback(snap)}
                               disabled={isRollingBackSnapshot()}
-                              class="shrink-0 rounded-lg border border-border-default bg-bg-subtle px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:bg-status-warning/15 hover:border-status-warning/50 hover:text-status-warning active:scale-95 transition-all focus-visible:ring-2 focus-visible:ring-accent"
+                              loading={isRollingBackSnapshot()}
                               title={t().snapshots.rollbackPointTip}
                             >
                               {isRollingBackSnapshot()
                                 ? t().snapshots.rollingBack
                                 : t().snapshots.rollbackBtn}
-                            </button>
+                            </Button>
                           </Show>
                         </div>
                       </div>

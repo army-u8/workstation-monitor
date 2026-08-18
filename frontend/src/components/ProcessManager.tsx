@@ -2,6 +2,7 @@ import { For, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
 import { copyToClipboard, killProcessApi, openConfirmDialog, processes } from '../services/store';
 import { ProcessSortBy } from '../constants';
+import { Button, Input } from './ui';
 import type { ProcessInfo } from '../types';
 import { t } from '../i18n';
 
@@ -69,13 +70,13 @@ export const ProcessManager: Component = () => {
 
         <div class="flex flex-wrap items-center gap-2">
           {/* Search Box */}
-          <input
+          <Input
             type="text"
             placeholder={t().processes.searchPlaceholder}
             value={filterQuery()}
             onInput={(e) => setFilterQuery(e.currentTarget.value)}
             aria-label={t().processes.searchPlaceholder}
-            class="h-7.5 w-52 rounded-lg border border-border-default bg-bg-surface px-3 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors"
+            class="h-7.5 w-52"
           />
 
           {/* Sort Toggles */}
@@ -192,21 +193,23 @@ export const ProcessManager: Component = () => {
                     </td>
                     <td class="py-2 px-3.5 text-right whitespace-nowrap">
                       <div class="flex items-center justify-end gap-1.5">
-                        <button
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={() => copyToClipboard(proc.pid.toString(), 'PID')}
-                          class="rounded border border-border-default bg-bg-surface px-1.8 py-0.5 text-[10px] text-text-muted hover:text-text-primary transition-all"
                           title={t().devops.copy}
                         >
                           {t().devops.copy}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="destructive"
+                          size="sm"
                           onClick={() => confirmKill(proc)}
-                          class="rounded border border-status-danger/30 bg-status-danger/10 px-2 py-0.5 text-[10px] font-bold text-status-danger hover:bg-status-danger hover:text-white transition-all"
                         >
                           {t().processes.killBtn}
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>

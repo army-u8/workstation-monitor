@@ -13,6 +13,7 @@ import {
   SafariIcon,
   TerminalIcon,
 } from './Icons';
+import { Input } from './ui';
 import { t } from '../i18n';
 import type { AppVersionInfo } from '../types';
 
@@ -289,13 +290,13 @@ export const MachineInfo: Component = () => {
 
             {/* Search Input */}
             <div class="relative flex items-center">
-              <input
+              <Input
                 type="text"
                 aria-label={t().machineInfo.searchPlaceholder}
                 placeholder={t().machineInfo.searchPlaceholder}
                 value={searchQuery()}
                 onInput={(e) => setSearchQuery(e.currentTarget.value)}
-                class="w-56 rounded-lg border border-border-default bg-bg-surface py-1.5 pl-3 pr-6 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
+                class="w-56 pr-6"
               />
               <Show when={searchQuery()}>
                 <button

@@ -18,6 +18,7 @@ import {
   PhotoIcon,
   RefreshIcon,
 } from './Icons';
+import { Input } from './ui';
 import { ArtifactsLayoutMode, ArtifactsSortBy, StorageKey } from '../constants';
 import { t } from '../i18n';
 import type { WebArtifactInfo } from '../types';
@@ -382,12 +383,12 @@ export const WebArtifactsView: Component = () => {
 
           {/* Search Input */}
           <div class="relative flex items-center">
-            <input
+            <Input
               type="text"
               placeholder={t().artifacts.searchPlaceholder}
               value={searchQuery()}
               onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-48 rounded-lg border border-border-default bg-bg-surface py-1 pl-2.5 pr-6 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
+              class="w-48 pr-6"
             />
             <Show when={searchQuery()}>
               <button

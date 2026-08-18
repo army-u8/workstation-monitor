@@ -2,6 +2,7 @@ import { Show, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
 import { runSpeedTestApi, speedTestResult } from '../services/store';
 import { SpeedIcon } from './Icons';
+import { Button } from './ui';
 import { t } from '../i18n';
 
 export const SpeedTester: Component = () => {
@@ -25,17 +26,18 @@ export const SpeedTester: Component = () => {
           <p class="mt-1 text-xs text-text-muted">{t().speedtest.tip}</p>
         </div>
 
-        <button
+        <Button
           type="button"
+          variant="default"
           onClick={handleStart}
           disabled={isTesting()}
-          aria-busy={isTesting()}
+          loading={isTesting()}
           aria-label={t().speedtest.startBtn}
-          class="mt-3 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-xs font-bold text-white transition-all hover:brightness-110 active:scale-95 disabled:opacity-50 sm:mt-0 shadow-2xs focus-visible:ring-2 focus-visible:ring-accent"
+          class="mt-3 sm:mt-0"
         >
           <SpeedIcon class={`h-4 w-4 ${isTesting() ? 'animate-bounce' : ''}`} />
           <span>{isTesting() ? t().speedtest.testing : t().speedtest.startBtn}</span>
-        </button>
+        </Button>
       </section>
 
       {/* Speedometer Gauge & Results Card */}

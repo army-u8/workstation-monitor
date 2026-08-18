@@ -1,6 +1,6 @@
 import { For, Show, createMemo, createSignal } from 'solid-js';
 import type { Component } from 'solid-js';
-import { Tabs } from '@kobalte/core/tabs';
+import { Input, Tabs, TabsContent, TabsList, TabsTrigger } from './ui';
 import { copyToClipboard, killPortApi, openConfirmDialog, sockets } from '../services/store';
 import {
   AppBoxIcon,
@@ -194,61 +194,43 @@ export const SocketInspector: Component = () => {
 
   return (
     <section aria-label={t().sockets.listeningTab} class="glass-card flex flex-col p-4 shadow-xs">
-      {/* Kobalte Tabs Component for Accessible Tab Switching */}
       <Tabs
         value={activeTab()}
-        onChange={(val) => setActiveTab(val as SocketTab)}
+        onValueChange={(details) => setActiveTab(details.value as SocketTab)}
         class="w-full flex flex-col"
       >
         {/* Controls Toolbar with TabList */}
         <div class="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Tabs.List
-            class="flex rounded-lg bg-bg-base/80 p-1 border border-border-subtle text-[11px] shadow-2xs"
-            aria-label="Sockets tab navigation"
-          >
-            <Tabs.Trigger
-              value={SocketTab.LISTENING}
-              class="rounded-md px-3 py-1 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary shadow-2xs': activeTab() === SocketTab.LISTENING,
-                'text-text-muted hover:text-text-primary': activeTab() !== SocketTab.LISTENING,
-              }}
-            >
+          <TabsList aria-label="Sockets tab navigation">
+            <TabsTrigger value={SocketTab.LISTENING}>
               {t().sockets.listeningTab}
               <Show when={sockets()?.listening_ports?.length}>
                 <span class="ml-1.5 mono text-[10px] font-bold text-accent">
                   {sockets()?.listening_ports?.length}
                 </span>
               </Show>
-            </Tabs.Trigger>
+            </TabsTrigger>
 
-            <Tabs.Trigger
-              value={SocketTab.ACTIVE}
-              class="rounded-md px-3 py-1 font-bold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent"
-              classList={{
-                'bg-bg-active text-text-primary shadow-2xs': activeTab() === SocketTab.ACTIVE,
-                'text-text-muted hover:text-text-primary': activeTab() !== SocketTab.ACTIVE,
-              }}
-            >
+            <TabsTrigger value={SocketTab.ACTIVE}>
               {t().sockets.activeTab}
               <Show when={sockets()?.active_connections?.length}>
                 <span class="ml-1.5 mono text-[10px] font-bold text-teal-400">
                   {sockets()?.active_connections?.length}
                 </span>
               </Show>
-            </Tabs.Trigger>
-          </Tabs.List>
+            </TabsTrigger>
+          </TabsList>
 
           {/* Search Box & Category Filters */}
           <div class="flex flex-wrap items-center gap-2">
             <div class="relative flex items-center">
-              <input
+              <Input
                 type="text"
                 aria-label={t().sockets.searchPlaceholder}
                 placeholder={t().sockets.searchPlaceholder}
                 value={searchQuery()}
                 onInput={(e) => setSearchQuery(e.currentTarget.value)}
-                class="w-56 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
+                class="h-7 w-40 sm:w-48 pl-2.5 pr-6 text-xs"
               />
               <Show when={searchQuery()}>
                 <button
@@ -340,7 +322,7 @@ export const SocketInspector: Component = () => {
         </div>
 
         {/* Tab 1: Listening Ports Table */}
-        <Tabs.Content value={SocketTab.LISTENING} class="outline-none">
+        <TabsContent value={SocketTab.LISTENING} class="outline-none">
           <div class="max-h-[500px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
@@ -442,10 +424,10 @@ export const SocketInspector: Component = () => {
               </tbody>
             </table>
           </div>
-        </Tabs.Content>
+        </TabsContent>
 
         {/* Tab 2: Active Connections Table */}
-        <Tabs.Content value={SocketTab.ACTIVE} class="outline-none">
+        <TabsContent value={SocketTab.ACTIVE} class="outline-none">
           <div class="max-h-[500px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
@@ -569,7 +551,7 @@ export const SocketInspector: Component = () => {
               </tbody>
             </table>
           </div>
-        </Tabs.Content>
+        </TabsContent>
       </Tabs>
     </section>
   );

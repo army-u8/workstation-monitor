@@ -2,6 +2,7 @@ import { For, Show, createSignal, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import { copyToClipboard, fetchHostsApi, hostsList, pingHostApi } from '../services/store';
 import { CloseIcon, RefreshIcon } from './Icons';
+import { Button, Input } from './ui';
 import { t } from '../i18n';
 
 export const HostsManager: Component = () => {
@@ -56,13 +57,13 @@ export const HostsManager: Component = () => {
         <div class="flex items-center gap-2.5">
           {/* Search box */}
           <div class="relative flex items-center">
-            <input
+            <Input
               type="text"
               aria-label={t().hosts.searchPlaceholder}
               placeholder={t().hosts.searchPlaceholder}
               value={searchQuery()}
               onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-60 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-accent focus-visible:ring-1 focus-visible:ring-accent"
+              class="w-60 pr-7"
             />
             <Show when={searchQuery()}>
               <button
@@ -76,17 +77,17 @@ export const HostsManager: Component = () => {
             </Show>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="default"
             onClick={handleReload}
             disabled={isReloading()}
-            aria-busy={isReloading()}
+            loading={isReloading()}
             aria-label={t().hosts.reload}
-            class="flex items-center justify-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.8 text-xs font-bold text-white shadow-2xs hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
           >
             <RefreshIcon class={`h-3.5 w-3.5 ${isReloading() ? 'animate-spin' : ''}`} />
             <span>{isReloading() ? t().common.loading : t().hosts.reload}</span>
-          </button>
+          </Button>
         </div>
       </section>
 

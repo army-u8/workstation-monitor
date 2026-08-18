@@ -21,6 +21,7 @@ import {
   ServerIcon,
   TargetIcon,
 } from './Icons';
+import { Badge, Button } from './ui';
 import { t } from '../i18n';
 import type { DetectedApiKey, EnvVarEntry, PathEntry } from '../types';
 
@@ -375,20 +376,19 @@ export const DevToolsView: Component = () => {
         {/* Action & Stats */}
         <div class="flex items-center gap-2.5">
           <Show when={envVarsData()?.proxy_configured}>
-            <span class="inline-flex items-center gap-1.5 rounded-lg border border-status-warning/30 bg-status-warning/10 px-2.5 py-1 text-xs font-semibold text-status-warning">
-              <span>{t().devops.proxyConfigured}</span>
-            </span>
+            <Badge variant="warning">{t().devops.proxyConfigured}</Badge>
           </Show>
 
-          <button
+          <Button
             type="button"
+            variant="default"
             onClick={() => fetchEnvVarsApi()}
             disabled={isLoadingEnvVars()}
-            class="flex items-center gap-1.5 rounded-lg bg-accent px-3.5 py-1.8 text-xs font-semibold text-white shadow-sm hover:brightness-110 active:scale-95 disabled:opacity-50 transition-all"
+            loading={isLoadingEnvVars()}
           >
             <RefreshIcon class="h-3.5 w-3.5" classList={{ 'animate-spin': isLoadingEnvVars() }} />
             <span>{t().envVars.refreshBtn}</span>
-          </button>
+          </Button>
         </div>
       </div>
 

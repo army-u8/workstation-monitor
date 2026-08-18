@@ -23,6 +23,7 @@ import {
   TerminalIcon,
   UserIcon,
 } from './Icons';
+import { Button, Input } from './ui';
 import { SavePointDrawer } from './SavePointDrawer';
 import { GitRepoLayoutMode, GitRepoSortBy, StorageKey } from '../constants';
 import { t } from '../i18n';
@@ -376,13 +377,13 @@ export const GitRadar: Component = () => {
 
           {/* Search box */}
           <div class="relative flex items-center">
-            <input
+            <Input
               type="text"
               aria-label={t().gitRadar.searchPlaceholder}
               placeholder={t().gitRadar.searchPlaceholder}
               value={searchQuery()}
               onInput={(e) => setSearchQuery(e.currentTarget.value)}
-              class="w-48 rounded border border-border-default bg-bg-input py-1 pl-2.5 pr-6 text-[11px] text-text-primary placeholder:text-text-muted outline-none transition-all focus:border-border-strong focus-visible:ring-1 focus-visible:ring-accent"
+              class="w-48 pr-6"
             />
             <Show when={searchQuery()}>
               <button
@@ -397,16 +398,17 @@ export const GitRadar: Component = () => {
           </div>
 
           {/* Refresh Button */}
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             onClick={handleScan}
             disabled={isScanning()}
-            aria-busy={isScanning()}
+            loading={isScanning()}
             aria-label={t().gitRadar.scanBtn}
-            class="flex items-center justify-center gap-1.5 rounded border border-border-default bg-bg-subtle px-2.5 py-1 text-xs font-medium text-text-primary transition-colors hover:bg-bg-hover disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-accent"
           >
             <RefreshIcon class={`h-3.5 w-3.5 ${isScanning() ? 'animate-spin' : ''}`} />
-          </button>
+          </Button>
         </div>
       </section>
 

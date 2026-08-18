@@ -2,6 +2,7 @@ import { Show, createSignal, onCleanup, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import { closeConfirmDialog, confirmModal } from '../services/store';
 import { AlertWarningIcon } from './Icons';
+import { Button } from './ui';
 import { t } from '../i18n';
 
 export const ConfirmModal: Component = () => {
@@ -88,32 +89,24 @@ export const ConfirmModal: Component = () => {
 
             {/* Actions Bar */}
             <div class="mt-5 flex items-center justify-end gap-2.5 pt-3 border-t border-border-subtle">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={closeConfirmDialog}
                 disabled={isProcessing()}
-                class="rounded-lg border border-border-default bg-bg-subtle px-3.5 py-1.5 text-xs font-medium text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-50"
               >
                 {modal().cancelText || t().common.cancel}
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="button"
+                variant={modal().isDestructive !== false ? 'destructive' : 'default'}
                 onClick={handleConfirm}
                 disabled={isProcessing()}
-                class="flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-semibold text-white shadow-xs transition-colors focus-visible:ring-2 disabled:opacity-50"
-                classList={{
-                  'bg-status-danger hover:bg-status-danger/90 focus-visible:ring-status-danger':
-                    modal().isDestructive !== false,
-                  'bg-accent hover:bg-accent-hover focus-visible:ring-accent':
-                    modal().isDestructive === false,
-                }}
+                loading={isProcessing()}
               >
-                <Show when={isProcessing()}>
-                  <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-                </Show>
-                <span>{modal().confirmText || t().common.confirm}</span>
-              </button>
+                {modal().confirmText || t().common.confirm}
+              </Button>
             </div>
           </div>
         </div>

@@ -24,6 +24,7 @@ import {
   RefreshIcon,
   RocketIcon,
 } from './Icons';
+import { Badge, Button } from './ui';
 import { t } from '../i18n';
 
 export const UpdateModal: Component = () => {
@@ -182,9 +183,7 @@ export const UpdateModal: Component = () => {
                           <h4 class="text-xs font-bold text-text-primary m-0">
                             {t().update.latestBadge}
                           </h4>
-                          <span class="rounded bg-status-success/15 px-2 py-0.2 text-[10.5px] font-mono font-semibold text-status-success">
-                            v{info()?.current_version}
-                          </span>
+                          <Badge variant="success">v{info()?.current_version}</Badge>
                         </div>
                         <p class="text-xs text-text-muted m-0 mt-0.5">
                           {t().update.latestSubtitle}
@@ -192,11 +191,12 @@ export const UpdateModal: Component = () => {
                       </div>
                     </div>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
                       onClick={() => fetchUpdateCheckApi(true)}
                       disabled={isCheckingUpdate()}
-                      class="shrink-0 flex items-center gap-1.5 rounded-lg border border-border-default bg-bg-surface px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary hover:border-border-hover transition-all"
+                      loading={isCheckingUpdate()}
                     >
                       <RefreshIcon
                         class="h-3.5 w-3.5"
@@ -205,7 +205,7 @@ export const UpdateModal: Component = () => {
                       <span>
                         {isCheckingUpdate() ? t().update.rechecking : t().update.recheckBtn}
                       </span>
-                    </button>
+                    </Button>
                   </div>
 
                   {/* Release Notes for Current Version */}
@@ -379,24 +379,21 @@ export const UpdateModal: Component = () => {
 
             <div class="flex items-center gap-2">
               <Show when={!isApplyingUpdate()}>
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  class="rounded-lg border border-border-default bg-bg-subtle px-3 py-1.5 text-xs text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-colors"
-                >
+                <Button type="button" variant="outline" onClick={handleClose}>
                   {info()?.has_update ? t().update.dismissBtn : t().update.closeBtn}
-                </button>
+                </Button>
 
                 <Show when={info()?.has_update && activeTab() === 'upgrade'}>
-                  <button
+                  <Button
                     type="button"
+                    variant="default"
                     onClick={handleApplyUpdate}
                     disabled={isCheckingUpdate() || isApplyingUpdate()}
-                    class="flex items-center gap-1.5 rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:brightness-110 active:scale-95 transition-all"
+                    loading={isApplyingUpdate()}
                   >
                     <RocketIcon class="h-4 w-4" />
                     <span>{t().update.updateNowBtn}</span>
-                  </button>
+                  </Button>
                 </Show>
               </Show>
             </div>

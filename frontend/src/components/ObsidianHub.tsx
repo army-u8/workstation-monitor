@@ -10,6 +10,7 @@ import {
   searchObsidianApi,
 } from '../services/store';
 import { CheckIcon, CloseIcon, FolderIcon, RefreshIcon, SearchIcon } from './Icons';
+import { Button, Input } from './ui';
 import { t } from '../i18n';
 import type { ObsidianNoteDetail, ObsidianSearchResponse } from '../types';
 
@@ -187,11 +188,12 @@ export const ObsidianHub: Component = () => {
 
           {/* Action Tools */}
           <div class="flex flex-wrap items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="default"
+              size="sm"
               onClick={() => openObsidianApi({ target_app: 'obsidian' })}
               aria-label={t().obsidian.openApp}
-              class="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-bold text-white shadow-2xs hover:brightness-110 active:scale-95 transition-all"
             >
               <svg
                 class="h-3.5 w-3.5"
@@ -205,44 +207,49 @@ export const ObsidianHub: Component = () => {
                 <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
               <span>{t().obsidian.openApp}</span>
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => openObsidianApi({ target_app: 'finder' })}
               aria-label={t().obsidian.openFinder}
-              class="rounded-lg border border-border-default bg-bg-surface px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all shadow-2xs"
             >
               {t().obsidian.openFinder}
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => openObsidianApi({ target_app: 'code' })}
               aria-label={t().obsidian.openCode}
-              class="rounded-lg border border-border-default bg-bg-surface px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all shadow-2xs"
             >
               {t().obsidian.openCode}
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
+              variant="outline"
+              size="sm"
               onClick={() => openObsidianApi({ target_app: 'terminal' })}
               aria-label={t().obsidian.openTerminal}
-              class="rounded-lg border border-border-default bg-bg-surface px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all shadow-2xs"
             >
               {t().obsidian.openTerminal}
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="icon"
               onClick={handleRefresh}
               disabled={isRefreshing()}
+              loading={isRefreshing()}
               aria-label={t().common.refresh}
-              class="rounded-lg border border-border-default bg-bg-surface p-1.8 text-text-secondary hover:bg-bg-hover hover:text-text-primary transition-all disabled:opacity-50"
             >
               <RefreshIcon class={`h-3.5 w-3.5 ${isRefreshing() ? 'animate-spin' : ''}`} />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -356,26 +363,25 @@ export const ObsidianHub: Component = () => {
           <div class="flex flex-col sm:flex-row items-center justify-between gap-2">
             <div class="flex items-center gap-1.5 w-full sm:w-auto">
               <span class="mono text-xs text-text-muted">#</span>
-              <input
+              <Input
                 type="text"
                 value={quickCaptureTag()}
                 onInput={(e) => setQuickCaptureTag(e.currentTarget.value)}
                 placeholder={t().obsidian.tagPlaceholder}
-                class="h-7 w-full sm:w-48 rounded border border-border-default bg-bg-input px-2 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors"
+                class="h-7 w-full sm:w-48"
               />
             </div>
 
-            <button
+            <Button
               type="submit"
+              variant="default"
+              size="sm"
               disabled={isCapturing() || !quickCaptureText().trim()}
-              aria-busy={isCapturing()}
-              class="w-full sm:w-auto flex items-center justify-center gap-1.5 rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-accent-hover disabled:opacity-50 transition-colors focus-visible:ring-2 focus-visible:ring-accent"
+              loading={isCapturing()}
+              class="w-full sm:w-auto"
             >
-              <Show when={isCapturing()}>
-                <span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-              </Show>
               <span>{isCapturing() ? t().obsidian.capturing : t().obsidian.captureBtn}</span>
-            </button>
+            </Button>
           </div>
         </form>
       </section>
