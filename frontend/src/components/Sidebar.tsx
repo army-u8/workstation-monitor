@@ -320,8 +320,9 @@ export const Sidebar: Component = () => {
           <For each={groups}>
             {(group) => (
               <div class="space-y-0.5">
-                <div class="px-2.5 pt-1.5 pb-0.5 text-[9.5px] font-semibold uppercase tracking-wider text-text-muted/60">
-                  {group.category()}
+                <div class="px-2.5 pt-1.5 pb-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-accent/60 flex items-center gap-1.5">
+                  <span class="text-[8px] text-accent/40">//</span>
+                  <span>{group.category()}</span>
                 </div>
                 <div class="space-y-0.5">
                   <For each={group.items}>
@@ -334,9 +335,9 @@ export const Sidebar: Component = () => {
                         <A
                           href={path}
                           onClick={() => setIsSidebarOpen(false)}
-                          activeClass="bg-accent/10 text-accent font-semibold shadow-xs"
-                          inactiveClass="text-text-secondary hover:bg-bg-hover/80 hover:text-text-primary"
-                          class="group flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs transition-all focus-visible:ring-2 focus-visible:ring-accent"
+                          activeClass="border-l-2 border-accent bg-accent/15 text-accent font-bold shadow-[inset_0_0_10px_rgba(0,240,255,0.15)]"
+                          inactiveClass="border-l-2 border-transparent text-text-secondary hover:bg-bg-hover/80 hover:text-text-primary"
+                          class="group flex w-full items-center gap-2.5 rounded-sm px-2.5 py-1.5 text-xs transition-all focus-visible:ring-1 focus-visible:ring-accent font-mono"
                         >
                           <Icon
                             class={`h-3.8 w-3.8 shrink-0 transition-colors ${
@@ -345,7 +346,7 @@ export const Sidebar: Component = () => {
                                 : 'text-text-muted group-hover:text-text-primary'
                             }`}
                           />
-                          <span class="truncate">{item.label()}</span>
+                          <span class="truncate tracking-tight">{item.label()}</span>
                           {renderBadge(item)}
                         </A>
                       );

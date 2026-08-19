@@ -360,7 +360,7 @@ export const DevToolsView: Component = () => {
   return (
     <div class="flex flex-col gap-5" aria-label={t().sidebar.navDevtools}>
       {/* Header Banner */}
-      <div class="glass-card flex flex-wrap items-center justify-between gap-3 p-4">
+      <div class="hud-box flex flex-wrap items-center justify-between gap-3 p-4 shadow-lg bg-bg-surface/90">
         <div class="flex items-center gap-3">
           <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent text-lg border border-accent/20">
             <DevToolsIcon class="h-4.5 w-4.5" />

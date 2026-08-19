@@ -9,88 +9,84 @@ export const KpiRibbon: Component = () => {
   const activeCount = () => sockets()?.active_connections?.length || 0;
 
   return (
-    <section class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {/* RX Metric */}
-      <div class="glass-card flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px] group relative overflow-hidden">
-        <div class="absolute top-0 right-0 h-14 w-14 bg-status-success/5 rounded-full blur-lg pointer-events-none transition-opacity group-hover:opacity-100 opacity-60" />
-        <div class="flex items-center justify-between text-[11px] relative z-10">
+    <section class="hud-box grid grid-cols-1 divide-y sm:divide-y-0 sm:grid-cols-2 lg:grid-cols-4 sm:divide-x divide-border-default bg-bg-surface/90 shadow-lg">
+      {/* 01: RX Telemetry */}
+      <div class="p-3.5 flex flex-col justify-between relative overflow-hidden group">
+        <div class="flex items-center justify-between text-[10.5px]">
           <div class="flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full bg-status-success shadow-[0_0_8px_rgba(52,211,153,0.7)] animate-pulse-dot" />
-            <span class="text-text-muted font-bold tracking-tight">{t().kpi.rxSpeed}</span>
+            <span class="h-1.5 w-1.5 rounded-full bg-status-success shadow-[0_0_8px_rgba(0,255,157,0.8)] animate-pulse-dot" />
+            <span class="hud-tag text-status-success">{t().kpi.rxSpeed}</span>
           </div>
-          <span class="mono text-[10px] font-semibold text-text-muted bg-bg-subtle/80 px-2 py-0.5 rounded border border-border-subtle tabular-nums">
+          <span class="mono text-[9.5px] font-semibold text-text-muted bg-bg-base/80 px-1.5 py-0.2 rounded border border-border-subtle tabular-nums">
             {formatTotalBytes(traffic()?.total_rx_bytes || 0)}
           </span>
         </div>
-        <div class="mt-3 flex items-baseline gap-2 relative z-10">
-          <span class="mono text-3xl font-bold text-status-success leading-none tabular-nums tracking-tight">
+        <div class="mt-2.5 flex items-baseline gap-2">
+          <span class="mono text-2xl lg:text-3xl font-extrabold text-status-success leading-none tabular-nums tracking-tight">
             {rx().num}
           </span>
-          <span class="mono text-[11px] font-bold text-text-muted uppercase tracking-wider">
+          <span class="mono text-[10.5px] font-bold text-status-success/70 uppercase tracking-wider">
             {rx().unit}
           </span>
         </div>
       </div>
 
-      {/* TX Metric */}
-      <div class="glass-card flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px] group relative overflow-hidden">
-        <div class="absolute top-0 right-0 h-14 w-14 bg-accent/5 rounded-full blur-lg pointer-events-none transition-opacity group-hover:opacity-100 opacity-60" />
-        <div class="flex items-center justify-between text-[11px] relative z-10">
+      {/* 02: TX Telemetry */}
+      <div class="p-3.5 flex flex-col justify-between relative overflow-hidden group">
+        <div class="flex items-center justify-between text-[10.5px]">
           <div class="flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_rgba(56,189,248,0.7)] animate-pulse-dot" />
-            <span class="text-text-muted font-bold tracking-tight">{t().kpi.txSpeed}</span>
+            <span class="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(0,240,255,0.8)] animate-pulse-dot" />
+            <span class="hud-tag text-accent">{t().kpi.txSpeed}</span>
           </div>
-          <span class="mono text-[10px] font-semibold text-text-muted bg-bg-subtle/80 px-2 py-0.5 rounded border border-border-subtle tabular-nums">
+          <span class="mono text-[9.5px] font-semibold text-text-muted bg-bg-base/80 px-1.5 py-0.2 rounded border border-border-subtle tabular-nums">
             {formatTotalBytes(traffic()?.total_tx_bytes || 0)}
           </span>
         </div>
-        <div class="mt-3 flex items-baseline gap-2 relative z-10">
-          <span class="mono text-3xl font-bold text-accent leading-none tabular-nums tracking-tight">
+        <div class="mt-2.5 flex items-baseline gap-2">
+          <span class="mono text-2xl lg:text-3xl font-extrabold text-accent leading-none tabular-nums tracking-tight">
             {tx().num}
           </span>
-          <span class="mono text-[11px] font-bold text-text-muted uppercase tracking-wider">
+          <span class="mono text-[10.5px] font-bold text-accent/70 uppercase tracking-wider">
             {tx().unit}
           </span>
         </div>
       </div>
 
-      {/* Listening Ports */}
-      <div class="glass-card flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px] group relative overflow-hidden">
-        <div class="flex items-center justify-between text-[11px] relative z-10">
+      {/* 03: Listening Ports */}
+      <div class="p-3.5 flex flex-col justify-between relative overflow-hidden group">
+        <div class="flex items-center justify-between text-[10.5px]">
           <div class="flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full bg-sky-400/80" />
-            <span class="text-text-muted font-bold tracking-tight">{t().kpi.listeningPorts}</span>
+            <span class="h-1.5 w-1.5 rounded-full bg-sky-400" />
+            <span class="hud-tag text-text-secondary">{t().kpi.listeningPorts}</span>
           </div>
-          <span class="mono text-[10px] font-semibold text-text-secondary px-2 py-0.5 rounded bg-bg-subtle/80 border border-border-subtle">
+          <span class="mono text-[9.5px] font-semibold text-text-muted bg-bg-base/80 px-1.5 py-0.2 rounded border border-border-subtle uppercase">
             {t().kpi.tcpUdp}
           </span>
         </div>
-        <div class="mt-3 flex items-baseline gap-2 relative z-10">
-          <span class="mono text-3xl font-bold text-text-primary leading-none tabular-nums tracking-tight">
+        <div class="mt-2.5 flex items-baseline gap-2">
+          <span class="mono text-2xl lg:text-3xl font-extrabold text-text-primary leading-none tabular-nums tracking-tight">
             {listeningCount()}
           </span>
-          <span class="text-[11px] text-text-muted font-semibold">{t().kpi.openCount}</span>
+          <span class="hud-tag text-[9.5px] text-text-muted">{t().kpi.openCount}</span>
         </div>
       </div>
 
-      {/* Active Connections */}
-      <div class="glass-card flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px] group relative overflow-hidden">
-        <div class="flex items-center justify-between text-[11px] relative z-10">
+      {/* 04: Active Connections */}
+      <div class="p-3.5 flex flex-col justify-between relative overflow-hidden group">
+        <div class="flex items-center justify-between text-[10.5px]">
           <div class="flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full bg-teal-400/80" />
-            <span class="text-text-muted font-bold tracking-tight">
-              {t().kpi.activeConnections}
-            </span>
+            <span class="h-1.5 w-1.5 rounded-full bg-teal-400" />
+            <span class="hud-tag text-text-secondary">{t().kpi.activeConnections}</span>
           </div>
-          <span class="mono text-[10px] font-semibold text-text-secondary px-2 py-0.5 rounded bg-bg-subtle/80 border border-border-subtle">
+          <span class="mono text-[9.5px] font-semibold text-text-muted bg-bg-base/80 px-1.5 py-0.2 rounded border border-border-subtle uppercase">
             {t().kpi.estab}
           </span>
         </div>
-        <div class="mt-3 flex items-baseline gap-2 relative z-10">
-          <span class="mono text-3xl font-bold text-text-primary leading-none tabular-nums tracking-tight">
+        <div class="mt-2.5 flex items-baseline gap-2">
+          <span class="mono text-2xl lg:text-3xl font-extrabold text-text-primary leading-none tabular-nums tracking-tight">
             {activeCount()}
           </span>
-          <span class="text-[11px] text-text-muted font-semibold">{t().kpi.activeCount}</span>
+          <span class="hud-tag text-[9.5px] text-text-muted">{t().kpi.activeCount}</span>
         </div>
       </div>
     </section>

@@ -120,14 +120,14 @@ export const WebArtifactsView: Component = () => {
       {/* 1. Top Overview Metric Summary Cards (Mirrors GitRadar dual-card layout) */}
       <section class="grid grid-cols-1 gap-3 md:grid-cols-2">
         {/* Left Card: Web Services Overview */}
-        <div class="flex flex-col justify-between rounded-lg border border-border-default bg-bg-surface p-3.5 shadow-xs">
+        <div class="hud-box flex flex-col justify-between p-4 shadow-lg bg-bg-surface/90">
           <div>
             <div class="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div class="flex items-center gap-2">
                 <div class="flex h-6 w-6 items-center justify-center rounded bg-accent/15 text-accent text-sm">
                   <PhotoIcon class="h-4 w-4" />
                 </div>
-                <h3 class="text-xs font-bold text-text-primary">
+                <h3 class="hud-tag text-xs text-text-primary m-0">
                   {t().artifacts.overviewCardTitle}
                 </h3>
               </div>
@@ -139,7 +139,9 @@ export const WebArtifactsView: Component = () => {
 
             <div class="mt-2.5 grid grid-cols-3 gap-2 text-xs">
               <div>
-                <span class="text-[10px] text-text-muted">{t().artifacts.kpiTotalPorts}</span>
+                <span class="hud-tag text-[9.5px] text-text-muted">
+                  {t().artifacts.kpiTotalPorts}
+                </span>
                 <div class="flex items-center gap-1.5 mt-0.5">
                   <span class="font-bold text-text-primary text-xs mono tabular-nums">
                     {webArtifacts().length}
@@ -148,7 +150,7 @@ export const WebArtifactsView: Component = () => {
               </div>
 
               <div>
-                <span class="text-[10px] text-text-muted">{t().artifacts.kpiHealthy}</span>
+                <span class="hud-tag text-[9.5px] text-text-muted">{t().artifacts.kpiHealthy}</span>
                 <div class="mt-0.5">
                   <span class="rounded bg-status-success/15 border border-status-success/30 px-1.5 py-0.2 mono text-[10px] text-status-success font-semibold tabular-nums">
                     {healthyCount()}
@@ -157,7 +159,9 @@ export const WebArtifactsView: Component = () => {
               </div>
 
               <div>
-                <span class="text-[10px] text-text-muted">{t().artifacts.kpiAvgLatency}</span>
+                <span class="hud-tag text-[9.5px] text-text-muted">
+                  {t().artifacts.kpiAvgLatency}
+                </span>
                 <div class="mt-0.5">
                   <span class="mono text-xs font-semibold text-text-secondary tabular-nums">
                     {avgLatency()} ms
@@ -186,7 +190,7 @@ export const WebArtifactsView: Component = () => {
         </div>
 
         {/* Right Card: Port Sniffer & Quick Diagnostics */}
-        <div class="flex flex-col justify-between rounded-lg border border-border-default bg-bg-surface p-3.5 shadow-xs">
+        <div class="hud-box flex flex-col justify-between p-4 shadow-lg bg-bg-surface/90">
           <div>
             <div class="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div class="flex items-center gap-2">
@@ -407,7 +411,7 @@ export const WebArtifactsView: Component = () => {
               }
             >
               {(artifact: WebArtifactInfo) => (
-                <div class="glass-card group relative flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover hover:translate-y-[-1px]">
+                <div class="hud-box group relative flex flex-col justify-between p-4 bg-bg-surface/85 transition-all duration-200 hover:border-accent/40 shadow-sm">
                   <div>
                     {/* Top Row: Port Badge + Status & Framework */}
                     <div class="flex items-center justify-between mb-2.5">

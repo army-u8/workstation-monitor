@@ -38,12 +38,12 @@ export const LatencyMatrix: Component = () => {
   };
 
   return (
-    <section class="glass-card flex flex-col p-4 shadow-xs">
+    <section class="hud-box flex flex-col p-4 shadow-lg bg-bg-surface/90">
       <div class="mb-3 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
-          <h2 class="text-xs font-bold text-text-primary m-0">{t().latency.title}</h2>
-          <span class="text-[10px] font-semibold text-text-muted mono bg-bg-subtle px-1.8 py-0.2 rounded border border-border-subtle">
+          <span class="h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_rgba(0,240,255,0.8)] animate-pulse-dot" />
+          <h2 class="hud-tag text-text-primary text-xs m-0">{t().latency.title}</h2>
+          <span class="mono text-[9.5px] font-semibold text-accent/80 bg-accent/10 px-1.5 py-0.2 rounded border border-accent/25">
             {t().latency.probes}
           </span>
         </div>

@@ -17,11 +17,11 @@ export const SpeedTester: Component = () => {
   return (
     <div class="flex flex-col gap-4" aria-label={t().speedtest.title}>
       {/* Action Banner */}
-      <section class="glass-card flex flex-col justify-between p-4 sm:flex-row sm:items-center shadow-xs">
+      <section class="hud-box flex flex-col justify-between p-4 sm:flex-row sm:items-center shadow-lg bg-bg-surface/90">
         <div>
           <div class="flex items-center gap-2">
-            <span class="h-2 w-2 rounded-full bg-accent animate-pulse-dot" />
-            <h2 class="text-xs font-bold text-text-primary m-0">{t().speedtest.title}</h2>
+            <span class="h-2 w-2 rounded-full bg-accent shadow-[0_0_8px_rgba(0,240,255,0.8)] animate-pulse-dot" />
+            <h2 class="hud-tag text-xs text-text-primary m-0">{t().speedtest.title}</h2>
           </div>
           <p class="mt-1 text-xs text-text-muted">{t().speedtest.tip}</p>
         </div>
@@ -55,7 +55,7 @@ export const SpeedTester: Component = () => {
               aria-label={t().speedtest.title}
             >
               {/* Card 1: Bandwidth */}
-              <div class="glass-card-subtle flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover">
+              <div class="hud-box flex flex-col justify-between p-4 shadow-md bg-bg-surface/85">
                 <span class="text-xs font-bold text-text-muted">{t().speedtest.downloadSpeed}</span>
                 <div class="my-3 flex items-baseline gap-2">
                   <span
@@ -71,8 +71,8 @@ export const SpeedTester: Component = () => {
               </div>
 
               {/* Card 2: Duration & Data */}
-              <div class="glass-card-subtle flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover">
-                <span class="text-xs font-bold text-text-muted">{t().speedtest.duration}</span>
+              <div class="hud-box flex flex-col justify-between p-4 shadow-md bg-bg-surface/85">
+                <span class="hud-tag text-xs text-text-muted">{t().speedtest.duration}</span>
                 <div class="my-3 mono text-3xl font-bold text-text-primary tabular-nums">
                   {res().duration_secs.toFixed(2)}{' '}
                   <span class="text-xs font-semibold text-text-muted">{t().common.seconds}</span>
@@ -86,13 +86,13 @@ export const SpeedTester: Component = () => {
               </div>
 
               {/* Card 3: Server Info */}
-              <div class="glass-card-subtle flex flex-col justify-between p-4 transition-all duration-200 hover:border-border-hover">
-                <span class="text-xs font-bold text-text-muted">{t().speedtest.server}</span>
+              <div class="hud-box flex flex-col justify-between p-4 shadow-md bg-bg-surface/85">
+                <span class="hud-tag text-xs text-text-muted">{t().speedtest.server}</span>
                 <div class="my-3 text-sm font-bold text-text-primary truncate" title={res().server}>
                   {res().server}
                 </div>
                 <div class="text-[10px] text-status-success font-mono font-bold flex items-center gap-1.5">
-                  <span class="h-1.5 w-1.5 rounded-full bg-status-success" />
+                  <span class="h-1.5 w-1.5 rounded-full bg-status-success shadow-[0_0_6px_rgba(0,255,157,0.8)]" />
                   <span>HTTP/2 CDN Global Edge Verified</span>
                 </div>
               </div>

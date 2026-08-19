@@ -110,7 +110,7 @@ export const ObsidianHub: Component = () => {
   return (
     <div class="flex flex-col gap-4" aria-label={t().obsidian.title}>
       {/* 1. Vault Cockpit Overview Card */}
-      <section class="glass-card p-4 shadow-xs">
+      <section class="hud-box p-4 shadow-lg bg-bg-surface/90">
         <div class="flex flex-col justify-between gap-3 md:flex-row md:items-center">
           <div class="flex items-start gap-3">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent/25 bg-accent/10 text-accent shadow-2xs">

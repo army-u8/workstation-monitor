@@ -193,7 +193,10 @@ export const SocketInspector: Component = () => {
   };
 
   return (
-    <section aria-label={t().sockets.listeningTab} class="glass-card flex flex-col p-4 shadow-xs">
+    <section
+      aria-label={t().sockets.listeningTab}
+      class="hud-box flex flex-col p-4 shadow-lg bg-bg-surface/90"
+    >
       <Tabs
         value={activeTab()}
         onValueChange={(details) => setActiveTab(details.value as SocketTab)}

@@ -111,33 +111,22 @@ export const GitRadar: Component = () => {
     <div class="flex flex-col gap-3" aria-label={t().gitRadar.title}>
       {/* 1. Git & GitHub Account Identity Card Banner */}
       <section class="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {/* Left: Local Git Global Identity */}
-        <div class="glass-card flex flex-col justify-between p-4 shadow-xs">
+        {/* Left: Local Git Global Config */}
+        <div class="hud-box flex flex-col justify-between p-4 shadow-lg bg-bg-surface/90">
           <div>
             <div class="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div class="flex items-center gap-2">
-                <div class="flex h-6.5 w-6.5 items-center justify-center rounded-lg bg-accent/10 text-accent border border-accent/20">
+                <div class="flex h-6.5 w-6.5 items-center justify-center rounded bg-accent/15 text-accent border border-accent/25">
                   <GitIcon class="h-3.5 w-3.5" />
                 </div>
-                <h3 class="text-xs font-bold text-text-primary">{t().gitRadar.globalConfig}</h3>
+                <h3 class="hud-tag text-xs text-text-primary m-0">{t().gitRadar.globalConfig}</h3>
               </div>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  copyToClipboard(gitAccount()?.git.config_path || '~/.gitconfig', 'Config Path')
-                }
-                class="mono text-[9.5px]"
-                title={gitAccount()?.git.config_path}
-              >
-                {gitAccount()?.git.config_path}
-              </Button>
+              <span class="mono text-[10px] text-text-muted">~/.gitconfig</span>
             </div>
 
             <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span class="text-[10px] font-semibold text-text-muted">{t().gitRadar.user}</span>
+                <span class="hud-tag text-[9.5px] text-text-muted">{t().gitRadar.user}</span>
                 <div class="flex items-center gap-1.5 mt-0.5">
                   <UserIcon class="h-3 w-3 text-text-muted" />
                   <span class="font-bold text-text-primary text-[12px] truncate">
@@ -147,7 +136,7 @@ export const GitRadar: Component = () => {
               </div>
 
               <div>
-                <span class="text-[10px] font-semibold text-text-muted">{t().gitRadar.email}</span>
+                <span class="hud-tag text-[9.5px] text-text-muted">{t().gitRadar.email}</span>
                 <div class="mt-0.5">
                   <Button
                     type="button"
@@ -181,7 +170,7 @@ export const GitRadar: Component = () => {
         </div>
 
         {/* Right: GitHub CLI & Remote Account Info */}
-        <div class="glass-card flex flex-col justify-between p-4 shadow-xs">
+        <div class="hud-box flex flex-col justify-between p-4 shadow-lg bg-bg-surface/90">
           <div>
             <div class="flex items-center justify-between pb-2 border-b border-border-subtle">
               <div class="flex items-center gap-2">
@@ -408,7 +397,7 @@ export const GitRadar: Component = () => {
               }
             >
               {(repo) => (
-                <div class="flex flex-col justify-between rounded-lg border border-border-subtle bg-bg-input p-3 transition-colors hover:border-border-default">
+                <div class="hud-box flex flex-col justify-between p-3.5 bg-bg-surface/85 transition-colors hover:border-accent/40 shadow-sm">
                   <div>
                     {/* Repo Name & Branch */}
                     <div class="flex items-start justify-between">

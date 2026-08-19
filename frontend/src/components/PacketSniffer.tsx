@@ -9,9 +9,10 @@ import {
   setPackets,
   showToast,
   stats,
+  traffic,
 } from '../services/store';
 import { PacketProtocolFilter, ToastType } from '../constants';
-import { Badge, Button } from './ui';
+import { Button } from './ui';
 import { t } from '../i18n';
 
 export const PacketSniffer: Component = () => {
@@ -47,15 +48,17 @@ export const PacketSniffer: Component = () => {
   };
 
   return (
-    <section aria-label={t().sniffer.title} class="glass-card flex flex-col p-4 shadow-xs">
-      {/* Header & Controls */}
-      <div class="mb-3 flex flex-wrap items-center justify-between gap-2.5">
+    <section
+      aria-label={t().sniffer.title}
+      class="hud-box flex flex-col p-4 shadow-lg bg-bg-surface/90"
+    >
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center gap-2">
-          <span class="h-2 w-2 rounded-full bg-purple-400 animate-pulse-dot" />
-          <h2 class="text-xs font-bold text-text-primary m-0">{t().sniffer.title}</h2>
-          <Badge variant="secondary" class="mono">
-            /dev/bpf
-          </Badge>
+          <span class="h-2 w-2 rounded-full bg-status-success shadow-[0_0_8px_rgba(0,255,157,0.8)] animate-pulse-dot" />
+          <h2 class="hud-tag text-text-primary text-xs m-0">{t().sniffer.title}</h2>
+          <span class="mono text-[9.5px] font-semibold text-status-success/80 bg-status-success/10 px-1.5 py-0.2 rounded border border-status-success/25">
+            {traffic()?.interfaces?.[0]?.name || 'en0'}
+          </span>
         </div>
 
         <div class="flex items-center gap-2">

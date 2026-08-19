@@ -21,37 +21,37 @@ export const Button: Component<ButtonProps> = (props) => {
   const variantClass = () => {
     switch (local.variant) {
       case 'secondary':
-        return 'bg-bg-surface text-text-primary border border-border-default hover:bg-bg-hover hover:border-border-hover';
+        return 'bg-bg-subtle/80 text-text-primary border border-border-default hover:bg-bg-hover hover:border-border-hover hover:text-white';
       case 'destructive':
-        return 'bg-status-danger/15 text-status-danger border border-status-danger/30 hover:bg-status-danger hover:text-white';
+        return 'bg-status-danger/15 text-status-danger border border-status-danger/35 hover:bg-status-danger hover:text-white hover:shadow-[0_0_12px_rgba(255,42,85,0.45)]';
       case 'outline':
         return 'border border-border-default bg-transparent text-text-primary hover:bg-bg-hover hover:border-border-hover';
       case 'ghost':
-        return 'bg-transparent text-text-primary hover:bg-bg-hover';
+        return 'bg-transparent text-text-primary hover:bg-bg-hover hover:text-accent';
       case 'link':
         return 'text-accent underline-offset-4 hover:underline p-0 h-auto';
       default:
-        return 'bg-accent text-white font-bold hover:bg-accent/90 shadow-2xs';
+        return 'bg-accent/20 text-accent font-bold border border-accent/50 hover:bg-accent hover:text-bg-base hover:shadow-[0_0_14px_rgba(0,240,255,0.5)] transition-all';
     }
   };
 
   const sizeClass = () => {
     switch (local.size) {
       case 'sm':
-        return 'h-7 px-2.5 py-1 text-[11px]';
+        return 'h-6.5 px-2.5 py-0.5 text-[10.5px]';
       case 'lg':
-        return 'h-10 px-5 py-2 text-sm';
+        return 'h-9 px-4.5 py-1.5 text-xs';
       case 'icon':
-        return 'h-7 w-7 p-0 justify-center shrink-0';
+        return 'h-6.5 w-6.5 p-0 justify-center shrink-0';
       default:
-        return 'h-8 px-3.5 py-1.5 text-xs';
+        return 'h-7.5 px-3 py-1 text-[11.5px]';
     }
   };
 
   return (
     <button
       class={cn(
-        'inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition-all outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer whitespace-nowrap shrink-0',
+        'inline-flex items-center justify-center gap-1.5 rounded-md font-semibold transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:pointer-events-none disabled:opacity-40 select-none cursor-pointer whitespace-nowrap shrink-0 font-mono tracking-tight',
         variantClass(),
         sizeClass(),
         local.class,

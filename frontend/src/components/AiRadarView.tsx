@@ -251,43 +251,45 @@ export const AiRadarView: Component = () => {
       </div>
 
       {/* Top 4 KPI Metrics Dashboard */}
-      <div class="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
+      <div class="hud-box grid grid-cols-1 divide-y sm:divide-y-0 sm:grid-cols-2 lg:grid-cols-4 sm:divide-x divide-border-default bg-bg-surface/90 shadow-lg">
         {/* KPI 1: Reachability */}
-        <div class="glass-card-subtle p-3.5 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-text-muted text-[11px]">
-            <span>{t().aiRadar.kpiConnectivity}</span>
+        <div class="p-3.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-text-muted text-[10.5px]">
+            <span class="hud-tag text-accent">{t().aiRadar.kpiConnectivity}</span>
             <GlobeIcon class="h-3.5 w-3.5 text-accent" />
           </div>
-          <div class="mt-2 flex items-baseline gap-1.5">
-            <span class="text-xl font-bold mono text-text-primary">
+          <div class="mt-2.5 flex items-baseline gap-1.5">
+            <span class="text-2xl font-bold mono text-text-primary tabular-nums">
               {reachableCount()}/{totalProbes()}
             </span>
-            <span class="text-[10px] text-text-muted mono">
+            <span class="text-[10px] text-accent/80 mono">
               ({totalProbes() > 0 ? Math.round((reachableCount() / totalProbes()) * 100) : 0}%)
             </span>
           </div>
         </div>
 
         {/* KPI 2: Average Latency */}
-        <div class="glass-card-subtle p-3.5 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-text-muted text-[11px]">
-            <span>{t().aiRadar.kpiAvgLatency}</span>
-            <BoltIcon class="h-3.5 w-3.5 text-amber-400" />
+        <div class="p-3.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-text-muted text-[10.5px]">
+            <span class="hud-tag text-status-warning">{t().aiRadar.kpiAvgLatency}</span>
+            <BoltIcon class="h-3.5 w-3.5 text-status-warning" />
           </div>
-          <div class="mt-2 flex items-baseline gap-1.5">
-            <span class="text-xl font-bold mono text-text-primary">{avgLatency()}</span>
-            <span class="text-[10px] text-text-muted mono">ms</span>
+          <div class="mt-2.5 flex items-baseline gap-1.5">
+            <span class="text-2xl font-bold mono text-status-warning tabular-nums">
+              {avgLatency()}
+            </span>
+            <span class="text-[10.5px] text-text-muted mono font-semibold">ms</span>
           </div>
         </div>
 
         {/* KPI 3: Local AI Agents */}
-        <div class="glass-card-subtle p-3.5 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-text-muted text-[11px]">
-            <span>{t().aiRadar.kpiAgentsCount}</span>
-            <RobotIcon class="h-3.5 w-3.5 text-teal-400" />
+        <div class="p-3.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-text-muted text-[10.5px]">
+            <span class="hud-tag text-status-success">{t().aiRadar.kpiAgentsCount}</span>
+            <RobotIcon class="h-3.5 w-3.5 text-status-success" />
           </div>
-          <div class="mt-2 flex items-baseline gap-1.5">
-            <span class="text-xl font-bold mono text-text-primary">
+          <div class="mt-2.5 flex items-baseline gap-1.5">
+            <span class="text-2xl font-bold mono text-text-primary tabular-nums">
               {installedAgentsCount()}/{localAgents().length}
             </span>
             <Show when={runningAgentsCount() > 0}>
@@ -299,13 +301,13 @@ export const AiRadarView: Component = () => {
         </div>
 
         {/* KPI 4: Configured Keys */}
-        <div class="glass-card-subtle p-3.5 flex flex-col justify-between">
-          <div class="flex items-center justify-between text-text-muted text-[11px]">
-            <span>{t().aiRadar.kpiKeysConfigured}</span>
+        <div class="p-3.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-text-muted text-[10.5px]">
+            <span class="hud-tag text-text-secondary">{t().aiRadar.kpiKeysConfigured}</span>
             <KeyIcon class="h-3.5 w-3.5 text-indigo-400" />
           </div>
-          <div class="mt-2 flex items-baseline gap-1.5">
-            <span class="text-xl font-bold mono text-text-primary">
+          <div class="mt-2.5 flex items-baseline gap-1.5">
+            <span class="text-2xl font-bold mono text-text-primary tabular-nums">
               {aiKeyVault().filter((k) => k.isConfigured).length}/{aiKeyVault().length}
             </span>
             <span class="text-[10px] text-status-success mono font-semibold">
