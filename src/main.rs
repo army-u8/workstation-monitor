@@ -1,7 +1,7 @@
+use std::process::Command as ProcCommand;
 use std::sync::Arc;
 use std::time::Duration;
 use sysinfo::System;
-use std::process::Command as ProcCommand;
 use tokio::sync::{broadcast, RwLock};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -15,6 +15,233 @@ use collectors::{
 };
 use server::{build_router, AppState};
 use types::{SystemStats, WsEvent};
+
+fn resolve_bind_ip(configured: Option<&str>) -> Result<std::net::IpAddr, String> {
+    configured
+        .unwrap_or("127.0.0.1")
+        .parse::<std::net::IpAddr>()
+        .map_err(|e| format!("Invalid WORKSTATION_BIND_ADDR: {}", e))
+}
+
+fn socket_domain_for(ip: std::net::IpAddr) -> socket2::Domain {
+    match ip {
+        std::net::IpAddr::V4(_) => socket2::Domain::IPV4,
+        std::net::IpAddr::V6(_) => socket2::Domain::IPV6,
+    }
+}
+
+fn socket_addr_for(ip: std::net::IpAddr, port: u16) -> std::net::SocketAddr {
+    std::net::SocketAddr::new(ip, port)
+}
+
+fn health_probe_ip(bind_ip: std::net::IpAddr) -> std::net::IpAddr {
+    match bind_ip {
+        std::net::IpAddr::V4(ip) if ip.is_unspecified() => {
+            std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST)
+        }
+        std::net::IpAddr::V6(ip) if ip.is_unspecified() => {
+            std::net::IpAddr::V6(std::net::Ipv6Addr::LOCALHOST)
+        }
+        ip => ip,
+    }
+}
+
+fn dashboard_host(bind_ip: std::net::IpAddr) -> String {
+    match bind_ip {
+        std::net::IpAddr::V4(ip) if ip.is_unspecified() => "localhost".to_string(),
+        std::net::IpAddr::V6(ip) if ip.is_unspecified() => "localhost".to_string(),
+        std::net::IpAddr::V4(ip) => ip.to_string(),
+        std::net::IpAddr::V6(ip) => format!("[{ip}]"),
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum PrivilegePlan {
+    AlreadyUnprivileged,
+    DropTo { uid: u32, gid: u32 },
+}
+
+fn privilege_plan(
+    effective_uid: u32,
+    sudo_uid: Option<&str>,
+    sudo_gid: Option<&str>,
+) -> Result<PrivilegePlan, String> {
+    if effective_uid != 0 {
+        return Ok(PrivilegePlan::AlreadyUnprivileged);
+    }
+
+    let uid = sudo_uid
+        .and_then(|value| value.parse::<u32>().ok())
+        .filter(|uid| *uid != 0)
+        .ok_or_else(|| {
+            "Refusing to expose the HTTP server as root; run as a normal user or through sudo"
+                .to_string()
+        })?;
+    let gid = sudo_gid
+        .and_then(|value| value.parse::<u32>().ok())
+        .filter(|gid| *gid != 0)
+        .ok_or_else(|| "Cannot determine the invoking user's non-root group".to_string())?;
+
+    Ok(PrivilegePlan::DropTo { uid, gid })
+}
+
+#[cfg(unix)]
+fn lookup_user_identity(uid: u32) -> Result<(std::ffi::CString, std::ffi::OsString), String> {
+    use std::ffi::CStr;
+    use std::os::unix::ffi::OsStringExt;
+
+    let configured_size = unsafe { libc::sysconf(libc::_SC_GETPW_R_SIZE_MAX) };
+    let mut buffer = vec![0_u8; configured_size.max(16_384) as usize];
+    let mut passwd = unsafe { std::mem::zeroed::<libc::passwd>() };
+    let mut result = std::ptr::null_mut();
+    let status = unsafe {
+        libc::getpwuid_r(
+            uid as libc::uid_t,
+            &mut passwd,
+            buffer.as_mut_ptr().cast(),
+            buffer.len(),
+            &mut result,
+        )
+    };
+    if status != 0 || result.is_null() || passwd.pw_name.is_null() || passwd.pw_dir.is_null() {
+        return Err(format!("Cannot resolve invoking user identity for uid {uid}"));
+    }
+
+    let name = unsafe { CStr::from_ptr(passwd.pw_name) }.to_owned();
+    let home = std::ffi::OsString::from_vec(
+        unsafe { CStr::from_ptr(passwd.pw_dir) }.to_bytes().to_vec(),
+    );
+    Ok((name, home))
+}
+
+#[cfg(unix)]
+fn drop_server_privileges_after_sniffer() -> Result<(), String> {
+    let plan = privilege_plan(
+        unsafe { libc::geteuid() },
+        std::env::var("SUDO_UID").ok().as_deref(),
+        std::env::var("SUDO_GID").ok().as_deref(),
+    )?;
+    let PrivilegePlan::DropTo { uid, gid } = plan else {
+        return Ok(());
+    };
+    let (user_name, user_home) = lookup_user_identity(uid)?;
+    let base_gid = libc::c_int::try_from(gid)
+        .map_err(|_| format!("Invoking user's group id is out of range: {gid}"))?;
+
+    let result = unsafe {
+        if libc::initgroups(user_name.as_ptr(), base_gid) != 0 {
+            return Err(format!(
+                "Failed to initialize invoking user's supplementary groups: {}",
+                std::io::Error::last_os_error()
+            ));
+        }
+        if libc::setgid(gid as libc::gid_t) != 0 {
+            return Err(format!(
+                "Failed to drop root group privileges: {}",
+                std::io::Error::last_os_error()
+            ));
+        }
+        libc::setuid(uid as libc::uid_t)
+    };
+    if result != 0 {
+        return Err(format!(
+            "Failed to drop root user privileges: {}",
+            std::io::Error::last_os_error()
+        ));
+    }
+    if unsafe { libc::geteuid() } != uid || unsafe { libc::getegid() } != gid {
+        return Err("Privilege drop verification failed".to_string());
+    }
+
+    let user_name = user_name.to_string_lossy().into_owned();
+    std::env::set_var("HOME", user_home);
+    std::env::set_var("USER", &user_name);
+    std::env::set_var("LOGNAME", &user_name);
+
+    tracing::info!(uid, gid, "Dropped root privileges after opening packet capture");
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn drop_server_privileges_after_sniffer() -> Result<(), String> {
+    Ok(())
+}
+
+#[cfg(test)]
+mod bind_tests {
+    use super::*;
+
+    #[test]
+    fn server_binds_to_loopback_by_default() {
+        assert!(resolve_bind_ip(None).unwrap().is_loopback());
+    }
+
+    #[test]
+    fn server_allows_explicit_lan_bind_opt_in() {
+        assert_eq!(
+            resolve_bind_ip(Some("0.0.0.0")).unwrap(),
+            std::net::IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED)
+        );
+    }
+
+    #[test]
+    fn server_uses_ipv6_socket_for_ipv6_bind_address() {
+        let ip = "::1".parse().unwrap();
+        assert_eq!(socket_domain_for(ip), socket2::Domain::IPV6);
+        assert_eq!(
+            socket_addr_for(ip, 9527),
+            std::net::SocketAddr::new(ip, 9527)
+        );
+    }
+
+    #[test]
+    fn health_probe_uses_reachable_address_for_each_bind_mode() {
+        let ipv6_loopback = "::1".parse().unwrap();
+        let ipv6_unspecified = "::".parse().unwrap();
+        let ipv4_unspecified = "0.0.0.0".parse().unwrap();
+
+        assert_eq!(health_probe_ip(ipv6_loopback), ipv6_loopback);
+        assert_eq!(health_probe_ip(ipv6_unspecified), ipv6_loopback);
+        assert_eq!(
+            health_probe_ip(ipv4_unspecified),
+            "127.0.0.1".parse::<std::net::IpAddr>().unwrap()
+        );
+    }
+
+    #[test]
+    fn dashboard_host_uses_the_explicit_bind_address() {
+        assert_eq!(
+            dashboard_host("192.168.1.44".parse().unwrap()),
+            "192.168.1.44"
+        );
+        assert_eq!(dashboard_host("::1".parse().unwrap()), "[::1]");
+        assert_eq!(dashboard_host("0.0.0.0".parse().unwrap()), "localhost");
+        assert_eq!(dashboard_host("::".parse().unwrap()), "localhost");
+    }
+
+    #[test]
+    fn root_server_requires_a_non_root_sudo_identity_for_privilege_drop() {
+        assert_eq!(
+            privilege_plan(0, Some("501"), Some("20")).unwrap(),
+            PrivilegePlan::DropTo { uid: 501, gid: 20 }
+        );
+        assert!(privilege_plan(0, None, None).is_err());
+        assert!(privilege_plan(0, Some("0"), Some("0")).is_err());
+        assert_eq!(
+            privilege_plan(501, None, None).unwrap(),
+            PrivilegePlan::AlreadyUnprivileged
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn invoking_user_identity_resolves_to_a_named_home_directory() {
+        let (name, home) = lookup_user_identity(unsafe { libc::getuid() }).unwrap();
+
+        assert!(!name.as_bytes().is_empty());
+        assert!(std::path::Path::new(&home).is_absolute());
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -62,6 +289,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         tracing::warn!("Packet sniffer inactive: {:?}", sniffer_err);
     }
+
+    // A sudo launch may open /dev/bpf while privileged, but the HTTP server and
+    // every mutation endpoint must run as the invoking non-root user.
+    drop_server_privileges_after_sniffer().map_err(std::io::Error::other)?;
 
     // 2. Background Task: System Stats & Traffic Sampling (1000ms ticker)
     {
@@ -238,10 +469,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .and_then(|p| p.parse::<u16>().ok())
         })
         .unwrap_or(9527);
-    let bind_addr = format!("0.0.0.0:{}", port);
-    let socket_addr: std::net::SocketAddr = bind_addr.parse()?;
+    let bind_ip = resolve_bind_ip(std::env::var("WORKSTATION_BIND_ADDR").ok().as_deref())
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e))?;
+    let socket_addr = socket_addr_for(bind_ip, port);
     let socket = socket2::Socket::new(
-        socket2::Domain::IPV4,
+        socket_domain_for(bind_ip),
         socket2::Type::STREAM,
         Some(socket2::Protocol::TCP),
     )?;
@@ -254,14 +486,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let std_listener: std::net::TcpListener = socket.into();
     let listener = tokio::net::TcpListener::from_std(std_listener)?;
 
+    let dashboard_host = dashboard_host(bind_ip);
     println!("\n╔══════════════════════════════════════════════════════════════╗");
     println!("║       🚀 macOS 全局本机总控台 (Mission Control Pro)          ║");
     println!("╠══════════════════════════════════════════════════════════════╣");
-    println!("║  • Web Dashboard:  http://localhost:{}                   ║", port);
-    println!("║  • WebSocket Feed: ws://localhost:{}/ws                     ║", port);
-    println!("║  • REST API:       http://localhost:{}/api/status           ║", port);
+    println!("║  • Web Dashboard:  http://{}:{}", dashboard_host, port);
+    println!("║  • WebSocket Feed: ws://{}:{}/ws", dashboard_host, port);
+    println!(
+        "║  • REST API:       http://{}:{}/api/status",
+        dashboard_host, port
+    );
     if sniffer_active {
-        println!("║  • Packet Sniffer: ✅ Active ({})", sniffer_dev.unwrap_or_default());
+        println!(
+            "║  • Packet Sniffer: ✅ Active ({})",
+            sniffer_dev.unwrap_or_default()
+        );
     } else {
         println!("║  • Packet Sniffer: ⚠️ Disabled (Run with sudo to enable)    ║");
     }
@@ -277,23 +516,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or(false);
 
     if !no_open {
-        let dashboard_url = format!("http://localhost:{}", port);
-        let listen_addr = std::net::SocketAddr::new(
-            ([127, 0, 0, 1]).into(),
-            port,
-        );
+        let dashboard_url = format!("http://{}:{}", dashboard_host, port);
+        let listen_addr = std::net::SocketAddr::new(health_probe_ip(bind_ip), port);
         tokio::spawn(async move {
             for _ in 0..100 {
                 if tokio::net::TcpStream::connect(listen_addr).await.is_ok() {
                     if let Err(e) = open::that(&dashboard_url) {
-                        tracing::warn!("failed to auto-open browser ({}), trying `open` command", e);
+                        tracing::warn!(
+                            "failed to auto-open browser ({}), trying `open` command",
+                            e
+                        );
                         let _ = ProcCommand::new("open").arg(&dashboard_url).spawn();
                     }
                     return;
                 }
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;
             }
-            tracing::warn!("server did not become reachable; skipping auto-open of {}", dashboard_url);
+            tracing::warn!(
+                "server did not become reachable; skipping auto-open of {}",
+                dashboard_url
+            );
         });
     } else {
         tracing::info!("Auto-open browser skipped via --no-open / WORKSTATION_NO_OPEN");

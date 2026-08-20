@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
 import tailwindcss from '@tailwindcss/vite';
 
-const backendPort = process.env.BACKEND_PORT || process.env.VITE_BACKEND_PORT || '9528';
+const backendPort = process.env.BACKEND_PORT || process.env.VITE_BACKEND_PORT || '9527';
 
 export default defineConfig({
   plugins: [tailwindcss(), solid()],

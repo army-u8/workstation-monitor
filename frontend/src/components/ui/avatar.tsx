@@ -1,6 +1,7 @@
 import { Avatar as ArkAvatar } from '@ark-ui/solid/avatar';
 import type { Component } from 'solid-js';
 import { splitProps } from 'solid-js';
+import { t } from '../../i18n';
 import { cn } from './utils';
 
 export interface AvatarProps extends ArkAvatar.RootProps {
@@ -21,7 +22,7 @@ export const Avatar: Component<AvatarProps> = (props) => {
     >
       <ArkAvatar.Image
         src={local.src}
-        alt={local.name || 'Avatar'}
+        alt={local.name || t().common.avatar}
         class="aspect-square h-full w-full object-cover"
       />
       <ArkAvatar.Fallback class="flex h-full w-full items-center justify-center rounded-full bg-bg-subtle text-[11px] font-bold text-text-primary">

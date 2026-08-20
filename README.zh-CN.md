@@ -28,10 +28,10 @@
 | --- | --- |
 | macOS | 11+（Apple Silicon 或 Intel） |
 | Rust | 1.75+（edition 2021） |
-| Node.js | 18+（前端开发/构建） |
+| Node.js | 20.19+ 或 22.12+（前端开发/构建） |
 | Xcode 命令行工具 | 必选（`pcap` 编译依赖） |
 
-> **报文嗅探** 使用原生 `libpcap`（`/dev/bpf`）。使用 `sudo` 运行以开启深度抓包；否则嗅探器会自动降级。
+> **报文嗅探** 使用原生 `libpcap`（`/dev/bpf`）。通过 `sudo` 启动时只在打开抓包设备期间保留权限，随后会在 HTTP 服务启动前立即降权回调用用户；不使用 `sudo` 时嗅探器会自动降级。
 
 ---
 
@@ -39,7 +39,7 @@
 
 适合绝大多数用户——**无需命令行，无需安装任何工具链**：
 
-1. 前往 **[Releases](https://github.com/army-u8/workstation-monitor/releases)** 下载 `Workstation Monitor.app.zip`。
+1. 前往 **[Releases](https://github.com/army-u8/workstation-monitor/releases)** 下载适合当前 Mac 的压缩包：Apple Silicon 选择 `Workstation_Monitor_VERSION_aarch64.app.zip`，Intel 选择 `Workstation_Monitor_VERSION_x64.app.zip`；Universal 压缩包兼容两种架构。
 2. 解压后把 **Workstation Monitor** 拖入"应用程序"文件夹。
 3. 双击打开，浏览器会自动跳转到 **http://localhost:9527**。
 
@@ -77,7 +77,7 @@ PORT=9000 cargo run --release
 
 打开 **http://localhost:9527**。
 
-### 前端开发模式（Vite，端口 9528）
+### 前端开发模式（Vite，端口 9529）
 
 ```bash
 cd frontend
@@ -85,7 +85,10 @@ npm install
 npm run dev
 ```
 
-打开 **http://localhost:9528** —— Vite 会自动将 `/api` 和 `/ws` 代理到 9527 端口的后端。
+打开 **http://localhost:9529** —— Vite 会自动将 `/api` 和 `/ws` 代理到 9527 端口的后端。
+
+后端使用自定义端口时可设置 `VITE_BACKEND_PORT`，例如
+`VITE_BACKEND_PORT=9999 npm run dev`。
 
 ---
 
@@ -202,7 +205,7 @@ xattr -cr /Applications/Workstation\ Monitor.app
 ```
 随后双击打开。
 
-> 使用 `sudo` 运行可开启深度报文嗅探（`/dev/bpf`）；不使用 sudo 应用同样完整可用，仅缺少原始报文抓包。
+> 通过 `sudo` 启动可开启深度报文嗅探（`/dev/bpf`），随后会在暴露控制台前放弃 root 权限。缺少非 root `SUDO_UID`/`SUDO_GID` 的直接 root 启动会被拒绝；不使用 sudo 时应用同样完整可用，仅缺少原始报文抓包。
 
 ---
 
@@ -217,4 +220,3 @@ xattr -cr /Applications/Workstation\ Monitor.app
 ## 许可证
 
 本项目基于 [MIT 许可证](LICENSE) 开源。版权所有 (c) 2026 army-u8。
-

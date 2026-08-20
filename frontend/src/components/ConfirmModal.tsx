@@ -1,35 +1,41 @@
-import { Show, createSignal, onCleanup, onMount } from 'solid-js';
+import { Show, createEffect, createSignal, onCleanup } from 'solid-js';
 import type { Component } from 'solid-js';
 import { closeConfirmDialog, confirmModal } from '../services/store';
 import { AlertWarningIcon } from './Icons';
 import { Button } from './ui';
 import { t } from '../i18n';
+import { trapDialogFocus } from '../utils/dialog-focus';
 
 export const ConfirmModal: Component = () => {
   const [isProcessing, setIsProcessing] = createSignal(false);
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (!confirmModal()) return;
+    if (!confirmModal() || isProcessing()) return;
     if (e.key === 'Escape') {
       e.preventDefault();
       closeConfirmDialog();
     }
   };
 
-  onMount(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => window.removeEventListener('keydown', handleKeyDown));
+  createEffect(() => {
+    if (!confirmModal()) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    onCleanup(() => {
+      queueMicrotask(() => {
+        if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      });
+    });
   });
 
   const handleConfirm = async () => {
     const modal = confirmModal();
-    if (!modal) return;
+    if (!modal || isProcessing()) return;
     setIsProcessing(true);
     try {
       await modal.onConfirm();
     } finally {
       setIsProcessing(false);
-      closeConfirmDialog();
+      closeConfirmDialog(false);
     }
   };
 
@@ -41,11 +47,19 @@ export const ConfirmModal: Component = () => {
           role="dialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
+          onKeyDown={(e) => {
+            trapDialogFocus(e, e.currentTarget);
+            handleKeyDown(e);
+          }}
           onClick={(e) => {
-            if (e.target === e.currentTarget) closeConfirmDialog();
+            if (!isProcessing() && e.target === e.currentTarget) closeConfirmDialog();
           }}
         >
-          <div class="relative w-full max-w-md rounded-xl border border-border-strong bg-bg-modal p-5 shadow-2xl transition-all duration-200 animate-in fade-in zoom-in-95">
+          <div
+            ref={(element) => queueMicrotask(() => element.focus())}
+            tabIndex={-1}
+            class="relative w-full max-w-md rounded-xl border border-border-strong bg-bg-modal p-5 shadow-2xl transition-all duration-200 animate-in fade-in zoom-in-95 focus:outline-none"
+          >
             {/* Header with Danger/Warning Icon */}
             <div class="flex items-start gap-3.5">
               <div
@@ -92,7 +106,7 @@ export const ConfirmModal: Component = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={closeConfirmDialog}
+                onClick={() => closeConfirmDialog()}
                 disabled={isProcessing()}
               >
                 {modal().cancelText || t().common.cancel}

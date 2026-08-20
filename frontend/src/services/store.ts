@@ -228,9 +228,9 @@ export function openConfirmDialog(config: Omit<ConfirmModalConfig, 'isOpen'>) {
   });
 }
 
-export function closeConfirmDialog() {
+export function closeConfirmDialog(invokeCancel = true) {
   const current = confirmModal();
-  if (current?.onCancel) {
+  if (invokeCancel && current?.onCancel) {
     current.onCancel();
   }
   setConfirmModal(null);
@@ -248,11 +248,18 @@ export function showToast(message: string, type: ToastType = ToastType.INFO) {
   }, TOAST_DURATION_MS);
 }
 
-export function copyToClipboard(text: string, label = 'Content') {
-  navigator.clipboard
+export function copyToClipboard(text: string, label?: string) {
+  const clipboard = typeof navigator !== 'undefined' ? navigator.clipboard : undefined;
+  if (!clipboard?.writeText) {
+    showToast(t().common.copyFailed, ToastType.ERROR);
+    return;
+  }
+
+  const displayLabel = label || t().common.copyLabel;
+  clipboard
     .writeText(text)
     .then(() => {
-      showToast(`${t().common.copied} ${label}: ${text}`, ToastType.SUCCESS);
+      showToast(`${t().common.copied}: ${displayLabel}`, ToastType.SUCCESS);
     })
     .catch(() => {
       showToast(t().common.copyFailed, ToastType.ERROR);
@@ -994,6 +1001,11 @@ export async function fetchEnvVarsApi(): Promise<EnvVarsPayload | null> {
 let socket: WebSocket | null = null;
 let reconnectTimer: any = null;
 
+export function buildWebSocketUrl(location: Pick<Location, 'protocol' | 'host'>): string {
+  const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${location.host}${ApiEndpoint.WS}`;
+}
+
 export function initWebSocket() {
   if (
     socket &&
@@ -1004,10 +1016,7 @@ export function initWebSocket() {
 
   setWsStatus(WsConnectionStatus.CONNECTING);
 
-  const loc = window.location;
-  const protocol = loc.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = loc.port === '9528' ? `${loc.hostname}:9527` : loc.host;
-  const wsUrl = `${protocol}//${host}${ApiEndpoint.WS}`;
+  const wsUrl = buildWebSocketUrl(window.location);
 
   try {
     socket = new WebSocket(wsUrl);

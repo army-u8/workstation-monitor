@@ -1,4 +1,4 @@
-import { For, Show, createSignal } from 'solid-js';
+import { For, Show, createEffect, createSignal, onCleanup } from 'solid-js';
 import type { Component } from 'solid-js';
 import {
   activeSnapshotPath,
@@ -24,9 +24,25 @@ import {
 import { Badge, Button, Input } from './ui';
 import { t } from '../i18n';
 import type { SavePointSnapshot } from '../types';
+import { trapDialogFocus } from '../utils/dialog-focus';
 
 export const SavePointDrawer: Component = () => {
   const [newTitle, setNewTitle] = createSignal('');
+
+  const handleClose = () => {
+    if (isCreatingSnapshot() || isRollingBackSnapshot()) return;
+    closeSnapshotDrawer();
+  };
+
+  createEffect(() => {
+    if (!isSnapshotDrawerOpen()) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    onCleanup(() => {
+      queueMicrotask(() => {
+        if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      });
+    });
+  });
 
   const handleCreate = async (e: Event) => {
     e.preventDefault();
@@ -58,15 +74,28 @@ export const SavePointDrawer: Component = () => {
 
   return (
     <Show when={isSnapshotDrawerOpen()}>
-      <div class="fixed inset-0 z-50 flex justify-end">
+      <div
+        class="fixed inset-0 z-50 flex justify-end"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="snapshot-drawer-title"
+        onKeyDown={(e) => {
+          trapDialogFocus(e, e.currentTarget);
+          if (e.key === 'Escape') handleClose();
+        }}
+      >
         {/* Backdrop */}
         <div
-          onClick={closeSnapshotDrawer}
+          onClick={handleClose}
           class="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
         />
 
         {/* Drawer Panel */}
-        <div class="relative z-10 flex h-full w-full max-w-xl flex-col border-l border-border-default bg-bg-surface shadow-2xl animate-in slide-in-from-right duration-300">
+        <div
+          ref={(element) => queueMicrotask(() => element.focus())}
+          tabIndex={-1}
+          class="relative z-10 flex h-full w-full max-w-xl flex-col border-l border-border-default bg-bg-surface shadow-2xl animate-in slide-in-from-right duration-300 focus:outline-none"
+        >
           {/* Header */}
           <div class="flex items-center justify-between border-b border-border-default px-5 py-4 bg-bg-surface/95 backdrop-blur-xs">
             <div class="flex items-center gap-3">
@@ -75,7 +104,7 @@ export const SavePointDrawer: Component = () => {
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 class="text-sm font-bold text-text-primary m-0">
+                  <h2 id="snapshot-drawer-title" class="text-sm font-bold text-text-primary m-0">
                     {snapshotsData()?.project_name || t().snapshots.drawerTitle}
                   </h2>
                   <Show when={snapshotsData()}>
@@ -95,7 +124,7 @@ export const SavePointDrawer: Component = () => {
               type="button"
               variant="ghost"
               size="icon"
-              onClick={closeSnapshotDrawer}
+              onClick={handleClose}
               aria-label={t().common.cancel}
             >
               <CloseIcon class="h-4 w-4" />

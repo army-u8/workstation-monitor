@@ -5,6 +5,14 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag containing current release tooling (vMAJOR.MINOR.PATCH)
+        required: true
+        type: string
+
+env:
+  RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
 
 permissions:
   contents: write
@@ -16,11 +24,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Require release validation tooling
+        run: |
+          test -f scripts/check_release_consistency.py || {
+            echo "::error::Tag $RELEASE_TAG predates this release workflow and cannot be rebuilt with it."
+            exit 1
+          }
+
+      - name: Validate release version and configuration
+        run: python3 scripts/check_release_consistency.py --tag "$RELEASE_TAG"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -31,6 +53,15 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Verify frontend
+        working-directory: frontend
+        run: npm run verify
+
+      - name: Test Rust backend
+        run: cargo test --locked
+        env:
+          SKIP_FRONTEND_BUILD: "1"
+
       - name: Build All Multi-Architecture Assets
         run: |
           chmod +x scripts/build_all_mac.sh
@@ -38,7 +69,7 @@ jobs:
 
       - name: Generate Detailed Release Notes
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="$RELEASE_TAG"
           CHANGELOG_TEXT=$(python3 scripts/extract_changelog.py "${VERSION}")
           cat << EOF > release_body.md
           ## 🚀 Workstation Monitor ${VERSION}
@@ -73,6 +104,7 @@ jobs:
         with:
           files: target/release-assets/*
           body_path: release_body.md
+          tag_name: ${{ env.RELEASE_TAG }}
           draft: false
           prerelease: false
           generate_release_notes: true

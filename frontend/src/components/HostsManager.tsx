@@ -150,7 +150,9 @@ export const HostsManager: Component = () => {
                         type="button"
                         variant="secondary"
                         size="sm"
-                        onClick={() => copyToClipboard(`${host.ip} ${host.domain}`, 'Host mapping')}
+                        onClick={() =>
+                          copyToClipboard(`${host.ip} ${host.domain}`, t().hosts.copyMapping)
+                        }
                       >
                         {t().devops.copy}
                       </Button>

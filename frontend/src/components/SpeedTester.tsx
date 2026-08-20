@@ -4,6 +4,7 @@ import { runSpeedTestApi, speedTestResult } from '../services/store';
 import { SpeedIcon } from './Icons';
 import { Button } from './ui';
 import { t } from '../i18n';
+import { getSpeedStatusClass } from '../utils/status';
 
 export const SpeedTester: Component = () => {
   const [isTesting, setIsTesting] = createSignal(false);
@@ -44,9 +45,7 @@ export const SpeedTester: Component = () => {
       <Show when={speedTestResult()}>
         {(res) => {
           const mbps = res().download_mbps;
-          let speedColor = 'text-status-success';
-          if (mbps < 30) speedColor = 'text-status-warning';
-          else if (mbps < 10) speedColor = 'text-status-danger';
+          const speedColor = getSpeedStatusClass(mbps);
 
           return (
             <div
@@ -93,7 +92,7 @@ export const SpeedTester: Component = () => {
                 </div>
                 <div class="text-[10px] text-status-success font-mono font-bold flex items-center gap-1.5">
                   <span class="h-1.5 w-1.5 rounded-full bg-status-success shadow-[0_0_6px_rgba(0,255,157,0.8)]" />
-                  <span>HTTP/2 CDN Global Edge Verified</span>
+                  <span>{t().speedtest.edgeVerified}</span>
                 </div>
               </div>
             </div>

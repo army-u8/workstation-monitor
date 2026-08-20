@@ -1,4 +1,4 @@
-import { For, Show, createSignal, onCleanup, onMount } from 'solid-js';
+import { For, Show, createEffect, createSignal, onCleanup, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import {
   copyToClipboard,
@@ -13,6 +13,8 @@ import { CloseIcon, FolderIcon, RefreshIcon, SearchIcon } from './Icons';
 import { Badge, Button, Input } from './ui';
 import { t } from '../i18n';
 import type { ObsidianNoteDetail, ObsidianSearchResponse } from '../types';
+import { trapDialogFocus } from '../utils/dialog-focus';
+import { createLatestRequestGuard } from '../utils/latest-request';
 
 export const ObsidianHub: Component = () => {
   const [isRefreshing, setIsRefreshing] = createSignal(false);
@@ -30,6 +32,31 @@ export const ObsidianHub: Component = () => {
   // Reader Modal State
   const [activeNoteDetail, setActiveNoteDetail] = createSignal<ObsidianNoteDetail | null>(null);
   const [isLoadingNote, setIsLoadingNote] = createSignal(false);
+  const searchRequests = createLatestRequestGuard();
+  const noteRequests = createLatestRequestGuard();
+
+  const closeNoteReader = () => {
+    noteRequests.invalidate();
+    setIsLoadingNote(false);
+    setActiveNoteDetail(null);
+  };
+
+  const handleReaderKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeNoteReader();
+    }
+  };
+
+  createEffect(() => {
+    if (!activeNoteDetail()) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    onCleanup(() => {
+      queueMicrotask(() => {
+        if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      });
+    });
+  });
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -42,13 +69,10 @@ export const ObsidianHub: Component = () => {
       handleRefresh();
     }
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && activeNoteDetail()) {
-        setActiveNoteDetail(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    onCleanup(() => window.removeEventListener('keydown', handleKeyDown));
+    onCleanup(() => {
+      searchRequests.invalidate();
+      noteRequests.invalidate();
+    });
   });
 
   const handleQuickCapture = async (e?: Event) => {
@@ -71,14 +95,17 @@ export const ObsidianHub: Component = () => {
   };
 
   const handleSearch = async (query: string) => {
+    const requestId = searchRequests.next();
     setSearchQuery(query);
     if (!query.trim()) {
       setSearchResult(null);
+      setIsSearching(false);
       return;
     }
 
     setIsSearching(true);
     const res = await searchObsidianApi(query.trim());
+    if (!searchRequests.isLatest(requestId)) return;
     setSearchResult(res);
     setIsSearching(false);
   };
@@ -94,8 +121,10 @@ export const ObsidianHub: Component = () => {
   };
 
   const handleOpenNote = async (relPath: string) => {
+    const requestId = noteRequests.next();
     setIsLoadingNote(true);
     const detail = await fetchObsidianNoteApi(relPath);
+    if (!noteRequests.isLatest(requestId)) return;
     setActiveNoteDetail(detail);
     setIsLoadingNote(false);
   };
@@ -134,7 +163,7 @@ export const ObsidianHub: Component = () => {
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <h1 class="text-sm font-bold text-text-primary m-0">
-                  {obsidianSummary()?.vault_name || 'Obsidian Vault'}
+                  {obsidianSummary()?.vault_name || t().sidebar.navObsidian}
                 </h1>
                 <Show when={obsidianSummary()?.git_branch}>
                   <span class="rounded-md bg-bg-subtle border border-border-subtle px-2 py-0.5 mono text-[10px] text-text-secondary flex items-center gap-1 font-semibold">
@@ -169,7 +198,9 @@ export const ObsidianHub: Component = () => {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => copyToClipboard(obsidianSummary()?.vault_path || '', 'Vault Path')}
+                  onClick={() =>
+                    copyToClipboard(obsidianSummary()?.vault_path || '', t().obsidian.vaultPath)
+                  }
                   class="mt-1 max-w-lg truncate text-left mono text-[10.5px] text-text-muted hover:text-accent h-auto py-1 px-2 justify-start"
                   title={obsidianSummary()?.vault_path}
                 >
@@ -343,6 +374,7 @@ export const ObsidianHub: Component = () => {
               }
             }}
             placeholder={t().obsidian.quickCapturePlaceholder}
+            aria-label={t().obsidian.quickCaptureTitle}
             class="w-full rounded-lg border border-border-default bg-bg-input p-2.5 text-xs text-text-primary placeholder:text-text-muted focus:border-accent focus:outline-none transition-colors resize-none"
           />
 
@@ -354,6 +386,7 @@ export const ObsidianHub: Component = () => {
                 value={quickCaptureTag()}
                 onInput={(e) => setQuickCaptureTag(e.currentTarget.value)}
                 placeholder={t().obsidian.tagPlaceholder}
+                aria-label={t().obsidian.tagPlaceholder}
                 class="h-7 w-full sm:w-48"
               />
             </div>
@@ -387,6 +420,7 @@ export const ObsidianHub: Component = () => {
                 value={searchQuery()}
                 onInput={(e) => handleSearch(e.currentTarget.value)}
                 placeholder={t().obsidian.searchPlaceholder}
+                aria-label={t().obsidian.searchPlaceholder}
                 class="w-full pl-8 pr-7"
               />
               <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
@@ -401,6 +435,7 @@ export const ObsidianHub: Component = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => handleSearch('')}
+                  aria-label={t().common.cancel}
                   class="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
                 >
                   <CloseIcon class="h-3 w-3" />
@@ -410,7 +445,9 @@ export const ObsidianHub: Component = () => {
 
             <Show when={selectedTag()}>
               <div class="flex items-center gap-1.5 text-xs">
-                <span class="text-text-muted text-[11px] font-semibold">Tag:</span>
+                <span class="text-text-muted text-[11px] font-semibold">
+                  {t().obsidian.tagFilter}:
+                </span>
                 <span class="rounded-md bg-accent/15 text-accent border border-accent/30 px-2 py-0.5 mono text-[11px] font-bold flex items-center gap-1">
                   #{selectedTag()}
                   <Button
@@ -418,6 +455,7 @@ export const ObsidianHub: Component = () => {
                     variant="ghost"
                     size="icon"
                     onClick={() => setSelectedTag(null)}
+                    aria-label={t().common.cancel}
                     class="h-4 w-4 p-0"
                   >
                     <CloseIcon class="h-3 w-3" />
@@ -473,20 +511,23 @@ export const ObsidianHub: Component = () => {
                 }
               >
                 {(match) => (
-                  <div
+                  <button
+                    type="button"
                     onClick={() => handleOpenNote(match.rel_path)}
-                    class="py-2.5 px-2 hover:bg-bg-hover/60 rounded-lg cursor-pointer transition-colors group"
+                    class="w-full py-2.5 px-2 hover:bg-bg-hover/60 rounded-lg cursor-pointer transition-colors group text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
                   >
                     <div class="flex items-center justify-between text-xs">
                       <span class="font-bold text-text-primary group-hover:text-accent truncate">
                         {match.title}
                       </span>
-                      <span class="mono text-[10px] text-text-muted">Line {match.line_number}</span>
+                      <span class="mono text-[10px] text-text-muted">
+                        {t().obsidian.searchLine.replace('{line}', match.line_number.toString())}
+                      </span>
                     </div>
                     <p class="mt-1 mono text-[11px] text-text-secondary line-clamp-2 leading-relaxed">
                       {match.line_content}
                     </p>
-                  </div>
+                  </button>
                 )}
               </For>
             </div>
@@ -516,9 +557,10 @@ export const ObsidianHub: Component = () => {
             }
           >
             {(note) => (
-              <div
+              <button
+                type="button"
                 onClick={() => handleOpenNote(note.rel_path)}
-                class="glass-card-subtle flex flex-col justify-between p-3.5 hover:border-border-hover cursor-pointer transition-all duration-150 group shadow-xs hover:translate-y-[-1px]"
+                class="glass-card-subtle flex w-full flex-col justify-between p-3.5 hover:border-border-hover cursor-pointer transition-all duration-150 group shadow-xs hover:translate-y-[-1px] text-left focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent"
               >
                 <div>
                   <div class="flex items-start justify-between gap-2">
@@ -531,7 +573,7 @@ export const ObsidianHub: Component = () => {
                   </div>
 
                   <p class="mt-2 text-[11px] text-text-secondary line-clamp-2 leading-relaxed">
-                    {note.preview_snippet || '...'}
+                    {note.preview_snippet || '…'}
                   </p>
                 </div>
 
@@ -559,7 +601,7 @@ export const ObsidianHub: Component = () => {
                     {note.word_count} {t().obsidian.words}
                   </span>
                 </div>
-              </div>
+              </button>
             )}
           </For>
         </div>
@@ -573,11 +615,19 @@ export const ObsidianHub: Component = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="note-reader-title"
+            onKeyDown={(e) => {
+              trapDialogFocus(e, e.currentTarget);
+              handleReaderKeyDown(e);
+            }}
             onClick={(e) => {
-              if (e.target === e.currentTarget) setActiveNoteDetail(null);
+              if (e.target === e.currentTarget) closeNoteReader();
             }}
           >
-            <div class="relative flex flex-col w-full max-w-3xl max-h-[85vh] rounded-xl border border-border-strong bg-bg-modal shadow-2xl transition-all duration-200 animate-in fade-in zoom-in-95 overflow-hidden">
+            <div
+              ref={(element) => queueMicrotask(() => element.focus())}
+              tabIndex={-1}
+              class="relative flex flex-col w-full max-w-3xl max-h-[85vh] rounded-xl border border-border-strong bg-bg-modal shadow-2xl transition-all duration-200 animate-in fade-in zoom-in-95 overflow-hidden focus:outline-none"
+            >
               {/* Header Bar */}
               <div class="flex items-center justify-between border-b border-border-subtle bg-bg-subtle/50 px-4 py-3">
                 <div class="min-w-0 flex-1 pr-3">
@@ -614,7 +664,7 @@ export const ObsidianHub: Component = () => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(note().content, 'Markdown')}
+                    onClick={() => copyToClipboard(note().content, t().obsidian.copyContent)}
                   >
                     {t().obsidian.copyContent}
                   </Button>
@@ -623,7 +673,7 @@ export const ObsidianHub: Component = () => {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() => setActiveNoteDetail(null)}
+                    onClick={closeNoteReader}
                     aria-label={t().obsidian.closeReader}
                   >
                     <CloseIcon class="h-4 w-4" />

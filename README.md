@@ -28,10 +28,10 @@
 | --- | --- |
 | macOS | 11+ (Apple Silicon or Intel) |
 | Rust | 1.75+ (edition 2021) |
-| Node.js | 18+ (for frontend dev/build) |
+| Node.js | 20.19+ or 22.12+ (for frontend dev/build) |
 | Xcode Command Line Tools | required (`pcap` build) |
 
-> **Packet sniffing** uses native `libpcap` (`/dev/bpf`). Run with `sudo` to enable deep capture; without it the sniffer degrades gracefully.
+> **Packet sniffing** uses native `libpcap` (`/dev/bpf`). A `sudo` launch opens the capture device and then immediately drops back to the invoking user before starting the HTTP server. Without `sudo`, the sniffer degrades gracefully.
 
 ---
 
@@ -39,7 +39,7 @@
 
 For most users — **no command line, no toolchain required**:
 
-1. Go to **[Releases](https://github.com/army-u8/workstation-monitor/releases)** and download `Workstation Monitor.app.zip`.
+1. Go to **[Releases](https://github.com/army-u8/workstation-monitor/releases)** and download the archive for your Mac: `Workstation_Monitor_VERSION_aarch64.app.zip` for Apple Silicon or `Workstation_Monitor_VERSION_x64.app.zip` for Intel. The Universal archive supports both architectures.
 2. Unzip and drag **Workstation Monitor** into your `Applications` folder.
 3. Double-click it. Your browser opens automatically to **http://localhost:9527**.
 
@@ -77,7 +77,7 @@ PORT=9000 cargo run --release
 
 Open **http://localhost:9527**.
 
-### Frontend dev mode (Vite, port 9528)
+### Frontend dev mode (Vite, port 9529)
 
 ```bash
 cd frontend
@@ -85,7 +85,10 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:9528** — Vite proxies `/api` and `/ws` to the backend on `9527`.
+Open **http://localhost:9529** — Vite proxies `/api` and `/ws` to the backend on `9527`.
+
+Set `VITE_BACKEND_PORT` when the backend uses a custom port, for example
+`VITE_BACKEND_PORT=9999 npm run dev`.
 
 ---
 
@@ -202,7 +205,7 @@ xattr -cr /Applications/Workstation\ Monitor.app
 ```
 Then double-click to open.
 
-> Running with `sudo` enables the deep packet sniffer (`/dev/bpf`); without it the app still works fully, just without raw packet capture.
+> A `sudo` launch enables the deep packet sniffer (`/dev/bpf`), then drops root privileges before exposing the dashboard. Direct root launches without a non-root `SUDO_UID`/`SUDO_GID` are refused. Without `sudo`, the app still works fully, just without raw packet capture.
 
 ---
 
@@ -217,4 +220,3 @@ For the transformation into a dedicated **Vibe Coding & AI Creator Workbench (Vi
 ## License
 
 Licensed under the [MIT License](LICENSE). Copyright (c) 2026 army-u8.
-

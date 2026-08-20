@@ -11,6 +11,7 @@ import type { CleanerItem } from '../types';
 import { RefreshIcon, TrashIcon } from './Icons';
 import { Badge, Button } from './ui';
 import { t } from '../i18n';
+import { getTotalReclaimableBytes } from '../utils/cleaner';
 
 export const SystemCleaner: Component = () => {
   const [isScanning, setIsScanning] = createSignal(false);
@@ -67,7 +68,7 @@ export const SystemCleaner: Component = () => {
   });
 
   const totalReclaimableBytes = () => {
-    return cleanerItems().reduce((acc, item) => acc + item.size_bytes, 0);
+    return getTotalReclaimableBytes(cleanerItems());
   };
 
   const formatTotalReclaimable = () => {
@@ -174,7 +175,7 @@ export const SystemCleaner: Component = () => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(item.path || '', 'Path')}
+                    onClick={() => copyToClipboard(item.path || '', t().devops.copyPath)}
                   >
                     {t().devops.copy}
                   </Button>
@@ -188,7 +189,7 @@ export const SystemCleaner: Component = () => {
                   disabled={!item.is_cleanable || cleaningId() === item.id}
                   loading={cleaningId() === item.id}
                 >
-                  {cleaningId() === item.id ? '...' : t().cleaner.cleanBtn}
+                  {cleaningId() === item.id ? t().cleaner.cleaning : t().cleaner.cleanBtn}
                 </Button>
               </div>
             </div>

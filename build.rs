@@ -15,7 +15,6 @@ fn main() {
     println!("cargo:rerun-if-changed=frontend/package-lock.json");
     println!("cargo:rerun-if-changed=frontend/vite.config.ts");
     println!("cargo:rerun-if-changed=frontend/tsconfig.json");
-    println!("cargo:rerun-if-changed=frontend/dist");
     println!("cargo:rerun-if-env-changed=SKIP_FRONTEND_BUILD");
 
     // Skip frontend build when explicitly disabled (e.g. CI that pre-builds it,

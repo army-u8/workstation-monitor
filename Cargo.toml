@@ -1,6 +1,6 @@
 [package]
 name = "workstation-monitor"
-version = "0.2.5"
+version = "0.2.6"
 edition = "2021"
 license = "MIT"
 build = "build.rs"
@@ -32,10 +32,9 @@ socket2 = "0.6"
 [package.metadata.bundle]
 name = "Workstation Monitor"
 identifier = "com.armyu8.workstation-monitor"
-version = "0.1.1"
+version = "0.2.6"
 category = "Utility"
 short_description = "macOS workstation monitoring dashboard"
 long_description = "A self-hosted, single-binary dashboard for monitoring and operating your macOS workstation."
 icon = ["assets/icon.icns"]
 copyright = "Copyright (c) 2026 army-u8. All rights reserved."
-

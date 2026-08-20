@@ -1,14 +1,3 @@
-use axum::{
-    extract::{Query, State},
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, post},
-    Json, Router,
-};
-use serde::Deserialize;
-use std::process::Command;
-use tower_http::cors::{Any, CorsLayer};
-use tower_http::trace::TraceLayer;
 use crate::collectors::{
     kill_process, kill_process_by_port, AiRadarManager, AutoUpdater, EnvVarsCollector, GitRadar,
     HostsManager, MachineInfoCollector, ObsidianManager, SavePointManager, SpeedTester,
@@ -18,15 +7,30 @@ use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};
 use crate::types::{
     CleanRequest, CreateSnapshotRequest, KillPortRequest, KillProcessRequest, OllamaUnloadRequest,
-    OpenAppRequest, OpenObsidianRequest, OpsResponse, PingRequest, PingResponse, QuickCaptureRequest,
-    RollbackSnapshotRequest, UpdateApplyRequest, UpdateApplyResponse,
+    OpenAppRequest, OpenObsidianRequest, OpsResponse, PingRequest, PingResponse,
+    QuickCaptureRequest, RollbackSnapshotRequest, UpdateApplyRequest, UpdateApplyResponse,
 };
+use axum::{
+    body::Body,
+    extract::{Query, State},
+    http::{header, Request, StatusCode},
+    middleware::{self, Next},
+    response::{IntoResponse, Response},
+    routing::{get, post},
+    Json, Router,
+};
+use serde::Deserialize;
+use std::process::Command;
+use tower_http::cors::{AllowOrigin, CorsLayer};
+use tower_http::trace::TraceLayer;
 
 pub fn build_router(state: AppState) -> Router {
     let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+        .allow_origin(AllowOrigin::predicate(|origin, _| {
+            is_vite_dev_origin(origin.to_str().unwrap_or_default())
+        }))
+        .allow_methods([axum::http::Method::GET, axum::http::Method::POST])
+        .allow_headers([header::CONTENT_TYPE]);
 
     Router::new()
         // Query APIs
@@ -52,7 +56,10 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/git/account", get(get_git_account))
         .route("/api/projects/snapshots", get(get_snapshots))
         .route("/api/projects/snapshots/create", post(post_snapshot_create))
-        .route("/api/projects/snapshots/rollback", post(post_snapshot_rollback))
+        .route(
+            "/api/projects/snapshots/rollback",
+            post(post_snapshot_rollback),
+        )
         .route("/api/services/web-artifacts", get(get_web_artifacts))
         .route("/api/tools/llm-latency", get(get_llm_latency))
         .route("/api/tools/ollama/status", get(get_ollama_status))
@@ -65,7 +72,10 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/obsidian/vault", get(get_obsidian_vault))
         .route("/api/obsidian/note", get(get_obsidian_note))
         .route("/api/obsidian/search", post(post_obsidian_search))
-        .route("/api/obsidian/quick-capture", post(post_obsidian_quick_capture))
+        .route(
+            "/api/obsidian/quick-capture",
+            post(post_obsidian_quick_capture),
+        )
         .route("/api/obsidian/open", post(post_obsidian_open))
         // Ops & Actions
         .route("/api/process/kill", post(post_kill_process))
@@ -76,8 +86,102 @@ pub fn build_router(state: AppState) -> Router {
         .route("/ws", get(ws_handler))
         .fallback(static_handler)
         .layer(cors)
+        .layer(middleware::from_fn(enforce_local_browser_origin))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
+}
+
+fn parse_browser_origin(origin: &str) -> Option<reqwest::Url> {
+    let Ok(url) = reqwest::Url::parse(origin) else {
+        return None;
+    };
+    if !matches!(url.scheme(), "http" | "https")
+        || !url.username().is_empty()
+        || url.password().is_some()
+    {
+        return None;
+    }
+
+    Some(url)
+}
+
+fn is_vite_dev_origin(origin: &str) -> bool {
+    let Some(url) = parse_browser_origin(origin) else {
+        return false;
+    };
+
+    url.scheme() == "http"
+        && url.port() == Some(9529)
+        && match url.host_str() {
+            Some(host) if host.eq_ignore_ascii_case("localhost") => true,
+            Some(host) => host
+                .parse::<std::net::IpAddr>()
+                .map(|ip| ip.is_loopback())
+                .unwrap_or(false),
+            None => false,
+        }
+}
+
+fn is_allowed_browser_request(origin: &str, request_host: &str) -> bool {
+    if is_vite_dev_origin(origin) {
+        return true;
+    }
+
+    let Some(url) = parse_browser_origin(origin) else {
+        return false;
+    };
+    let Ok(authority) = request_host.parse::<axum::http::uri::Authority>() else {
+        return false;
+    };
+    let request_hostname = authority
+        .host()
+        .strip_prefix('[')
+        .and_then(|host| host.strip_suffix(']'))
+        .unwrap_or_else(|| authority.host());
+    if !request_hostname.eq_ignore_ascii_case("localhost")
+        && request_hostname.parse::<std::net::IpAddr>().is_err()
+    {
+        return false;
+    }
+    let Some(origin_host) = url.host_str() else {
+        return false;
+    };
+    let origin_host = origin_host
+        .strip_prefix('[')
+        .and_then(|host| host.strip_suffix(']'))
+        .unwrap_or(origin_host);
+    if !origin_host.eq_ignore_ascii_case(request_hostname) {
+        return false;
+    }
+
+    let default_port = if url.scheme() == "https" { 443 } else { 80 };
+    url.port().unwrap_or(default_port) == authority.port_u16().unwrap_or(default_port)
+}
+
+async fn enforce_local_browser_origin(request: Request<Body>, next: Next) -> Response {
+    if let Some(origin) = request.headers().get(header::ORIGIN) {
+        let request_host = request
+            .headers()
+            .get(header::HOST)
+            .and_then(|host| host.to_str().ok())
+            .unwrap_or_default();
+        let allowed = origin
+            .to_str()
+            .map(|origin| is_allowed_browser_request(origin, request_host))
+            .unwrap_or(false);
+        if !allowed {
+            return (
+                StatusCode::FORBIDDEN,
+                Json(serde_json::json!({
+                    "success": false,
+                    "message": "Cross-origin requests are not allowed"
+                })),
+            )
+                .into_response();
+        }
+    }
+
+    next.run(request).await
 }
 
 async fn get_status(State(state): State<AppState>) -> impl IntoResponse {
@@ -111,7 +215,10 @@ async fn get_latency(State(state): State<AppState>) -> impl IntoResponse {
 
 async fn get_processes(State(state): State<AppState>) -> impl IntoResponse {
     let processes = state.latest_processes.read().await.clone();
-    (StatusCode::OK, Json(serde_json::to_value(processes).unwrap()))
+    (
+        StatusCode::OK,
+        Json(serde_json::to_value(processes).unwrap()),
+    )
 }
 
 async fn get_disks(State(state): State<AppState>) -> impl IntoResponse {
@@ -129,7 +236,10 @@ async fn get_battery(State(state): State<AppState>) -> impl IntoResponse {
 
 async fn get_dev_tools(State(state): State<AppState>) -> impl IntoResponse {
     let dev_tools = state.latest_dev_tools.read().await.clone();
-    (StatusCode::OK, Json(serde_json::to_value(dev_tools).unwrap()))
+    (
+        StatusCode::OK,
+        Json(serde_json::to_value(dev_tools).unwrap()),
+    )
 }
 
 // 0. Machine Info & App Versions
@@ -160,7 +270,9 @@ async fn get_machine_info() -> impl IntoResponse {
 
 // 1. Cleaner Handlers
 async fn get_cleaner_scan() -> impl IntoResponse {
-    let items = tokio::task::spawn_blocking(SystemCleaner::scan).await.unwrap_or_default();
+    let items = tokio::task::spawn_blocking(SystemCleaner::scan)
+        .await
+        .unwrap_or_default();
     (StatusCode::OK, Json(serde_json::to_value(items).unwrap()))
 }
 
@@ -197,13 +309,19 @@ async fn post_cleaner_clean(Json(payload): Json<CleanRequest>) -> impl IntoRespo
 
 // 2. Git Projects Radar Handlers
 async fn get_git_projects() -> impl IntoResponse {
-    let projects = tokio::task::spawn_blocking(GitRadar::scan_projects).await.unwrap_or_default();
-    (StatusCode::OK, Json(serde_json::to_value(projects).unwrap()))
+    let projects = tokio::task::spawn_blocking(GitRadar::scan_projects)
+        .await
+        .unwrap_or_default();
+    (
+        StatusCode::OK,
+        Json(serde_json::to_value(projects).unwrap()),
+    )
 }
 
 async fn get_git_account() -> impl IntoResponse {
-    let summary = tokio::task::spawn_blocking(GitRadar::get_account_summary).await.unwrap_or_else(|_| {
-        crate::types::GitAccountSummary {
+    let summary = tokio::task::spawn_blocking(GitRadar::get_account_summary)
+        .await
+        .unwrap_or_else(|_| crate::types::GitAccountSummary {
             git: crate::types::GitIdentityInfo {
                 user_name: None,
                 user_email: None,
@@ -214,8 +332,7 @@ async fn get_git_account() -> impl IntoResponse {
                 config_path: "~/.gitconfig".to_string(),
             },
             github: None,
-        }
-    });
+        });
     (StatusCode::OK, Json(serde_json::to_value(summary).unwrap()))
 }
 
@@ -239,7 +356,10 @@ async fn post_speedtest() -> impl IntoResponse {
 // 5. Open Project in Editor, Terminal, or Finder
 async fn post_open_app(Json(payload): Json<OpenAppRequest>) -> impl IntoResponse {
     let path = payload.path.trim().to_string();
-    let app = payload.app.unwrap_or_else(|| "finder".to_string()).to_lowercase();
+    let app = payload
+        .app
+        .unwrap_or_else(|| "finder".to_string())
+        .to_lowercase();
 
     let cmd_res = match app.as_str() {
         "code" | "vscode" => {
@@ -249,27 +369,23 @@ async fn post_open_app(Json(payload): Json<OpenAppRequest>) -> impl IntoResponse
                 .spawn()
                 .or_else(|_| Command::new("code").arg(&path).spawn())
         }
-        "cursor" => {
-            Command::new("open")
-                .args(["-a", "Cursor", &path])
-                .spawn()
-                .or_else(|_| Command::new("cursor").arg(&path).spawn())
-        }
-        "windsurf" => {
-            Command::new("open")
-                .args(["-a", "Windsurf", &path])
-                .spawn()
-                .or_else(|_| Command::new("windsurf").arg(&path).spawn())
-        }
-        "zed" => {
-            Command::new("open")
-                .args(["-a", "Zed", &path])
-                .spawn()
-                .or_else(|_| Command::new("zed").arg(&path).spawn())
-        }
+        "cursor" => Command::new("open")
+            .args(["-a", "Cursor", &path])
+            .spawn()
+            .or_else(|_| Command::new("cursor").arg(&path).spawn()),
+        "windsurf" => Command::new("open")
+            .args(["-a", "Windsurf", &path])
+            .spawn()
+            .or_else(|_| Command::new("windsurf").arg(&path).spawn()),
+        "zed" => Command::new("open")
+            .args(["-a", "Zed", &path])
+            .spawn()
+            .or_else(|_| Command::new("zed").arg(&path).spawn()),
         "terminal" => {
             // Try Ghostty / iTerm / Warp / default macOS Terminal
-            Command::new("open").args(["-a", "Ghostty", &path]).spawn()
+            Command::new("open")
+                .args(["-a", "Ghostty", &path])
+                .spawn()
                 .or_else(|_| Command::new("open").args(["-a", "iTerm", &path]).spawn())
                 .or_else(|_| Command::new("open").args(["-a", "Warp", &path]).spawn())
                 .or_else(|_| Command::new("open").args(["-a", "Terminal", &path]).spawn())
@@ -300,9 +416,7 @@ async fn post_open_app(Json(payload): Json<OpenAppRequest>) -> impl IntoResponse
     }
 }
 
-async fn post_kill_process(
-    Json(payload): Json<KillProcessRequest>,
-) -> impl IntoResponse {
+async fn post_kill_process(Json(payload): Json<KillProcessRequest>) -> impl IntoResponse {
     match kill_process(payload.pid) {
         Ok(_) => (
             StatusCode::OK,
@@ -323,9 +437,7 @@ async fn post_kill_process(
     }
 }
 
-async fn post_kill_port(
-    Json(payload): Json<KillPortRequest>,
-) -> impl IntoResponse {
+async fn post_kill_port(Json(payload): Json<KillPortRequest>) -> impl IntoResponse {
     match kill_process_by_port(payload.port) {
         Ok(pids) => (
             StatusCode::OK,
@@ -350,7 +462,9 @@ async fn post_flush_dns() -> impl IntoResponse {
     let mut err_msg = None;
 
     let res1 = Command::new("dscacheutil").arg("-flushcache").output();
-    let res2 = Command::new("killall").args(["-HUP", "mDNSResponder"]).output();
+    let res2 = Command::new("killall")
+        .args(["-HUP", "mDNSResponder"])
+        .output();
 
     if res1.is_err() && res2.is_err() {
         err_msg = Some("执行清理 DNS 指令失败".to_string());
@@ -380,7 +494,11 @@ async fn post_ping(Json(payload): Json<PingRequest>) -> impl IntoResponse {
     let count = payload.count.unwrap_or(4).clamp(1, 10);
     let host_raw = payload.host.trim().to_string();
 
-    if host_raw.is_empty() || host_raw.contains('&') || host_raw.contains(';') || host_raw.contains('|') {
+    if host_raw.is_empty()
+        || host_raw.contains('&')
+        || host_raw.contains(';')
+        || host_raw.contains('|')
+    {
         return (
             StatusCode::BAD_REQUEST,
             Json(PingResponse {
@@ -599,7 +717,9 @@ async fn post_obsidian_search(Json(payload): Json<SearchQueryPayload>) -> impl I
     (StatusCode::OK, Json(serde_json::to_value(res).unwrap()))
 }
 
-async fn post_obsidian_quick_capture(Json(payload): Json<QuickCaptureRequest>) -> impl IntoResponse {
+async fn post_obsidian_quick_capture(
+    Json(payload): Json<QuickCaptureRequest>,
+) -> impl IntoResponse {
     match tokio::task::spawn_blocking(move || ObsidianManager::quick_capture(payload)).await {
         Ok(Ok(msg)) => (
             StatusCode::OK,
@@ -666,12 +786,18 @@ async fn post_obsidian_open(Json(payload): Json<OpenObsidianRequest>) -> impl In
 // 7. System Auto-Updater Handlers
 async fn get_update_check() -> impl IntoResponse {
     let update_info = AutoUpdater::check_update().await;
-    (StatusCode::OK, Json(serde_json::to_value(update_info).unwrap()))
+    (
+        StatusCode::OK,
+        Json(serde_json::to_value(update_info).unwrap()),
+    )
 }
 
 async fn get_update_progress() -> impl IntoResponse {
     let progress = AutoUpdater::get_progress();
-    (StatusCode::OK, Json(serde_json::to_value(progress).unwrap()))
+    (
+        StatusCode::OK,
+        Json(serde_json::to_value(progress).unwrap()),
+    )
 }
 
 async fn get_update_history() -> impl IntoResponse {
@@ -679,7 +805,9 @@ async fn get_update_history() -> impl IntoResponse {
     (StatusCode::OK, Json(serde_json::to_value(backups).unwrap()))
 }
 
-async fn post_update_rollback(Json(payload): Json<crate::types::UpdateRollbackRequest>) -> impl IntoResponse {
+async fn post_update_rollback(
+    Json(payload): Json<crate::types::UpdateRollbackRequest>,
+) -> impl IntoResponse {
     match AutoUpdater::rollback_update(payload.version).await {
         Ok(msg) => (
             StatusCode::OK,
@@ -711,6 +839,8 @@ async fn post_update_apply(Json(payload): Json<UpdateApplyRequest>) -> impl Into
         Err(err) => {
             let status = if err.contains("already in progress") {
                 StatusCode::CONFLICT
+            } else if err.starts_with("Invalid update URL:") {
+                StatusCode::BAD_REQUEST
             } else {
                 StatusCode::INTERNAL_SERVER_ERROR
             };
@@ -802,12 +932,18 @@ async fn post_snapshot_rollback(Json(payload): Json<RollbackSnapshotRequest>) ->
 
 async fn get_web_artifacts() -> impl IntoResponse {
     let artifacts = WebArtifactsManager::scan_web_artifacts().await;
-    (StatusCode::OK, Json(serde_json::to_value(artifacts).unwrap()))
+    (
+        StatusCode::OK,
+        Json(serde_json::to_value(artifacts).unwrap()),
+    )
 }
 
 async fn get_llm_latency() -> impl IntoResponse {
     let latencies = AiRadarManager::probe_llm_apis().await;
-    (StatusCode::OK, Json(serde_json::to_value(latencies).unwrap()))
+    (
+        StatusCode::OK,
+        Json(serde_json::to_value(latencies).unwrap()),
+    )
 }
 
 async fn get_ollama_status() -> impl IntoResponse {
@@ -829,13 +965,197 @@ async fn post_ollama_unload(Json(payload): Json<OllamaUnloadRequest>) -> impl In
 }
 
 async fn get_env_vars() -> impl IntoResponse {
-    let payload = tokio::task::spawn_blocking(EnvVarsCollector::collect).await.unwrap_or_else(|_| EnvVarsCollector::collect());
+    let payload = tokio::task::spawn_blocking(EnvVarsCollector::collect)
+        .await
+        .unwrap_or_else(|_| EnvVarsCollector::collect());
     (StatusCode::OK, Json(serde_json::to_value(payload).unwrap()))
 }
 
 async fn get_ai_agents() -> impl IntoResponse {
-    let agents = tokio::task::spawn_blocking(AiRadarManager::detect_local_agents).await.unwrap_or_else(|_| AiRadarManager::detect_local_agents());
+    let agents = tokio::task::spawn_blocking(AiRadarManager::detect_local_agents)
+        .await
+        .unwrap_or_else(|_| AiRadarManager::detect_local_agents());
     (StatusCode::OK, Json(serde_json::to_value(agents).unwrap()))
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{
+        body::Body,
+        http::{header, Method, Request},
+    };
+    use std::sync::Arc;
+    use tokio::sync::{broadcast, RwLock};
+    use tower::ServiceExt;
 
+    fn test_state() -> AppState {
+        let (tx, _) = broadcast::channel(8);
+        AppState {
+            tx,
+            latest_traffic: Arc::new(RwLock::new(None)),
+            latest_sockets: Arc::new(RwLock::new(None)),
+            latest_latency: Arc::new(RwLock::new(Vec::new())),
+            latest_stats: Arc::new(RwLock::new(None)),
+            latest_processes: Arc::new(RwLock::new(Vec::new())),
+            latest_disks: Arc::new(RwLock::new(Vec::new())),
+            latest_battery: Arc::new(RwLock::new(None)),
+            latest_dev_tools: Arc::new(RwLock::new(Vec::new())),
+        }
+    }
+
+    async fn preflight(origin: &'static str) -> axum::response::Response {
+        build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .method(Method::OPTIONS)
+                    .uri("/api/projects/snapshots/rollback")
+                    .header(header::ORIGIN, origin)
+                    .header(header::ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn destructive_api_rejects_cross_origin_preflight() {
+        let response = preflight("https://attacker.example").await;
+        assert!(response
+            .headers()
+            .get(header::ACCESS_CONTROL_ALLOW_ORIGIN)
+            .is_none());
+    }
+
+    #[tokio::test]
+    async fn destructive_api_allows_local_vite_origin() {
+        let response = preflight("http://localhost:9529").await;
+        assert_eq!(
+            response
+                .headers()
+                .get(header::ACCESS_CONTROL_ALLOW_ORIGIN)
+                .unwrap(),
+            "http://localhost:9529"
+        );
+    }
+
+    #[test]
+    fn browser_origin_must_match_request_host_or_exact_vite_origin() {
+        assert!(is_allowed_browser_request(
+            "http://192.168.1.44:9527",
+            "192.168.1.44:9527"
+        ));
+        assert!(is_allowed_browser_request(
+            "http://localhost:9529",
+            "127.0.0.1:9527"
+        ));
+        assert!(is_allowed_browser_request(
+            "http://[::1]:9527",
+            "[::1]:9527"
+        ));
+        assert!(!is_allowed_browser_request(
+            "http://localhost:7777",
+            "localhost:9527"
+        ));
+        assert!(!is_allowed_browser_request(
+            "https://attacker.example",
+            "localhost:9527"
+        ));
+        assert!(!is_allowed_browser_request(
+            "http://attacker.example:9527",
+            "attacker.example:9527"
+        ));
+    }
+
+    #[tokio::test]
+    async fn destructive_api_allows_same_origin_lan_post() {
+        let response = build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/api/projects/snapshots/rollback")
+                    .header(header::HOST, "192.168.1.44:9527")
+                    .header(header::ORIGIN, "http://192.168.1.44:9527")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from("{}"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_ne!(response.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn destructive_api_rejects_other_loopback_port() {
+        let response = build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/api/projects/snapshots/rollback")
+                    .header(header::HOST, "localhost:9527")
+                    .header(header::ORIGIN, "http://localhost:7777")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn destructive_api_rejects_same_origin_domain_to_prevent_dns_rebinding() {
+        let response = build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/api/projects/snapshots/rollback")
+                    .header(header::HOST, "attacker.example:9527")
+                    .header(header::ORIGIN, "http://attacker.example:9527")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn destructive_api_rejects_cross_origin_post_before_handler() {
+        let response = build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/api/projects/snapshots/rollback")
+                    .header(header::ORIGIN, "https://attacker.example")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[tokio::test]
+    async fn update_apply_rejects_untrusted_download_url_as_bad_request() {
+        let response = build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/api/system/update/apply")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        r#"{"download_url":"https://attacker.example/update.app.zip"}"#,
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+}

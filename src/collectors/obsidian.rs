@@ -1,11 +1,18 @@
-use std::collections::HashMap;
-use std::fs::{self, OpenOptions};
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::time::SystemTime;
 use chrono::Local;
 use serde_json::Value;
+use std::collections::HashMap;
+use std::fs::{self, File};
+use std::io::{Read, Write};
+use std::path::{Component, Path, PathBuf};
+use std::process::Command;
+use std::time::SystemTime;
+
+#[cfg(unix)]
+use std::ffi::{CString, OsStr};
+#[cfg(unix)]
+use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+#[cfg(unix)]
+use std::os::unix::ffi::OsStrExt;
 
 use crate::types::{
     ObsidianNoteDetail, ObsidianNoteItem, ObsidianSearchMatch, ObsidianSearchResponse,
@@ -14,24 +21,154 @@ use crate::types::{
 
 pub struct ObsidianManager;
 
+#[cfg(unix)]
+struct AnchoredVault {
+    root: OwnedFd,
+}
+
+#[cfg(unix)]
+impl AnchoredVault {
+    fn open(path: &Path) -> std::io::Result<Self> {
+        let canonical = fs::canonicalize(path)?;
+        let path = CString::new(canonical.as_os_str().as_bytes())
+            .map_err(|_| std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
+        let fd = unsafe {
+            libc::open(
+                path.as_ptr(),
+                libc::O_RDONLY | libc::O_DIRECTORY | libc::O_CLOEXEC | libc::O_NOFOLLOW,
+            )
+        };
+        if fd == -1 {
+            Err(std::io::Error::last_os_error())
+        } else {
+            Ok(Self {
+                root: unsafe { OwnedFd::from_raw_fd(fd) },
+            })
+        }
+    }
+
+    fn open_child_directory(
+        parent_fd: i32,
+        name: &OsStr,
+        create: bool,
+    ) -> std::io::Result<OwnedFd> {
+        let name = CString::new(name.as_bytes())
+            .map_err(|_| std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
+        let open_directory = || unsafe {
+            libc::openat(
+                parent_fd,
+                name.as_ptr(),
+                libc::O_RDONLY | libc::O_DIRECTORY | libc::O_CLOEXEC | libc::O_NOFOLLOW,
+            )
+        };
+        let mut fd = open_directory();
+        if fd == -1
+            && create
+            && std::io::Error::last_os_error().raw_os_error() == Some(libc::ENOENT)
+        {
+            let mkdir_result = unsafe { libc::mkdirat(parent_fd, name.as_ptr(), 0o755) };
+            if mkdir_result == -1
+                && std::io::Error::last_os_error().raw_os_error() != Some(libc::EEXIST)
+            {
+                return Err(std::io::Error::last_os_error());
+            }
+            fd = open_directory();
+        }
+
+        if fd == -1 {
+            Err(std::io::Error::last_os_error())
+        } else {
+            Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+        }
+    }
+
+    fn open_file(
+        &self,
+        relative: &Path,
+        flags: i32,
+        create_parents: bool,
+    ) -> std::io::Result<File> {
+        let components = relative
+            .components()
+            .map(|component| match component {
+                Component::Normal(name) => Ok(name),
+                _ => Err(std::io::Error::from(std::io::ErrorKind::InvalidInput)),
+            })
+            .collect::<std::io::Result<Vec<_>>>()?;
+        let (file_name, directories) = components
+            .split_last()
+            .ok_or_else(|| std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
+
+        let mut current_directory = None;
+        for directory in directories {
+            let parent_fd = current_directory
+                .as_ref()
+                .map(AsRawFd::as_raw_fd)
+                .unwrap_or_else(|| self.root.as_raw_fd());
+            current_directory = Some(Self::open_child_directory(
+                parent_fd,
+                directory,
+                create_parents,
+            )?);
+        }
+        let parent_fd = current_directory
+            .as_ref()
+            .map(AsRawFd::as_raw_fd)
+            .unwrap_or_else(|| self.root.as_raw_fd());
+        let file_name = CString::new(file_name.as_bytes())
+            .map_err(|_| std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
+        let fd = unsafe {
+            libc::openat(
+                parent_fd,
+                file_name.as_ptr(),
+                flags | libc::O_CLOEXEC | libc::O_NOFOLLOW,
+                0o644,
+            )
+        };
+        if fd == -1 {
+            Err(std::io::Error::last_os_error())
+        } else {
+            Ok(unsafe { File::from_raw_fd(fd) })
+        }
+    }
+
+    fn open_read(&self, relative: &Path) -> std::io::Result<File> {
+        self.open_file(relative, libc::O_RDONLY, false)
+    }
+
+    fn open_append(&self, relative: &Path) -> std::io::Result<File> {
+        self.open_file(
+            relative,
+            libc::O_WRONLY | libc::O_APPEND | libc::O_CREAT,
+            true,
+        )
+    }
+}
+
 impl ObsidianManager {
     /// Discovers the active Obsidian Vault path
     pub fn find_vault_path() -> Option<PathBuf> {
-        if let Ok(env_path) = std::env::var("OBSIDIAN_VAULT_PATH") {
-            let p = PathBuf::from(env_path);
+        let configured = std::env::var_os("OBSIDIAN_VAULT_PATH").map(PathBuf::from);
+        let home = std::env::var_os("HOME")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from("/Users/wishlife"));
+        Self::find_vault_path_from(configured.as_deref(), &home)
+    }
+
+    fn find_vault_path_from(configured: Option<&Path>, home: &Path) -> Option<PathBuf> {
+        if let Some(p) = configured {
             if p.exists() && p.is_dir() {
-                return Some(p);
+                return Some(p.to_path_buf());
             }
         }
 
-        let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/wishlife".to_string());
         let candidate_paths = vec![
-            PathBuf::from(&home).join("Documents").join("Obsidian Vault"),
-            PathBuf::from(&home).join("Obsidian Vault"),
-            PathBuf::from(&home).join("workspace").join("Obsidian Vault"),
-            PathBuf::from(&home).join("Library/Mobile Documents/iCloud~md~obsidian/Documents"),
-            PathBuf::from(&home).join("Documents").join("Notes"),
-            PathBuf::from(&home).join("Notes"),
+            home.join("Documents").join("Obsidian Vault"),
+            home.join("Obsidian Vault"),
+            home.join("workspace").join("Obsidian Vault"),
+            home.join("Library/Mobile Documents/iCloud~md~obsidian/Documents"),
+            home.join("Documents").join("Notes"),
+            home.join("Notes"),
         ];
 
         for path in candidate_paths {
@@ -75,7 +212,13 @@ impl ObsidianManager {
         let mut tag_freq: HashMap<String, usize> = HashMap::new();
 
         let mut all_files = Vec::new();
-        Self::collect_files_recursive(&vault_path, &vault_path, 0, &mut all_files, &mut total_folders);
+        Self::collect_files_recursive(
+            &vault_path,
+            &vault_path,
+            0,
+            &mut all_files,
+            &mut total_folders,
+        );
 
         for (path, metadata) in all_files {
             let file_len = metadata.len();
@@ -89,7 +232,18 @@ impl ObsidianManager {
 
             let is_attachment = matches!(
                 ext.as_str(),
-                "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg" | "pdf" | "canvas" | "mp4" | "mp3" | "m4a" | "zip"
+                "png"
+                    | "jpg"
+                    | "jpeg"
+                    | "gif"
+                    | "webp"
+                    | "svg"
+                    | "pdf"
+                    | "canvas"
+                    | "mp4"
+                    | "mp3"
+                    | "m4a"
+                    | "zip"
             );
 
             if is_attachment {
@@ -172,17 +326,18 @@ impl ObsidianManager {
     pub fn get_note_detail(rel_path: &str) -> Option<ObsidianNoteDetail> {
         let vault_path = Self::find_vault_path()?;
         let clean_path = rel_path.trim_start_matches('/');
-        if clean_path.contains("..") {
+        let relative = Path::new(clean_path);
+        if !Self::is_safe_relative_path(relative) {
             return None;
         }
-
-        let full_path = vault_path.join(clean_path);
-        if !full_path.exists() || !full_path.is_file() {
+        let anchored = AnchoredVault::open(&vault_path).ok()?;
+        let mut file = anchored.open_read(relative).ok()?;
+        let metadata = file.metadata().ok()?;
+        if !metadata.is_file() {
             return None;
         }
-
-        let content = fs::read_to_string(&full_path).ok()?;
-        let metadata = fs::metadata(&full_path).ok()?;
+        let mut content = String::new();
+        file.read_to_string(&mut content).ok()?;
         let size_bytes = metadata.len();
         let modified_system = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
         let modified_timestamp = modified_system
@@ -191,7 +346,7 @@ impl ObsidianManager {
             .as_secs();
 
         let modified_human = Self::format_relative_time(modified_timestamp);
-        let title = Self::extract_title(&content, &full_path);
+        let title = Self::extract_title(&content, relative);
         let tags = Self::extract_tags(&content);
         let word_count = Self::count_words(&content);
 
@@ -227,7 +382,13 @@ impl ObsidianManager {
 
         let mut all_files = Vec::new();
         let mut folder_count = 0;
-        Self::collect_files_recursive(&vault_path, &vault_path, 0, &mut all_files, &mut folder_count);
+        Self::collect_files_recursive(
+            &vault_path,
+            &vault_path,
+            0,
+            &mut all_files,
+            &mut folder_count,
+        );
 
         let mut matches = Vec::new();
 
@@ -287,22 +448,25 @@ impl ObsidianManager {
         let timestamp_str = now.format("%H:%M:%S").to_string();
         let date_str = now.format("%Y-%m-%d").to_string();
 
-        let target_file_path: PathBuf = match req.target.as_deref() {
+        let requested_target: PathBuf = match req.target.as_deref() {
             Some("inbox") => vault_path.join("QuickCapture.md"),
             Some(custom_path) if !custom_path.is_empty() && custom_path != "daily" => {
-                if custom_path.contains("..") {
+                let relative = Path::new(custom_path.trim_start_matches('/'));
+                if !Self::is_safe_relative_path(relative) {
                     return Err("Invalid path containing parent traversal".to_string());
                 }
-                vault_path.join(custom_path.trim_start_matches('/'))
+                vault_path.join(relative)
             }
             _ => {
                 let daily_dir = Self::get_daily_notes_folder(&vault_path);
                 daily_dir.join(format!("{}.md", date_str))
             }
         };
-
-        if let Some(parent) = target_file_path.parent() {
-            let _ = fs::create_dir_all(parent);
+        let relative_target = requested_target
+            .strip_prefix(&vault_path)
+            .map_err(|_| "Capture target must be inside the Obsidian Vault".to_string())?;
+        if !Self::is_safe_relative_path(relative_target) {
+            return Err("Invalid capture target path".to_string());
         }
 
         let tag_suffix = req
@@ -319,10 +483,10 @@ impl ObsidianManager {
 
         let entry_line = format!("\n- **{}** {}{}\n", timestamp_str, content, tag_suffix);
 
-        let mut file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&target_file_path)
+        let anchored = AnchoredVault::open(&vault_path)
+            .map_err(|e| format!("Failed to open Obsidian Vault: {}", e))?;
+        let mut file = anchored
+            .open_append(relative_target)
             .map_err(|e| format!("Failed to open target file: {}", e))?;
 
         if file.metadata().map(|m| m.len() == 0).unwrap_or(false) {
@@ -333,18 +497,18 @@ impl ObsidianManager {
         file.write_all(entry_line.as_bytes())
             .map_err(|e| format!("Failed to write entry: {}", e))?;
 
-        let rel_target = target_file_path
-            .strip_prefix(&vault_path)
-            .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_else(|_| target_file_path.to_string_lossy().to_string());
+        let rel_target = relative_target.to_string_lossy().to_string();
 
         Ok(format!("Saved to {}", rel_target))
     }
 
     /// Native open via obsidian:// URL or finder/code/terminal
-    pub fn open_obsidian(file_path: Option<&str>, target_app: Option<&str>) -> Result<String, String> {
-        let vault_path = Self::find_vault_path()
-            .ok_or_else(|| "Obsidian Vault not found".to_string())?;
+    pub fn open_obsidian(
+        file_path: Option<&str>,
+        target_app: Option<&str>,
+    ) -> Result<String, String> {
+        let vault_path =
+            Self::find_vault_path().ok_or_else(|| "Obsidian Vault not found".to_string())?;
 
         let vault_name = vault_path
             .file_name()
@@ -360,7 +524,10 @@ impl ObsidianManager {
                         let clean = fp.trim().trim_start_matches('/');
                         let encoded_vault = Self::url_encode(vault_name);
                         let encoded_file = Self::url_encode(clean);
-                        format!("obsidian://open?vault={}&file={}", encoded_vault, encoded_file)
+                        format!(
+                            "obsidian://open?vault={}&file={}",
+                            encoded_vault, encoded_file
+                        )
                     }
                     _ => {
                         let encoded_vault = Self::url_encode(vault_name);
@@ -377,7 +544,9 @@ impl ObsidianManager {
             }
             "finder" => {
                 let target = match file_path {
-                    Some(fp) if !fp.trim().is_empty() => vault_path.join(fp.trim().trim_start_matches('/')),
+                    Some(fp) if !fp.trim().is_empty() => {
+                        vault_path.join(fp.trim().trim_start_matches('/'))
+                    }
                     _ => vault_path,
                 };
                 Command::new("open")
@@ -389,7 +558,9 @@ impl ObsidianManager {
             }
             "code" => {
                 let target = match file_path {
-                    Some(fp) if !fp.trim().is_empty() => vault_path.join(fp.trim().trim_start_matches('/')),
+                    Some(fp) if !fp.trim().is_empty() => {
+                        vault_path.join(fp.trim().trim_start_matches('/'))
+                    }
                     _ => vault_path,
                 };
                 Command::new("code")
@@ -412,6 +583,13 @@ impl ObsidianManager {
     }
 
     // --- Helpers ---
+
+    fn is_safe_relative_path(path: &Path) -> bool {
+        !path.as_os_str().is_empty()
+            && path
+                .components()
+                .all(|component| matches!(component, Component::Normal(_)))
+    }
 
     fn collect_files_recursive(
         dir: &Path,
@@ -443,7 +621,13 @@ impl ObsidianManager {
                         if path != vault_root {
                             *folder_count += 1;
                         }
-                        Self::collect_files_recursive(&path, vault_root, depth + 1, out, folder_count);
+                        Self::collect_files_recursive(
+                            &path,
+                            vault_root,
+                            depth + 1,
+                            out,
+                            folder_count,
+                        );
                     } else if meta.is_file() {
                         out.push((path, meta));
                     }
@@ -539,7 +723,10 @@ impl ObsidianManager {
                 for line in frontmatter.lines() {
                     let line_t = line.trim();
                     if line_t.starts_with("title:") {
-                        let title = line_t["title:".len()..].trim().trim_matches('"').trim_matches('\'');
+                        let title = line_t["title:".len()..]
+                            .trim()
+                            .trim_matches('"')
+                            .trim_matches('\'');
                         if !title.is_empty() {
                             return title.to_string();
                         }
@@ -697,11 +884,121 @@ impl ObsidianManager {
 mod tests {
     use super::*;
 
+    #[cfg(unix)]
+    fn symlink_fixture(name: &str) -> (PathBuf, PathBuf) {
+        let root =
+            std::env::temp_dir().join(format!("vibedesk_obsidian_{}_{}", name, std::process::id()));
+        let vault = root.join("vault");
+        let outside = root.join("outside");
+        let _ = fs::remove_dir_all(&root);
+        fs::create_dir_all(vault.join(".obsidian")).unwrap();
+        fs::create_dir_all(&outside).unwrap();
+        (vault, outside)
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn note_detail_rejects_symlink_that_escapes_vault() {
+        use std::os::unix::fs::symlink;
+
+        let (vault, outside) = symlink_fixture("read_escape");
+        let outside_note = outside.join("secret.md");
+        fs::write(&outside_note, "# outside secret").unwrap();
+        symlink(&outside_note, vault.join("escape.md")).unwrap();
+
+        let anchored = AnchoredVault::open(&vault).unwrap();
+        assert!(anchored.open_read(Path::new("escape.md")).is_err());
+
+        fs::remove_dir_all(vault.parent().unwrap()).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn search_does_not_follow_symlinked_directories_outside_vault() {
+        use std::os::unix::fs::symlink;
+
+        let (vault, outside) = symlink_fixture("search_escape");
+        fs::write(outside.join("secret.md"), "VIBEDESK_OUTSIDE_SECRET").unwrap();
+        symlink(&outside, vault.join("linked-notes")).unwrap();
+
+        let mut files = Vec::new();
+        let mut folder_count = 0;
+        ObsidianManager::collect_files_recursive(&vault, &vault, 0, &mut files, &mut folder_count);
+        assert!(files.is_empty());
+
+        fs::remove_dir_all(vault.parent().unwrap()).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn quick_capture_rejects_symlinked_parent_that_escapes_vault() {
+        use std::os::unix::fs::symlink;
+
+        let (vault, outside) = symlink_fixture("write_escape");
+        symlink(&outside, vault.join("linked-notes")).unwrap();
+        let anchored = AnchoredVault::open(&vault).unwrap();
+        let result = anchored.open_append(Path::new("linked-notes/escaped.md"));
+
+        assert!(result.is_err());
+        assert!(!outside.join("escaped.md").exists());
+
+        fs::remove_dir_all(vault.parent().unwrap()).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn anchored_read_rejects_parent_swapped_to_symlink_after_root_open() {
+        use std::io::Read;
+        use std::os::unix::fs::symlink;
+
+        let (vault, outside) = symlink_fixture("read_parent_swap");
+        let notes = vault.join("notes");
+        fs::create_dir_all(&notes).unwrap();
+        fs::write(notes.join("secret.md"), "inside").unwrap();
+        fs::write(outside.join("secret.md"), "outside secret").unwrap();
+        let anchored = AnchoredVault::open(&vault).unwrap();
+        fs::rename(&notes, vault.join("notes-original")).unwrap();
+        symlink(&outside, &notes).unwrap();
+
+        let mut content = String::new();
+        let result = anchored
+            .open_read(Path::new("notes/secret.md"))
+            .and_then(|mut file| file.read_to_string(&mut content));
+
+        assert!(result.is_err());
+        assert!(!content.contains("outside secret"));
+        fs::remove_dir_all(vault.parent().unwrap()).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn anchored_append_rejects_parent_swapped_to_symlink_after_root_open() {
+        use std::os::unix::fs::symlink;
+
+        let (vault, outside) = symlink_fixture("write_parent_swap");
+        let notes = vault.join("notes");
+        fs::create_dir_all(&notes).unwrap();
+        let anchored = AnchoredVault::open(&vault).unwrap();
+        fs::rename(&notes, vault.join("notes-original")).unwrap();
+        symlink(&outside, &notes).unwrap();
+
+        let result = anchored.open_append(Path::new("notes/escaped.md"));
+
+        assert!(result.is_err());
+        assert!(!outside.join("escaped.md").exists());
+        fs::remove_dir_all(vault.parent().unwrap()).unwrap();
+    }
+
     #[test]
     fn test_vault_discovery() {
-        let p = ObsidianManager::find_vault_path();
-        println!("Discovered vault path: {:?}", p);
-        assert!(p.is_some(), "Vault path should be discovered");
+        let (vault, outside) = symlink_fixture("discovery");
+
+        assert_eq!(
+            ObsidianManager::find_vault_path_from(Some(&vault), &outside),
+            Some(vault.clone())
+        );
+
+        fs::remove_dir_all(vault.parent().unwrap()).unwrap();
     }
 
     #[test]
@@ -721,4 +1018,3 @@ mod tests {
         println!("Found matches for AI: {}", res.total_matches);
     }
 }
-

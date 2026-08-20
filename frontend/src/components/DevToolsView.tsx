@@ -737,7 +737,7 @@ export const DevToolsView: Component = () => {
                                 rel="noopener noreferrer"
                                 class="text-text-muted hover:text-accent underline"
                               >
-                                Console ↗
+                                {t().common.console} ↗
                               </a>
                             </Show>
                           </div>
@@ -802,7 +802,7 @@ export const DevToolsView: Component = () => {
                         </td>
                         <td class="py-2 px-3">
                           <Badge variant={entry.exists ? 'success' : 'destructive'} size="sm">
-                            {entry.exists ? 'OK' : 'Missing'}
+                            {entry.exists ? t().devops.pathValid : t().devops.pathInvalid}
                           </Badge>
                         </td>
                         <td class="py-2 px-3 text-right whitespace-nowrap">
@@ -810,7 +810,7 @@ export const DevToolsView: Component = () => {
                             type="button"
                             variant="secondary"
                             size="sm"
-                            onClick={() => copyToClipboard(entry.path, 'Path entry')}
+                            onClick={() => copyToClipboard(entry.path, t().devops.copyPath)}
                           >
                             {t().devops.copy}
                           </Button>

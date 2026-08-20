@@ -142,7 +142,9 @@ export const GitRadar: Component = () => {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(gitAccount()?.git.user_email || '', 'Git Email')}
+                    onClick={() =>
+                      copyToClipboard(gitAccount()?.git.user_email || '', t().gitRadar.copyEmail)
+                    }
                     class="mono text-[11px] text-text-secondary hover:text-accent text-left truncate block max-w-full h-auto py-0.5 px-1 justify-start"
                     title={gitAccount()?.git.user_email || ''}
                   >
@@ -303,7 +305,7 @@ export const GitRadar: Component = () => {
           <div
             class="flex items-center rounded border border-border-subtle bg-bg-input p-0.5"
             role="group"
-            aria-label="Layout Switcher"
+            aria-label={t().gitRadar.layoutSwitcher}
           >
             <Button
               type="button"
@@ -412,16 +414,25 @@ export const GitRadar: Component = () => {
                           </span>
 
                           <Show
-                            when={repo.is_dirty}
+                            when={!repo.status_error}
                             fallback={
-                              <Badge variant="success" size="sm">
-                                {t().gitRadar.clean}
+                              <Badge variant="warning" size="sm" title={repo.status_error || ''}>
+                                {t().gitRadar.statusUnknown}
                               </Badge>
                             }
                           >
-                            <Badge variant="warning" size="sm">
-                              {repo.uncommitted_count} {t().gitRadar.dirtyShort}
-                            </Badge>
+                            <Show
+                              when={repo.is_dirty}
+                              fallback={
+                                <Badge variant="success" size="sm">
+                                  {t().gitRadar.clean}
+                                </Badge>
+                              }
+                            >
+                              <Badge variant="warning" size="sm">
+                                {repo.uncommitted_count} {t().gitRadar.dirtyShort}
+                              </Badge>
+                            </Show>
                           </Show>
                         </div>
                       </div>
@@ -442,7 +453,7 @@ export const GitRadar: Component = () => {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => copyToClipboard(repo.path, 'Repo Path')}
+                      onClick={() => copyToClipboard(repo.path, t().gitRadar.copyRepoPath)}
                       class="mt-2 mono text-[9px] text-text-muted hover:text-accent text-left w-full justify-start h-auto py-0.5 px-1 max-w-full overflow-hidden"
                       title={repo.path}
                       aria-label={repo.path}
@@ -480,25 +491,25 @@ export const GitRadar: Component = () => {
                     </SimpleTooltip>
 
                     <div class="flex items-center gap-1 shrink-0">
-                      <SimpleTooltip content={`VS Code: ${repo.name}`}>
+                      <SimpleTooltip content={`${t().gitRadar.openCode}: ${repo.name}`}>
                         <Button
                           type="button"
                           variant="secondary"
                           size="icon"
                           onClick={() => openAppApi(repo.path, 'code')}
-                          aria-label={`VS Code: ${repo.name}`}
+                          aria-label={`${t().gitRadar.openCode}: ${repo.name}`}
                         >
                           <CodeIcon class="h-3.5 w-3.5 text-accent" />
                         </Button>
                       </SimpleTooltip>
 
-                      <SimpleTooltip content={`Cursor: ${repo.name}`}>
+                      <SimpleTooltip content={`${t().gitRadar.openCursor}: ${repo.name}`}>
                         <Button
                           type="button"
                           variant="secondary"
                           size="icon"
                           onClick={() => openAppApi(repo.path, 'cursor')}
-                          aria-label={`Cursor: ${repo.name}`}
+                          aria-label={`${t().gitRadar.openCursor}: ${repo.name}`}
                         >
                           <CodeIcon class="h-3.5 w-3.5 text-status-warning" />
                         </Button>
@@ -510,7 +521,7 @@ export const GitRadar: Component = () => {
                           variant="secondary"
                           size="icon"
                           onClick={() => openAppApi(repo.path, 'terminal')}
-                          aria-label={`Terminal: ${repo.name}`}
+                          aria-label={`${t().gitRadar.openTerminal}: ${repo.name}`}
                         >
                           <TerminalIcon class="h-3.5 w-3.5 text-status-info" />
                         </Button>
@@ -522,7 +533,7 @@ export const GitRadar: Component = () => {
                           variant="secondary"
                           size="icon"
                           onClick={() => openAppApi(repo.path, 'finder')}
-                          aria-label={`Finder: ${repo.name}`}
+                          aria-label={`${t().gitRadar.openFinder}: ${repo.name}`}
                         >
                           <FolderIcon class="h-3.5 w-3.5 text-status-success" />
                         </Button>
@@ -593,16 +604,25 @@ export const GitRadar: Component = () => {
                       <td class="py-2 px-3 font-mono text-[10px]">
                         <div class="flex items-center gap-1.5">
                           <Show
-                            when={repo.is_dirty}
+                            when={!repo.status_error}
                             fallback={
-                              <Badge variant="success" size="sm">
-                                {t().gitRadar.clean}
+                              <Badge variant="warning" size="sm" title={repo.status_error || ''}>
+                                {t().gitRadar.statusUnknown}
                               </Badge>
                             }
                           >
-                            <Badge variant="warning" size="sm">
-                              {repo.uncommitted_count} {t().gitRadar.dirtyShort}
-                            </Badge>
+                            <Show
+                              when={repo.is_dirty}
+                              fallback={
+                                <Badge variant="success" size="sm">
+                                  {t().gitRadar.clean}
+                                </Badge>
+                              }
+                            >
+                              <Badge variant="warning" size="sm">
+                                {repo.uncommitted_count} {t().gitRadar.dirtyShort}
+                              </Badge>
+                            </Show>
                           </Show>
 
                           <Show when={repo.ahead > 0}>
@@ -633,7 +653,7 @@ export const GitRadar: Component = () => {
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => copyToClipboard(repo.path, 'Path')}
+                          onClick={() => copyToClipboard(repo.path, t().gitRadar.copyRepoPath)}
                           class="truncate max-w-[170px] hover:text-accent text-left justify-start h-auto py-0.5 px-1 font-mono text-[9.5px]"
                           title={repo.path}
                         >
@@ -650,32 +670,32 @@ export const GitRadar: Component = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => openSnapshotDrawer(repo.path)}
-                              aria-label={`Time Machine: ${repo.name}`}
+                              aria-label={`${t().snapshots.viewSnapshotsBtn}: ${repo.name}`}
                             >
                               <HistoryIcon class="h-3 w-3" />
                               <span>{t().snapshots.viewSnapshotsBtn}</span>
                             </Button>
                           </SimpleTooltip>
 
-                          <SimpleTooltip content={`VS Code: ${repo.name}`}>
+                          <SimpleTooltip content={`${t().gitRadar.openCode}: ${repo.name}`}>
                             <Button
                               type="button"
                               variant="secondary"
                               size="icon"
                               onClick={() => openAppApi(repo.path, 'code')}
-                              aria-label={`VS Code: ${repo.name}`}
+                              aria-label={`${t().gitRadar.openCode}: ${repo.name}`}
                             >
                               <CodeIcon class="h-3 w-3 text-accent" />
                             </Button>
                           </SimpleTooltip>
 
-                          <SimpleTooltip content={`Cursor: ${repo.name}`}>
+                          <SimpleTooltip content={`${t().gitRadar.openCursor}: ${repo.name}`}>
                             <Button
                               type="button"
                               variant="secondary"
                               size="icon"
                               onClick={() => openAppApi(repo.path, 'cursor')}
-                              aria-label={`Cursor: ${repo.name}`}
+                              aria-label={`${t().gitRadar.openCursor}: ${repo.name}`}
                             >
                               <CodeIcon class="h-3 w-3 text-status-warning" />
                             </Button>
@@ -687,7 +707,7 @@ export const GitRadar: Component = () => {
                               variant="secondary"
                               size="icon"
                               onClick={() => openAppApi(repo.path, 'terminal')}
-                              aria-label={`Terminal: ${repo.name}`}
+                              aria-label={`${t().gitRadar.openTerminal}: ${repo.name}`}
                             >
                               <TerminalIcon class="h-3 w-3 text-status-info" />
                             </Button>
@@ -699,7 +719,7 @@ export const GitRadar: Component = () => {
                               variant="secondary"
                               size="icon"
                               onClick={() => openAppApi(repo.path, 'finder')}
-                              aria-label={`Finder: ${repo.name}`}
+                              aria-label={`${t().gitRadar.openFinder}: ${repo.name}`}
                             >
                               <FolderIcon class="h-3 w-3 text-status-success" />
                             </Button>
@@ -734,11 +754,14 @@ export const GitRadar: Component = () => {
                     <span
                       class="h-2 w-2 rounded-full shrink-0"
                       classList={{
-                        'bg-status-warning': repo.is_dirty,
-                        'bg-status-success': !repo.is_dirty,
+                        'bg-text-muted': Boolean(repo.status_error),
+                        'bg-status-warning': !repo.status_error && repo.is_dirty,
+                        'bg-status-success': !repo.status_error && !repo.is_dirty,
                       }}
                       title={
-                        repo.is_dirty
+                        repo.status_error
+                          ? t().gitRadar.statusUnknown
+                          : repo.is_dirty
                           ? `${repo.uncommitted_count} ${t().gitRadar.dirty}`
                           : t().gitRadar.clean
                       }
@@ -777,32 +800,32 @@ export const GitRadar: Component = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => openSnapshotDrawer(repo.path)}
-                        aria-label={`Time Machine ${repo.name}`}
+                        aria-label={`${t().snapshots.viewSnapshotsBtn}: ${repo.name}`}
                       >
                         <HistoryIcon class="h-3 w-3" />
                         <span>{t().snapshots.viewSnapshotsBtn}</span>
                       </Button>
                     </SimpleTooltip>
 
-                    <SimpleTooltip content={`VS Code: ${repo.name}`}>
+                    <SimpleTooltip content={`${t().gitRadar.openCode}: ${repo.name}`}>
                       <Button
                         type="button"
                         variant="secondary"
                         size="icon"
                         onClick={() => openAppApi(repo.path, 'code')}
-                        aria-label={`VS Code ${repo.name}`}
+                        aria-label={`${t().gitRadar.openCode}: ${repo.name}`}
                       >
                         <CodeIcon class="h-3 w-3 text-accent" />
                       </Button>
                     </SimpleTooltip>
 
-                    <SimpleTooltip content={`Cursor: ${repo.name}`}>
+                    <SimpleTooltip content={`${t().gitRadar.openCursor}: ${repo.name}`}>
                       <Button
                         type="button"
                         variant="secondary"
                         size="icon"
                         onClick={() => openAppApi(repo.path, 'cursor')}
-                        aria-label={`Cursor ${repo.name}`}
+                        aria-label={`${t().gitRadar.openCursor}: ${repo.name}`}
                       >
                         <CodeIcon class="h-3 w-3 text-status-warning" />
                       </Button>
@@ -814,7 +837,7 @@ export const GitRadar: Component = () => {
                         variant="secondary"
                         size="icon"
                         onClick={() => openAppApi(repo.path, 'terminal')}
-                        aria-label={`Terminal ${repo.name}`}
+                        aria-label={`${t().gitRadar.openTerminal}: ${repo.name}`}
                       >
                         <TerminalIcon class="h-3 w-3 text-status-info" />
                       </Button>
@@ -826,7 +849,7 @@ export const GitRadar: Component = () => {
                         variant="secondary"
                         size="icon"
                         onClick={() => openAppApi(repo.path, 'finder')}
-                        aria-label={`Finder ${repo.name}`}
+                        aria-label={`${t().gitRadar.openFinder}: ${repo.name}`}
                       >
                         <FolderIcon class="h-3 w-3 text-status-success" />
                       </Button>

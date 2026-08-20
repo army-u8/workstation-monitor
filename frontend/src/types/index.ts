@@ -124,6 +124,7 @@ export interface GitProjectInfo {
   branch: string;
   is_dirty: boolean;
   uncommitted_count: number;
+  status_error?: string | null;
   ahead: number;
   behind: number;
   last_commit_msg: string;

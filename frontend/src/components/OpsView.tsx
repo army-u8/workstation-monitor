@@ -28,7 +28,7 @@ export const OpsView: Component = () => {
     openConfirmDialog({
       title: t().confirmDialog.killPortTitle,
       message: t()
-        .confirmDialog.killPortWarning.replace('{name}', 'Process')
+        .confirmDialog.killPortWarning.replace('{name}', t().common.process)
         .replace('{pid}', '-')
         .replace('{port}', p.toString()),
       confirmText: t().confirmDialog.killPortConfirmBtn,
@@ -127,7 +127,7 @@ export const OpsView: Component = () => {
               type="number"
               min="1"
               max="65535"
-              placeholder="e.g. 3000"
+              placeholder={t().devops.portPlaceholder}
               value={portInput()}
               onInput={(e) => setPortInput(e.currentTarget.value)}
               class="w-full mono"
@@ -158,7 +158,7 @@ export const OpsView: Component = () => {
           <form onSubmit={handlePing} class="mt-4 flex gap-2">
             <Input
               type="text"
-              placeholder="1.1.1.1 or google.com"
+              placeholder={t().devops.pingPlaceholder}
               value={pingHost()}
               onInput={(e) => setPingHost(e.currentTarget.value)}
               class="w-full mono"
@@ -189,7 +189,8 @@ export const OpsView: Component = () => {
                   }}
                 />
                 <h3 class="text-xs font-bold text-text-primary m-0">
-                  {res().host} · {res().is_alive ? 'Online' : 'Timeout'}
+                  {res().host} ·{' '}
+                  {res().is_alive ? t().devops.pingResponded : t().devops.pingNoResponse}
                 </h3>
               </div>
               <Show when={res().avg_latency_ms !== null}>

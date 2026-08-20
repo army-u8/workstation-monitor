@@ -37,10 +37,10 @@ python3 scripts/gen_icon.py
 
 # 4. Compile Rust Targets
 echo "==> [3/6] Compiling for Apple Silicon (aarch64-apple-darwin)..."
-cargo build --release --target aarch64-apple-darwin
+cargo build --locked --release --target aarch64-apple-darwin
 
 echo "==> [4/6] Compiling for Intel Mac (x86_64-apple-darwin)..."
-cargo build --release --target x86_64-apple-darwin
+cargo build --locked --release --target x86_64-apple-darwin
 
 echo "==> [5/6] Creating Universal 2 (Fat) binary with lipo..."
 mkdir -p target/universal-apple-darwin/release

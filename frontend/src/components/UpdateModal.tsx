@@ -1,4 +1,4 @@
-import { Show, For, createMemo, createSignal, onMount } from 'solid-js';
+import { Show, For, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import {
   applyUpdateApi,
@@ -26,6 +26,7 @@ import {
 } from './Icons';
 import { Badge, Button } from './ui';
 import { t } from '../i18n';
+import { trapDialogFocus } from '../utils/dialog-focus';
 
 export const UpdateModal: Component = () => {
   const [activeTab, setActiveTab] = createSignal<'upgrade' | 'history'>('upgrade');
@@ -57,8 +58,26 @@ export const UpdateModal: Component = () => {
     setIsUpdateModalOpen(false);
   };
 
+  createEffect(() => {
+    if (!isUpdateModalOpen()) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    onCleanup(() => {
+      queueMicrotask(() => {
+        if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      });
+    });
+  });
+
   const handleApplyUpdate = async () => {
     await applyUpdateApi();
+  };
+
+  const handleOpenHistory = () => {
+    const wasAlreadyOpen = activeTab() === 'history';
+    setActiveTab('history');
+    if (isLoadingBackups()) return;
+    if (wasAlreadyOpen) return;
+    fetchVersionBackupsApi();
   };
 
   const handleRollback = async (version: string) => {
@@ -95,12 +114,23 @@ export const UpdateModal: Component = () => {
     <Show when={isUpdateModalOpen() && info()}>
       <div
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="update-modal-title"
+        onKeyDown={(e) => {
+          trapDialogFocus(e, e.currentTarget);
+          if (e.key === 'Escape') handleClose();
+        }}
         onClick={(e) => {
           if (e.target === e.currentTarget) handleClose();
         }}
       >
         {/* Modal Window */}
-        <div class="relative w-full max-w-lg rounded-2xl border border-border-default bg-bg-modal p-6 shadow-2xl transition-all z-10">
+        <div
+          ref={(element) => queueMicrotask(() => element.focus())}
+          tabIndex={-1}
+          class="relative w-full max-w-lg rounded-2xl border border-border-default bg-bg-modal p-6 shadow-2xl transition-all z-10 focus:outline-none"
+        >
           {/* Header */}
           <div class="flex items-center justify-between pb-3 border-b border-border-subtle">
             <div class="flex items-center gap-2.5">
@@ -108,7 +138,9 @@ export const UpdateModal: Component = () => {
                 <RocketIcon class="h-4.5 w-4.5" />
               </span>
               <div>
-                <h3 class="text-sm font-bold text-text-primary m-0">{t().update.modalTitle}</h3>
+                <h3 id="update-modal-title" class="text-sm font-bold text-text-primary m-0">
+                  {t().update.modalTitle}
+                </h3>
                 <p class="text-xs text-text-muted m-0">
                   {info()?.has_update
                     ? t().update.newVersionAvailable
@@ -147,10 +179,7 @@ export const UpdateModal: Component = () => {
               type="button"
               variant={activeTab() === 'history' ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => {
-                setActiveTab('history');
-                fetchVersionBackupsApi();
-              }}
+              onClick={handleOpenHistory}
             >
               <span>{t().update.tabHistory}</span>
               <Show when={versionBackups().length > 0}>
@@ -280,7 +309,7 @@ export const UpdateModal: Component = () => {
                     </Show>
                   </div>
                   <div class="max-h-44 overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/80 p-3 text-xs text-text-secondary leading-relaxed font-mono whitespace-pre-wrap selection:bg-accent/30">
-                    {info()?.release_notes || 'No release notes.'}
+                    {info()?.release_notes || t().update.releaseNotesUnavailable}
                   </div>
                 </div>
 

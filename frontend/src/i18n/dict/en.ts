@@ -42,6 +42,9 @@ export const en: Dict = {
     openSidebar: 'Open Sidebar',
     batteryTooltip: 'Battery Level',
     vitalsSummary: 'System Real-time Vitals',
+    process: 'Process',
+    unknown: 'Unknown',
+    avatar: 'User avatar',
   },
   sidebar: {
     brandSubtitle: 'macOS Mission Control',
@@ -67,6 +70,7 @@ export const en: Dict = {
     navOps: 'Ops Toolkit',
     navArtifacts: 'Web Artifacts',
     navAiRadar: 'AI Radar & Hub',
+    navigationLabel: 'Sidebar navigation',
   },
   header: {
     titles: {
@@ -129,6 +133,10 @@ export const en: Dict = {
     copyPortTooltip: 'Click to copy port: {port}',
     copyAddrTooltip: 'Click to copy address: {addr}',
     exePath: 'Executable Path',
+    tabsLabel: 'Socket type navigation',
+    categoryFilterLabel: 'Socket category filter',
+    copyPort: 'Port',
+    copyRemoteAddress: 'Remote Address',
   },
   latency: {
     title: 'Service Latency Probing',
@@ -184,6 +192,9 @@ export const en: Dict = {
     openApp: 'Launch App',
     appsCount: 'apps',
     installedCount: 'ready',
+    currentUser: 'Current User',
+    hostName: 'Host Name',
+    appPath: 'App Path',
   },
   processes: {
     title: 'System Process Manager',
@@ -205,6 +216,8 @@ export const en: Dict = {
     modalConfirm: 'Force Kill',
     killing: 'Killing...',
     copyPidTooltip: 'Click to copy PID: {pid}',
+    sortControlsLabel: 'Sort processes',
+    listLabel: 'Process list',
   },
   disks: {
     batteryTitle: 'Battery & Power Status',
@@ -242,6 +255,8 @@ export const en: Dict = {
     clean: 'Clean',
     dirty: 'uncommitted files',
     dirtyShort: 'modified',
+    statusUnknown: 'Status unknown',
+    unknownShort: 'unknown',
     reposUnit: 'repos',
     openCode: 'VS Code',
     openCursor: 'Cursor',
@@ -276,6 +291,9 @@ export const en: Dict = {
     editor: 'Editor',
     notConfigured: 'Not Configured',
     notLoggedIn: 'Not Logged In',
+    layoutSwitcher: 'Layout switcher',
+    copyEmail: 'Git Email',
+    copyRepoPath: 'Repository Path',
   },
   hosts: {
     title: 'macOS /etc/hosts Local DNS Mapper',
@@ -289,6 +307,7 @@ export const en: Dict = {
     commented: 'Commented',
     empty: 'No hosts entries found',
     totalEntries: 'entries',
+    copyMapping: 'Hosts Mapping',
   },
   speedtest: {
     title: 'Internet Bandwidth & CDN Throughput Benchmark',
@@ -298,6 +317,7 @@ export const en: Dict = {
     duration: 'Duration',
     bytesDownloaded: 'Data Transferred',
     server: 'Test Server',
+    edgeVerified: 'HTTP/2 CDN global edge verified',
     tip: 'Streams 25MB chunks from global CDN edge nodes to measure actual internet bandwidth.',
   },
   devops: {
@@ -409,6 +429,7 @@ export const en: Dict = {
     emptyNotes: 'No Markdown notes found in vault',
     emptySearch: 'No notes matched the query',
     searchMatches: 'Found {count} matched entries',
+    searchLine: 'Line {line}',
     readingTitle: 'Instant Note Reader',
     closeReader: 'Close',
     copyContent: 'Copy Markdown',
@@ -441,6 +462,7 @@ export const en: Dict = {
     currentVersion: 'Current Version',
     latestVersion: 'Latest Version',
     releaseNotes: 'Release Notes & Features',
+    releaseNotesUnavailable: 'No release notes available.',
     packageSize: 'Package Size',
     publishedAt: 'Published At',
     checkUpdateBtn: 'Check for Updates',
@@ -544,6 +566,15 @@ export const en: Dict = {
     kpiTotalPorts: 'Active Ports',
     kpiHealthy: 'Healthy',
     kpiAvgLatency: 'Avg Latency',
+    noneActive: 'No active frameworks',
+    servicesOnline: '{count} online',
+    servicesDegraded: '{count} degraded or down',
+    layoutMode: 'Layout mode',
+    layoutGrid: 'Grid layout',
+    layoutTable: 'Table layout',
+    layoutCompact: 'Compact layout',
+    down: 'Down',
+    degraded: 'Degraded',
   },
   aiRadar: {
     title: 'AI Studio Hub & Global LLM Latency Radar',
@@ -637,6 +668,8 @@ export const en: Dict = {
     agentPath: 'Executable Path',
     openAgent: 'Launch Agent',
     copyAgentPath: 'Copy Path',
+    proxyConnection: 'Proxy OK',
+    directConnection: 'Direct',
   },
   envVars: {
     title: 'Environment Variables & $PATH Inspector',

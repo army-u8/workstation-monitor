@@ -1,4 +1,4 @@
-import { onMount } from 'solid-js';
+import { onCleanup, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import { Navigate, Route } from '@solidjs/router';
 import { AppLayout } from './components/AppLayout';
@@ -45,9 +45,10 @@ export const App: Component = () => {
     fetchWebArtifactsApi();
 
     // 3. Silent background update check after 3 seconds
-    setTimeout(() => {
+    const updateCheckTimer = setTimeout(() => {
       fetchUpdateCheckApi(true);
     }, 3000);
+    onCleanup(() => clearTimeout(updateCheckTimer));
   });
 
   return (

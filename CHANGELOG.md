@@ -4,6 +4,37 @@
 
 ---
 
+## [0.2.6] - 2026-08-20
+
+### 安全
+- **本地服务边界加固**：默认仅监听 loopback，阻断跨域与 DNS rebinding；通过 `sudo` 启动时仅打开 BPF 设备，随后在 HTTP 服务启动前降权回调用用户。
+- **自动更新器加固**：仅接受官方 GitHub Release 资产和受限重定向，使用原子归档/替换、并发锁、启动健康检查及失败自动恢复；回滚前保留当前版本以支持立即撤销。
+- **文件系统隔离**：Obsidian 与动态静态资源改用目录 FD、`openat` 和 `O_NOFOLLOW`，阻断路径穿越、符号链接逃逸与校验后替换竞态。
+
+### 修复
+- **采集器可靠性**：修复 Cleaner 扫描与删除范围不一致、命令子进程泄漏和清理超时；Git 状态采集失败改为显式“状态未知”。
+- **项目时光机**：安全备份失败时终止回滚，并完整恢复原 Git 暂存区状态。
+- **前端交互**：修复 WebSocket 代理端口、Obsidian 异步请求竞态、更新历史重复请求、Modal 焦点逃逸及多个状态显示错误。
+- **国际化与可访问性**：同步 615 个中英文键，并完善 Dialog 语义、键盘焦点循环、焦点恢复和实时区域提示。
+
+### 工程
+- **发布质量门禁**：新增前后端 CI、发布版本一致性校验、锁文件构建和 65 个 Rust / 26 个前端回归测试。
+
+## [0.2.5] - 2026-08-18
+
+### 新增
+- **AI Studio Hub**：新增 LLM 延迟、本地 Agent、Ollama、API 密钥与项目规则的统一工作台。
+- **动态前端热加载**：后端优先读取本地 `frontend/dist`，支持不重启 Rust 服务刷新前端产物。
+
+### 优化
+- **统一组件与图标系统**：迁移至基于 Ark UI/Kobalte 的 SolidJS 组件体系，并统一使用 Tabler 图标。
+- **工作台布局精修**：统一按钮、标签、过滤器和输入框，改善卡片边界、文本截断与 Git Radar 操作区。
+
+### 修复
+- **开发工具可靠性**：增强本地 API 密钥探测、Socket 应用映射和多 CDN 网速测试的容错能力。
+
+---
+
 ## [0.2.4] - 2026-08-17
 
 ### 修复
@@ -170,6 +201,37 @@
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [0.2.6] - 2026-08-20
+
+### Security
+- **Local Service Boundary Hardening**: Bind to loopback by default, block cross-origin and DNS-rebinding requests, and drop from `sudo` root to the invoking user before starting the HTTP server after opening BPF.
+- **Updater Hardening**: Accept only official GitHub Release assets and restricted redirects; add atomic archive/replacement, concurrency locking, launch health checks, automatic recovery, and reversible rollback archives.
+- **Filesystem Containment**: Anchor Obsidian and dynamic static-file access with directory FDs, `openat`, and `O_NOFOLLOW` to prevent traversal, symlink escape, and check-then-open races.
+
+### Fixed
+- **Collector Reliability**: Align Cleaner scan/delete scope, terminate command process groups, use realistic cleanup timeouts, and report failed Git status collection as unknown.
+- **Project Time Machine**: Abort rollback when its safety backup fails and restore the original Git index exactly.
+- **Frontend Interactions**: Fix WebSocket proxy ports, Obsidian request races, duplicate update-history requests, modal focus escape, and several incorrect status displays.
+- **Internationalization and Accessibility**: Synchronize 615 bilingual keys and improve dialog semantics, keyboard focus trapping/restoration, and live-region announcements.
+
+### Engineering
+- **Release Quality Gates**: Add frontend/backend CI, release consistency checks, locked builds, and 65 Rust plus 26 frontend regression tests.
+
+## [0.2.5] - 2026-08-18
+
+### Added
+- **AI Studio Hub**: Added a unified workspace for LLM latency, local agents, Ollama, API keys, and project rules.
+- **Dynamic Frontend Reloading**: The backend now prioritizes local `frontend/dist` assets so rebuilt UI assets can be refreshed without restarting Rust.
+
+### Changed
+- **Unified Components and Icons**: Migrated to an Ark UI/Kobalte-based SolidJS component system and standardized the interface on Tabler icons.
+- **Workbench Layout Polish**: Standardized buttons, badges, filters, and inputs while improving card boundaries, text truncation, and Git Radar actions.
+
+### Fixed
+- **Developer Tool Reliability**: Improved local API-key discovery, socket-to-application mapping, and multi-CDN speed-test resilience.
+
+---
 
 ## [0.2.4] - 2026-08-17
 

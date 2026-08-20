@@ -40,6 +40,9 @@ export const zh = {
     openSidebar: '打开侧边导航',
     batteryTooltip: '电池电量',
     vitalsSummary: '系统实时指标概况',
+    process: '进程',
+    unknown: '未知',
+    avatar: '用户头像',
   },
   sidebar: {
     brandSubtitle: 'macOS 本机总控台',
@@ -65,6 +68,7 @@ export const zh = {
     navOps: '运维总控',
     navArtifacts: '产物画廊',
     navAiRadar: 'AI 测速 & 显控',
+    navigationLabel: '侧边栏导航',
   },
   header: {
     titles: {
@@ -127,6 +131,10 @@ export const zh = {
     copyPortTooltip: '点击复制端口: {port}',
     copyAddrTooltip: '点击复制远程地址: {addr}',
     exePath: '可执行文件路径',
+    tabsLabel: '连接类型导航',
+    categoryFilterLabel: '连接分类筛选',
+    copyPort: '端口',
+    copyRemoteAddress: '远程地址',
   },
   latency: {
     title: '服务延迟探活',
@@ -182,6 +190,9 @@ export const zh = {
     openApp: '启动应用',
     appsCount: '款应用',
     installedCount: '款已就绪',
+    currentUser: '当前用户',
+    hostName: '主机名',
+    appPath: '应用路径',
   },
   processes: {
     title: '系统进程管理',
@@ -203,6 +214,8 @@ export const zh = {
     modalConfirm: '确认强制终止',
     killing: '终止中...',
     copyPidTooltip: '点击复制 PID: {pid}',
+    sortControlsLabel: '进程排序',
+    listLabel: '进程列表',
   },
   disks: {
     batteryTitle: '电源与电池状态',
@@ -240,6 +253,8 @@ export const zh = {
     clean: '工作区干净',
     dirty: '个未提交修改',
     dirtyShort: '修改',
+    statusUnknown: '状态未知',
+    unknownShort: '未知',
     reposUnit: '仓库',
     openCode: 'VS Code',
     openCursor: 'Cursor',
@@ -274,6 +289,9 @@ export const zh = {
     editor: '默认编辑器',
     notConfigured: '未配置',
     notLoggedIn: '未登录',
+    layoutSwitcher: '布局切换',
+    copyEmail: 'Git 邮箱',
+    copyRepoPath: '仓库路径',
   },
   hosts: {
     title: 'macOS /etc/hosts 本地域名映射',
@@ -287,6 +305,7 @@ export const zh = {
     commented: '已注释',
     empty: '无匹配 Hosts 规则',
     totalEntries: '条规则',
+    copyMapping: 'Hosts 映射',
   },
   speedtest: {
     title: '网络带宽与 CDN 吞吐压测',
@@ -296,6 +315,7 @@ export const zh = {
     duration: '耗时',
     bytesDownloaded: '测试流量',
     server: '测速节点',
+    edgeVerified: 'HTTP/2 CDN 全球边缘节点已验证',
     tip: '通过高并发拉取全球 CDN 25MB 数据分片实时测算真实带宽吞吐。',
   },
   devops: {
@@ -403,6 +423,7 @@ export const zh = {
     emptyNotes: '暂未发现 Markdown 笔记',
     emptySearch: '未匹配到包含该关键词的笔记',
     searchMatches: '共检索到 {count} 条相关内容',
+    searchLine: '第 {line} 行',
     readingTitle: '笔记即时阅读',
     closeReader: '关闭',
     copyContent: '复制 Markdown',
@@ -434,6 +455,7 @@ export const zh = {
     currentVersion: '当前版本',
     latestVersion: '最新版本',
     releaseNotes: '更新日志与特性',
+    releaseNotesUnavailable: '暂无版本说明。',
     packageSize: '更新包大小',
     publishedAt: '发布时间',
     checkUpdateBtn: '检查更新',
@@ -536,6 +558,15 @@ export const zh = {
     kpiTotalPorts: '监听端口',
     kpiHealthy: '健康就绪',
     kpiAvgLatency: '平均响应',
+    noneActive: '暂无运行中的框架',
+    servicesOnline: '{count} 个在线',
+    servicesDegraded: '{count} 个异常或离线',
+    layoutMode: '布局模式',
+    layoutGrid: '网格布局',
+    layoutTable: '表格布局',
+    layoutCompact: '紧凑布局',
+    down: '离线',
+    degraded: '异常',
   },
   aiRadar: {
     title: 'AI 驾驶舱与主流 LLM 接口雷达',
@@ -625,6 +656,8 @@ export const zh = {
     agentPath: '可执行路径',
     openAgent: '启动 Agent',
     copyAgentPath: '复制路径',
+    proxyConnection: '代理畅通',
+    directConnection: '直连',
   },
   envVars: {
     title: '系统环境变量 & $PATH 链路全景诊断',

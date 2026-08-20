@@ -5,7 +5,12 @@ import { ToastType } from '../constants';
 
 export const ToastShelf: Component = () => {
   return (
-    <div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none">
+    <div
+      class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"
+      role="status"
+      aria-live="polite"
+      aria-atomic="false"
+    >
       <For each={toasts()}>
         {(toast) => {
           let badgeColor = 'bg-accent shadow-[0_0_8px_rgba(56,189,248,0.8)]';

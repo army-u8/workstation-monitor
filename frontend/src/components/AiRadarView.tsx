@@ -1,4 +1,4 @@
-import { For, Show, createMemo, createSignal, onMount } from 'solid-js';
+import { For, Show, createMemo, createSignal, onCleanup, onMount } from 'solid-js';
 import type { Component } from 'solid-js';
 import { Badge, Button, Tabs, TabsContent, TabsList, TabsTrigger } from './ui';
 import {
@@ -43,6 +43,11 @@ import type { LlmApiLatency, LocalAgentInfo, OllamaModelInfo } from '../types';
 export const AiRadarView: Component = () => {
   const [activeTab, setActiveTab] = createSignal<string>('latency');
   const [copiedRuleId, setCopiedRuleId] = createSignal<string | null>(null);
+  let copiedRuleTimer: ReturnType<typeof setTimeout> | undefined;
+
+  onCleanup(() => {
+    if (copiedRuleTimer) clearTimeout(copiedRuleTimer);
+  });
 
   onMount(() => {
     fetchLlmLatencyApi();
@@ -196,7 +201,8 @@ export const AiRadarView: Component = () => {
   const handleCopyRule = (rule: { id: string; title: string; content: string }) => {
     copyToClipboard(rule.content, rule.title);
     setCopiedRuleId(rule.id);
-    setTimeout(() => setCopiedRuleId(null), 2000);
+    if (copiedRuleTimer) clearTimeout(copiedRuleTimer);
+    copiedRuleTimer = setTimeout(() => setCopiedRuleId(null), 2000);
   };
 
   const getAgentCategoryLabel = (category: string) => {
@@ -311,7 +317,9 @@ export const AiRadarView: Component = () => {
               {aiKeyVault().filter((k) => k.isConfigured).length}/{aiKeyVault().length}
             </span>
             <span class="text-[10px] text-status-success mono font-semibold">
-              {envVarsData()?.proxy_configured ? 'Proxy OK' : 'Direct'}
+              {envVarsData()?.proxy_configured
+                ? t().aiRadar.proxyConnection
+                : t().aiRadar.directConnection}
             </span>
           </div>
         </div>
@@ -628,7 +636,7 @@ export const AiRadarView: Component = () => {
                         <div class="flex items-center gap-2">
                           <span class="font-bold text-xs text-text-primary">{model.name}</span>
                           <span class="rounded bg-accent/15 border border-accent/30 px-1.8 py-0.2 mono text-[10px] text-accent font-bold">
-                            {model.parameter_size || 'Unknown'}
+                            {model.parameter_size || t().common.unknown}
                           </span>
                           <span class="rounded bg-bg-subtle border border-border-subtle px-1.8 py-0.2 mono text-[10px] text-text-muted">
                             {model.quantization_level || 'Q4'}

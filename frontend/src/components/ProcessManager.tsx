@@ -83,7 +83,7 @@ export const ProcessManager: Component = () => {
           <div
             class="flex items-center rounded-lg border border-border-subtle bg-bg-base/80 p-0.5"
             role="group"
-            aria-label="Sort Processes"
+            aria-label={t().processes.sortControlsLabel}
           >
             <Button
               type="button"
@@ -111,7 +111,7 @@ export const ProcessManager: Component = () => {
 
       {/* Process Table */}
       <div class="max-h-[520px] overflow-y-auto rounded-lg border border-border-subtle bg-bg-base/60">
-        <table class="w-full text-left text-xs border-collapse" aria-label="Process List">
+        <table class="w-full text-left text-xs border-collapse" aria-label={t().processes.listLabel}>
           <thead>
             <tr class="sticky top-0 z-10 border-b border-border-default bg-bg-subtle/90 text-[10.5px] font-bold text-text-muted uppercase tracking-wider backdrop-blur-xs">
               <th scope="col" class="py-2 px-3.5 w-16">

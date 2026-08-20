@@ -147,6 +147,8 @@ pub struct GitProjectInfo {
     pub branch: String,
     pub is_dirty: bool,
     pub uncommitted_count: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub status_error: Option<String>,
     pub ahead: usize,
     pub behind: usize,
     pub last_commit_msg: String,
@@ -345,7 +347,6 @@ pub struct OpenObsidianRequest {
     pub file_path: Option<String>,
     pub target_app: Option<String>,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateApplyRequest {

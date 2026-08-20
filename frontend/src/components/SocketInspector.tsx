@@ -177,7 +177,7 @@ export const SocketInspector: Component = () => {
   };
 
   const confirmKillPort = (item: SocketEntry) => {
-    const displayName = item.app_name || item.process_name || 'Process';
+    const displayName = item.app_name || item.process_name || t().common.process;
     openConfirmDialog({
       title: t().confirmDialog.killPortTitle,
       message: t()
@@ -204,7 +204,7 @@ export const SocketInspector: Component = () => {
       >
         {/* Controls Toolbar with TabList */}
         <div class="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <TabsList aria-label="Sockets tab navigation">
+          <TabsList aria-label={t().sockets.tabsLabel}>
             <TabsTrigger value={SocketTab.LISTENING}>
               {t().sockets.listeningTab}
               <Show when={sockets()?.listening_ports?.length}>
@@ -254,7 +254,7 @@ export const SocketInspector: Component = () => {
               <div
                 class="flex items-center rounded-lg border border-border-subtle bg-bg-base/80 p-0.5 text-[10.5px]"
                 role="group"
-                aria-label="Category filter"
+                aria-label={t().sockets.categoryFilterLabel}
               >
                 <Button
                   type="button"
@@ -384,7 +384,9 @@ export const SocketInspector: Component = () => {
                             type="button"
                             variant="secondary"
                             size="sm"
-                            onClick={() => copyToClipboard(item.local_port.toString(), 'Port')}
+                            onClick={() =>
+                              copyToClipboard(item.local_port.toString(), t().sockets.copyPort)
+                            }
                             title={t().devops.copy}
                           >
                             <CopyIcon class="h-3 w-3" />
@@ -468,7 +470,7 @@ export const SocketInspector: Component = () => {
                               onClick={() =>
                                 copyToClipboard(
                                   `${item.remote_ip}:${item.remote_port}`,
-                                  'Remote Address',
+                                  t().sockets.copyRemoteAddress,
                                 )
                               }
                               class="opacity-0 group-hover:opacity-100 h-5 w-5 p-0"

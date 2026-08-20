@@ -176,7 +176,11 @@ export const WebArtifactsView: Component = () => {
             <span class="text-text-muted">{t().artifacts.framework}:</span>
             <Show
               when={frameworkTags().length > 0}
-              fallback={<span class="mono text-text-muted text-[9.5px]">None active</span>}
+              fallback={
+                <span class="mono text-text-muted text-[9.5px]">
+                  {t().artifacts.noneActive}
+                </span>
+              }
             >
               <For each={frameworkTags().slice(0, 5)}>
                 {([name, count]) => (
@@ -225,8 +229,9 @@ export const WebArtifactsView: Component = () => {
             <span class="text-text-muted">{t().artifacts.status}:</span>
             <Badge variant={degradedCount() === 0 ? 'success' : 'warning'} class="mono">
               {degradedCount() === 0
-                ? `${healthyCount()} Online`
-                : `${degradedCount()} Degraded / Down`}
+                ? t().artifacts.servicesOnline.replace('{count}', healthyCount().toString())
+                : t()
+                    .artifacts.servicesDegraded.replace('{count}', degradedCount().toString())}
             </Badge>
           </div>
         </div>
@@ -314,16 +319,16 @@ export const WebArtifactsView: Component = () => {
           <div
             class="flex items-center rounded border border-border-subtle bg-bg-input p-0.5"
             role="group"
-            aria-label="Layout mode"
+            aria-label={t().artifacts.layoutMode}
           >
             <Button
               type="button"
               variant={layoutMode() === ArtifactsLayoutMode.GRID ? 'secondary' : 'ghost'}
               size="icon"
               onClick={() => setLayoutMode(ArtifactsLayoutMode.GRID)}
-              aria-label="Grid layout"
+              aria-label={t().artifacts.layoutGrid}
               aria-pressed={layoutMode() === ArtifactsLayoutMode.GRID}
-              title="Grid View"
+              title={t().artifacts.layoutGrid}
             >
               <GridIcon class="h-3.5 w-3.5" />
             </Button>
@@ -332,9 +337,9 @@ export const WebArtifactsView: Component = () => {
               variant={layoutMode() === ArtifactsLayoutMode.TABLE ? 'secondary' : 'ghost'}
               size="icon"
               onClick={() => setLayoutMode(ArtifactsLayoutMode.TABLE)}
-              aria-label="Table layout"
+              aria-label={t().artifacts.layoutTable}
               aria-pressed={layoutMode() === ArtifactsLayoutMode.TABLE}
-              title="Table View"
+              title={t().artifacts.layoutTable}
             >
               <ListIcon class="h-3.5 w-3.5" />
             </Button>
@@ -343,9 +348,9 @@ export const WebArtifactsView: Component = () => {
               variant={layoutMode() === ArtifactsLayoutMode.COMPACT ? 'secondary' : 'ghost'}
               size="icon"
               onClick={() => setLayoutMode(ArtifactsLayoutMode.COMPACT)}
-              aria-label="Compact layout"
+              aria-label={t().artifacts.layoutCompact}
               aria-pressed={layoutMode() === ArtifactsLayoutMode.COMPACT}
-              title="Compact View"
+              title={t().artifacts.layoutCompact}
             >
               <CompactIcon class="h-3.5 w-3.5" />
             </Button>
@@ -430,7 +435,7 @@ export const WebArtifactsView: Component = () => {
                             ? `HTTP ${artifact.status_code}`
                             : artifact.is_healthy
                               ? '200 OK'
-                              : 'Down'}
+                              : t().artifacts.down}
                         </Badge>
                       </div>
                     </div>
@@ -463,7 +468,7 @@ export const WebArtifactsView: Component = () => {
                       <div class="flex items-center justify-between">
                         <span class="text-text-muted">{t().artifacts.processPidLabel}</span>
                         <span class="mono font-medium text-text-primary truncate max-w-[150px] tabular-nums">
-                          {artifact.process_name || 'unknown'}
+                          {artifact.process_name || t().common.unknown}
                           {artifact.pid ? ` (${artifact.pid})` : ''}
                         </span>
                       </div>
@@ -592,7 +597,9 @@ export const WebArtifactsView: Component = () => {
                       <td class="py-2.5 px-3 font-mono text-[10px]">
                         <div class="flex items-center gap-2">
                           <Badge variant={artifact.is_healthy ? 'success' : 'warning'} size="sm">
-                            {artifact.status_code ? `HTTP ${artifact.status_code}` : 'Down'}
+                            {artifact.status_code
+                              ? `HTTP ${artifact.status_code}`
+                              : t().artifacts.down}
                           </Badge>
                           <Show when={typeof artifact.response_time_ms === 'number'}>
                             <span class="text-status-success tabular-nums flex items-center gap-0.5">
@@ -607,9 +614,9 @@ export const WebArtifactsView: Component = () => {
                       <td class="py-2.5 px-3 font-mono text-[10px] text-text-secondary">
                         <div
                           class="truncate max-w-[150px] tabular-nums"
-                          title={`${artifact.process_name || 'unknown'} (PID: ${artifact.pid || '-'})`}
+                          title={`${artifact.process_name || t().common.unknown} (PID: ${artifact.pid || '-'})`}
                         >
-                          {artifact.process_name || 'unknown'}
+                          {artifact.process_name || t().common.unknown}
                           {artifact.pid ? ` (${artifact.pid})` : ''}
                         </div>
                       </td>
@@ -667,7 +674,7 @@ export const WebArtifactsView: Component = () => {
                         'bg-status-success': artifact.is_healthy,
                         'bg-status-warning animate-pulse': !artifact.is_healthy,
                       }}
-                      title={artifact.is_healthy ? '200 OK' : 'Degraded'}
+                      title={artifact.is_healthy ? '200 OK' : t().artifacts.degraded}
                     />
 
                     <span class="rounded bg-accent/15 border border-accent/30 px-1.5 py-0.2 mono text-xs font-bold text-accent shrink-0 tabular-nums">
@@ -696,7 +703,7 @@ export const WebArtifactsView: Component = () => {
                   {/* Right: Process & Action Buttons */}
                   <div class="flex items-center gap-2 shrink-0">
                     <span class="mono text-[10px] text-text-muted hidden md:inline truncate max-w-[120px] tabular-nums">
-                      {artifact.process_name || 'unknown'}
+                      {artifact.process_name || t().common.unknown}
                       {artifact.pid ? ` (${artifact.pid})` : ''}
                     </span>
 

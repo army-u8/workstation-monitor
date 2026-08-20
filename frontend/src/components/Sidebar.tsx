@@ -171,7 +171,14 @@ export const Sidebar: Component = () => {
             const dirty = list.filter((p) => p.is_dirty).length;
             if (dirty > 0) {
               return {
-                text: `${dirty} dirty`,
+                text: `${dirty} ${t().gitRadar.dirtyShort}`,
+                isWarning: true,
+              };
+            }
+            const unknown = list.filter((p) => Boolean(p.status_error)).length;
+            if (unknown > 0) {
+              return {
+                text: `${unknown} ${t().gitRadar.unknownShort}`,
                 isWarning: true,
               };
             }
@@ -187,7 +194,7 @@ export const Sidebar: Component = () => {
             if (!summary) return null;
             if (summary.git_dirty) {
               return {
-                text: `${summary.git_uncommitted_count} dirty`,
+                text: `${summary.git_uncommitted_count} ${t().obsidian.dirty}`,
                 isWarning: true,
               };
             }
@@ -315,7 +322,7 @@ export const Sidebar: Component = () => {
         {/* Navigation Categories and Items */}
         <nav
           class="flex-1 overflow-y-auto px-2.5 py-3 space-y-3 min-h-0"
-          aria-label="Sidebar Navigation"
+          aria-label={t().sidebar.navigationLabel}
         >
           <For each={groups}>
             {(group) => (

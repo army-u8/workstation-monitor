@@ -145,7 +145,7 @@ export const MachineInfo: Component = () => {
                   {info().hardware.memory_total_human}
                 </span>
                 <span class="mono text-[10px] text-status-success mt-1 block font-semibold">
-                  Unified Memory
+                  {t().machineInfo.memory}
                 </span>
               </div>
 
@@ -162,9 +162,9 @@ export const MachineInfo: Component = () => {
                 </span>
                 <span
                   class="mono text-[10px] text-text-muted mt-1 block truncate"
-                  title={`Build: ${info().hardware.build_version}`}
+                  title={`${t().machineInfo.buildVersion}: ${info().hardware.build_version}`}
                 >
-                  Build: {info().hardware.build_version || '24F74'}
+                  {t().machineInfo.buildVersion}: {info().hardware.build_version || '24F74'}
                 </span>
               </div>
 
@@ -199,7 +199,8 @@ export const MachineInfo: Component = () => {
                   {info().hardware.default_shell}
                 </span>
                 <span class="text-[10px] text-text-muted mt-1 block">
-                  User: <strong class="text-text-primary">{info().hardware.current_user}</strong>
+                  {t().machineInfo.currentUser}:{' '}
+                  <strong class="text-text-primary">{info().hardware.current_user}</strong>
                 </span>
               </div>
 
@@ -213,9 +214,9 @@ export const MachineInfo: Component = () => {
                 </span>
                 <span
                   class="mono text-[10px] text-text-muted mt-1 block truncate"
-                  title={`Host: ${info().hardware.host_name}`}
+                  title={`${t().machineInfo.hostName}: ${info().hardware.host_name}`}
                 >
-                  Host: {info().hardware.host_name}
+                  {t().machineInfo.hostName}: {info().hardware.host_name}
                 </span>
               </div>
 
@@ -361,7 +362,7 @@ export const MachineInfo: Component = () => {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(app.path, 'App Path')}
+                    onClick={() => copyToClipboard(app.path, t().machineInfo.appPath)}
                     class="mt-3 mono text-[10px] text-text-muted hover:text-accent text-left w-full justify-start h-auto py-1 px-2 max-w-full overflow-hidden"
                     title={app.path}
                   >
@@ -377,12 +378,12 @@ export const MachineInfo: Component = () => {
                       fallback={
                         <>
                           <CloseIcon class="h-3 w-3 text-status-danger" />
-                          <span>Not installed</span>
+                          <span>{t().machineInfo.notInstalled}</span>
                         </>
                       }
                     >
                       <CheckIcon class="h-3 w-3 text-status-success" />
-                      <span>Ready</span>
+                      <span>{t().common.ready}</span>
                     </Show>
                   </span>
 
