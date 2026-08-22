@@ -4,6 +4,16 @@
 
 ---
 
+## [0.2.8] - 2026-08-22
+
+### 新增
+- **工作台总控首页**：聚合 Git 项目脉搏、本地 Web 运行服务、本机健康状态与 AI/运维快捷入口。
+- **项目与服务快捷动作**：从首页直接打开 VS Code、终端、Save Point、运行网页，并处理异常端口。
+
+### 工程
+- **Node 24 Actions**：GitHub Actions 迁移到 Node 24 兼容的 checkout 与官方 `gh` Release CLI 流程。
+- **前端回归门禁**：新增工作台聚合逻辑测试，前端回归测试扩展至 30 项。
+
 ## [0.2.7] - 2026-08-22
 
 ### 安全
@@ -214,6 +224,16 @@
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [0.2.8] - 2026-08-22
+
+### Added
+- **Workbench cockpit homepage**: Aggregate Git project pulse, local Web services, host health, and AI/Ops quick links in one actionable overview.
+- **Project and service shortcuts**: Open VS Code, terminal, Save Points, running pages, and degraded-port cleanup directly from the homepage.
+
+### Engineering
+- **Node 24 Actions**: Migrate GitHub Actions to the Node 24-compatible checkout action and official `gh` Release CLI flow.
+- **Frontend regression gates**: Add workbench aggregation coverage and expand the frontend regression suite to 30 tests.
 
 ## [0.2.7] - 2026-08-22
 
