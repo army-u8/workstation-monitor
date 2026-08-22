@@ -77,6 +77,17 @@ def main() -> int:
     require(bun_lock_path.exists(), "frontend/bun.lock is missing", errors)
     if bun_lock_path.exists():
         require(bun_lock_path.stat().st_size > 0, "frontend/bun.lock is empty", errors)
+        bun_lock = bun_lock_path.read_text(encoding="utf-8")
+        require(
+            "registry.npmmirror.com" not in bun_lock,
+            "frontend/bun.lock must not pin dependencies to the npmmirror registry",
+            errors,
+        )
+        require(
+            "registry.npmjs.org" in bun_lock,
+            "frontend/bun.lock must pin package archives to the npm registry",
+            errors,
+        )
     require(
         frontend_package.get("scripts", {}).get("verify")
         == "bun run lint && bun run test && bun run build",
