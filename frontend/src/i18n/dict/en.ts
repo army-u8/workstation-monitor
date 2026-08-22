@@ -530,7 +530,7 @@ export const en: Dict = {
     refreshBtn: 'Scan Web Ports',
     scanning: 'Sniffing local ports and web services...',
     empty:
-      'No active local web servers found. Run npm run dev or uvicorn in your terminal to see live cards here!',
+      'No active local web servers found. Run bun run dev or uvicorn in your terminal to see live cards here!',
     openBrowser: 'Open in Browser',
     freePort: 'Free Port',
     killConfirmTitle: 'Terminate Port Process?',

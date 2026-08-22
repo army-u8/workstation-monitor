@@ -28,7 +28,7 @@
 | --- | --- |
 | macOS | 11+（Apple Silicon 或 Intel） |
 | Rust | 1.75+（edition 2021） |
-| Node.js | 20.19+ 或 22.12+（前端开发/构建） |
+| Bun | 1.3+（前端安装依赖、开发、构建和测试） |
 | Xcode 命令行工具 | 必选（`pcap` 编译依赖） |
 
 > **报文嗅探** 使用原生 `libpcap`（`/dev/bpf`）。通过 `sudo` 启动时只在打开抓包设备期间保留权限，随后会在 HTTP 服务启动前立即降权回调用用户；不使用 `sudo` 时嗅探器会自动降级。
@@ -49,7 +49,7 @@
 
 ## 安装（从源码编译）
 
-> 前端现在由 `build.rs` 在**编译时自动构建**，因此只需一条 `cargo build` 即可，不再需要单独的 `npm run build` 步骤。
+> 前端现在由 `build.rs` 在**编译时自动构建**，并通过 Bun 运行 Vite，因此只需一条 `cargo build` 即可，不再需要单独的前端构建步骤。
 
 ```bash
 git clone git@github.com:army-u8/workstation-monitor.git
@@ -81,14 +81,14 @@ PORT=9000 cargo run --release
 
 ```bash
 cd frontend
-npm install
-npm run dev
+bun install --frozen-lockfile
+bun run dev
 ```
 
 打开 **http://localhost:9529** —— Vite 会自动将 `/api` 和 `/ws` 代理到 9527 端口的后端。
 
 后端使用自定义端口时可设置 `VITE_BACKEND_PORT`，例如
-`VITE_BACKEND_PORT=9999 npm run dev`。
+`VITE_BACKEND_PORT=9999 bun run dev`。
 
 ---
 

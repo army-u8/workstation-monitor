@@ -523,7 +523,7 @@ export const zh = {
     refreshBtn: '刷新产物雷达',
     scanning: '正在嗅探本地端口与网页...',
     empty:
-      '暂未发现本地正在运行的 Web 开发服务。在终端运行 npm run dev 或 uvicorn，即可自动在此呈现实时画廊！',
+      '暂未发现本地正在运行的 Web 开发服务。在终端运行 bun run dev 或 uvicorn，即可自动在此呈现实时画廊！',
     openBrowser: '打开网页',
     freePort: '腾出端口',
     killConfirmTitle: '确认终止该端口服务？',

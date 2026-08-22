@@ -37,12 +37,10 @@ jobs:
       - name: Validate release version and configuration
         run: python3 scripts/check_release_consistency.py --tag "$RELEASE_TAG"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          bun-version: 1.3.6
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -51,11 +49,11 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Verify frontend
         working-directory: frontend
-        run: npm run verify
+        run: bun run verify
 
       - name: Test Rust backend
         run: cargo test --locked

@@ -25,10 +25,10 @@ mkdir -p "$DIST_DIR"
 # 2. Ensure frontend deps & build UI
 echo "==> [1/6] Building embedded frontend..."
 if [ ! -d "frontend/node_modules" ]; then
-  echo "    Installing frontend dependencies (npm ci)..."
-  (cd frontend && npm ci)
+  echo "    Installing frontend dependencies (bun install --frozen-lockfile)..."
+  (cd frontend && bun install --frozen-lockfile)
 fi
-(cd frontend && npm run build)
+(cd frontend && bun run build)
 export SKIP_FRONTEND_BUILD=1
 
 # 3. Ensure Icon is 100% compliant

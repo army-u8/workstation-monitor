@@ -201,7 +201,7 @@ pub async fn static_handler(uri: Uri) -> impl IntoResponse {
         .status(StatusCode::NOT_FOUND)
         .header(header::CONTENT_TYPE, HeaderValue::from_static("text/html; charset=utf-8"))
         .body(Body::from(
-            "<html><body style='background:#070a10;color:#fff;font-family:sans-serif;padding:40px;'><h2>⚠️ 404: 页面资源未找到</h2><p>请先在 <code>frontend/</code> 目录下执行 <code>npm run build</code> 生成前端静态文件。</p></body></html>",
+            "<html><body style='background:#070a10;color:#fff;font-family:sans-serif;padding:40px;'><h2>⚠️ 404: 页面资源未找到</h2><p>请先在 <code>frontend/</code> 目录下执行 <code>bun run build</code> 生成前端静态文件。</p></body></html>",
         ))
         .unwrap()
 }

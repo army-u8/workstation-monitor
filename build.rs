@@ -12,7 +12,7 @@ fn main() {
     println!("cargo:rerun-if-changed=frontend/public");
     println!("cargo:rerun-if-changed=frontend/index.html");
     println!("cargo:rerun-if-changed=frontend/package.json");
-    println!("cargo:rerun-if-changed=frontend/package-lock.json");
+    println!("cargo:rerun-if-changed=frontend/bun.lock");
     println!("cargo:rerun-if-changed=frontend/vite.config.ts");
     println!("cargo:rerun-if-changed=frontend/tsconfig.json");
     println!("cargo:rerun-if-env-changed=SKIP_FRONTEND_BUILD");
@@ -30,21 +30,16 @@ fn main() {
         return;
     }
 
-    // On Windows `npm` is `npm.cmd`; calling `npm` directly fails because the
-    // shell wrapper isn't on PATH as an executable. Select the right binary.
-    let npm = if cfg!(windows) { "npm.cmd" } else { "npm" };
+    // Bun is the sole frontend package manager and script runner. Select the
+    // Windows executable name explicitly because there is no shell wrapper.
+    let bun = if cfg!(windows) { "bun.exe" } else { "bun" };
 
-    // Only run `npm ci` / `npm install` if `node_modules` does not exist
+    // Only install dependencies if `node_modules` does not exist.
     if !frontend.join("node_modules").exists() {
-        let install = if frontend.join("package-lock.json").exists() {
-            (npm, vec!["ci"])
-        } else {
-            (npm, vec!["install"])
-        };
-        run(install.0, &install.1, frontend, "npm install");
+        run(bun, &["install", "--frozen-lockfile"], frontend, "bun install --frozen-lockfile");
     }
 
-    run(npm, &["run", "build"], frontend, "npm run build");
+    run(bun, &["run", "build"], frontend, "bun run build");
 }
 
 fn run(program: &str, args: &[&str], dir: &std::path::Path, label: &str) {

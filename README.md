@@ -28,7 +28,7 @@
 | --- | --- |
 | macOS | 11+ (Apple Silicon or Intel) |
 | Rust | 1.75+ (edition 2021) |
-| Node.js | 20.19+ or 22.12+ (for frontend dev/build) |
+| Bun | 1.3+ (for frontend install/dev/build/test) |
 | Xcode Command Line Tools | required (`pcap` build) |
 
 > **Packet sniffing** uses native `libpcap` (`/dev/bpf`). A `sudo` launch opens the capture device and then immediately drops back to the invoking user before starting the HTTP server. Without `sudo`, the sniffer degrades gracefully.
@@ -49,7 +49,7 @@ For most users — **no command line, no toolchain required**:
 
 ## Installation (build from source)
 
-> The frontend is now built **automatically at compile time** by `build.rs`, so a single `cargo build` is enough — no separate `npm run build` step is required anymore.
+> The frontend is now built **automatically at compile time** by `build.rs`, using Bun to run Vite, so a single `cargo build` is enough — no separate frontend build step is required anymore.
 
 ```bash
 git clone git@github.com:army-u8/workstation-monitor.git
@@ -81,14 +81,14 @@ Open **http://localhost:9527**.
 
 ```bash
 cd frontend
-npm install
-npm run dev
+bun install --frozen-lockfile
+bun run dev
 ```
 
 Open **http://localhost:9529** — Vite proxies `/api` and `/ws` to the backend on `9527`.
 
 Set `VITE_BACKEND_PORT` when the backend uses a custom port, for example
-`VITE_BACKEND_PORT=9999 npm run dev`.
+`VITE_BACKEND_PORT=9999 bun run dev`.
 
 ---
 

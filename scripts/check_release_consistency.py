@@ -42,7 +42,7 @@ def main() -> int:
     cargo = tomllib.loads(read("Cargo.toml"))
     cargo_lock = tomllib.loads(read("Cargo.lock"))
     frontend_package = json.loads(read("frontend/package.json"))
-    frontend_lock = json.loads(read("frontend/package-lock.json"))
+    bun_lock_path = ROOT / "frontend/bun.lock"
     cargo_version = cargo["package"]["version"]
     bundle_version = cargo["package"]["metadata"]["bundle"]["version"]
     locked_backend = next(
@@ -60,18 +60,26 @@ def main() -> int:
         errors,
     )
     require(
+        frontend_package.get("packageManager") == "bun@1.3.6",
+        "frontend package must pin packageManager to bun@1.3.6",
+        errors,
+    )
+    require(
+        not (ROOT / "frontend/package-lock.json").exists(),
+        "frontend/package-lock.json must be removed after Bun migration",
+        errors,
+    )
+    require(
         locked_backend["version"] == cargo_version,
         f"Cargo.lock version {locked_backend['version']!r} != Cargo version {cargo_version!r}",
         errors,
     )
-    require(
-        frontend_lock["packages"][""]["version"] == cargo_version,
-        f"frontend lock version {frontend_lock['packages']['']['version']!r} != Cargo version {cargo_version!r}",
-        errors,
-    )
+    require(bun_lock_path.exists(), "frontend/bun.lock is missing", errors)
+    if bun_lock_path.exists():
+        require(bun_lock_path.stat().st_size > 0, "frontend/bun.lock is empty", errors)
     require(
         frontend_package.get("scripts", {}).get("verify")
-        == "npm run lint && npm test && npm run build",
+        == "bun run lint && bun run test && bun run build",
         "frontend package is missing the combined lint/test/build verify script",
         errors,
     )
@@ -137,13 +145,13 @@ def main() -> int:
     readme_en = read("README.md")
     readme_zh = read("README.zh-CN.md")
     require(
-        "| Node.js | 20.19+ or 22.12+" in readme_en,
-        "README.md documents a Node.js version unsupported by Vite 8",
+        "| Bun | 1.3+ (for frontend install/dev/build/test) |" in readme_en,
+        "README.md must document Bun as the frontend toolchain",
         errors,
     )
     require(
-        "| Node.js | 20.19+ 或 22.12+" in readme_zh,
-        "README.zh-CN.md documents a Node.js version unsupported by Vite 8",
+        "| Bun | 1.3+（前端安装依赖、开发、构建和测试） |" in readme_zh,
+        "README.zh-CN.md must document Bun as the frontend toolchain",
         errors,
     )
 
@@ -182,7 +190,8 @@ def main() -> int:
         ci_workflow = ci_path.read_text(encoding="utf-8")
         for command in (
             "python3 scripts/check_release_consistency.py",
-            "npm run verify",
+            "bun install --frozen-lockfile",
+            "bun run verify",
             "cargo test --locked",
             "cargo check --locked",
         ):
@@ -196,7 +205,8 @@ def main() -> int:
             "an explicit guard for tags that predate the release tooling",
         ),
         ("python3 scripts/check_release_consistency.py --tag", "release version validation"),
-        ("npm run verify", "frontend lint/build validation"),
+        ("bun install --frozen-lockfile", "frozen Bun frontend dependency installation"),
+        ("bun run verify", "frontend lint/build validation"),
         ("cargo test --locked", "locked Rust tests"),
         ("tag_name:", "an explicit release tag"),
     ):

@@ -34,7 +34,7 @@ When modifying or adding code in this repository, all AI agents **MUST** strictl
 - **Synchronized Dictionaries**: Every newly added key must be present in both:
   - `frontend/src/i18n/dict/zh.ts` (Simplified Chinese)
   - `frontend/src/i18n/dict/en.ts` (English)
-- **Automated Check**: Always verify with `npm --prefix frontend run i18n:check` before submitting changes.
+- **Automated Check**: Always verify with `bun --cwd frontend run i18n:check` before submitting changes.
 
 ### 🎨 Rule 3: Icon Consistency Standard
 - **Exclusively use Tabler Icons**: Import icons from `frontend/src/components/Icons.tsx` (backed by `@tabler/icons-solidjs`).
@@ -108,16 +108,16 @@ workstation-monitor/
 # 1. Start Rust backend
 cargo run -- 9527
 
-# 2. In another terminal, start Vite dev server with instant HMR
-npm --prefix frontend run dev
+# 2. In another terminal, start Vite dev server with instant HMR through Bun
+bun --cwd frontend run dev
 ```
 > Open `http://localhost:9529`. Vite automatically proxies `/api` and `/ws` to port `9527`. All `.tsx` and `.css` modifications take effect in milliseconds without reloading.
 
 ### Mode B: Dynamic Disk Static File Hot Loading (Single Server Mode)
 The server in `src/server/embedded.rs` prioritizes local `frontend/dist/` from disk before falling back to in-memory binary assets.
 ```bash
-# Run Vite build in watch mode
-npm --prefix frontend run build:watch
+# Run Vite build in watch mode through Bun
+bun --cwd frontend run build:watch
 ```
 > Modifying frontend code automatically rebuilds `dist/`. Simply press `F5` in your browser (`http://localhost:9527`) to see updates immediately **without restarting the Rust backend**.
 
@@ -135,10 +135,10 @@ Every commit is guarded by automated Git hooks (`lint-staged` + `cargo check` + 
 
 ```bash
 # 1. Frontend ESLint & i18n Synchronization Check
-npm --prefix frontend run lint
+bun --cwd frontend run lint
 
 # 2. Frontend Production Build Check
-npm --prefix frontend run build
+bun --cwd frontend run build
 
 # 3. Rust Unit Tests
 cargo test --offline
