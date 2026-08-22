@@ -14,13 +14,17 @@ impl GitRadar {
     const GH_COMMAND_TIMEOUT: Duration = Duration::from_secs(2);
 
     pub fn scan_projects() -> Vec<GitProjectInfo> {
-        let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/wishlife".to_string());
+        let Some(home) = std::env::var_os("HOME") else {
+            tracing::warn!("Skipping Git radar scan because HOME is not set");
+            return Vec::new();
+        };
+        let home = PathBuf::from(home);
         let search_roots = vec![
-            PathBuf::from(&home).join("workspace"),
-            PathBuf::from(&home).join("Projects"),
-            PathBuf::from(&home).join("Code"),
-            PathBuf::from(&home).join("Developer"),
-            PathBuf::from(&home),
+            home.join("workspace"),
+            home.join("Projects"),
+            home.join("Code"),
+            home.join("Developer"),
+            home,
         ];
 
         let mut git_dirs = Vec::new();
@@ -43,8 +47,11 @@ impl GitRadar {
     }
 
     pub fn get_account_summary() -> GitAccountSummary {
-        let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/wishlife".to_string());
-        let git_config_path = format!("{}/.gitconfig", home);
+        let home = std::env::var_os("HOME").map(PathBuf::from);
+        let git_config_path = home
+            .as_ref()
+            .map(|path| path.join(".gitconfig").to_string_lossy().to_string())
+            .unwrap_or_else(|| "~/.gitconfig".to_string());
 
         // 1. Git Global Configuration
         let user_name = Self::get_git_config("user.name");
@@ -65,7 +72,9 @@ impl GitRadar {
         };
 
         // 2. GitHub Account (via gh CLI and hosts.yml)
-        let github = Self::get_github_account(&home);
+        let github = home
+            .as_ref()
+            .and_then(|path| Self::get_github_account(&path.to_string_lossy()));
 
         GitAccountSummary { git, github }
     }

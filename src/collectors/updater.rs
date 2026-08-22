@@ -1124,9 +1124,9 @@ exit 1
                 .args([
                     "-x",
                     "-k",
-                    downloaded_file.to_str().unwrap(),
-                    extract_dir.to_str().unwrap(),
                 ])
+                .arg(&downloaded_file)
+                .arg(&extract_dir)
                 .status()
                 .map_err(|e| format!("Failed to execute ditto for unzip: {}", e))?;
 
@@ -1138,12 +1138,10 @@ exit 1
             }
         } else if target_url.path().ends_with(".app.tar.gz") {
             let status = Command::new("tar")
-                .args([
-                    "-xzf",
-                    downloaded_file.to_str().unwrap(),
-                    "-C",
-                    extract_dir.to_str().unwrap(),
-                ])
+                .arg("-xzf")
+                .arg(&downloaded_file)
+                .arg("-C")
+                .arg(&extract_dir)
                 .status()
                 .map_err(|e| format!("Failed to execute tar: {}", e))?;
 

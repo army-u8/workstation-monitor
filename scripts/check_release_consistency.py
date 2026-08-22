@@ -173,6 +173,50 @@ def main() -> int:
         errors,
     )
 
+    ai_radar = read("src/collectors/ai_radar.rs")
+    require(
+        "danger_accept_invalid_certs(true)" not in ai_radar,
+        "AI radar HTTPS probes must keep certificate validation enabled",
+        errors,
+    )
+
+    web_artifacts = read("src/collectors/web_artifacts.rs")
+    require(
+        "danger_accept_invalid_certs(true)" not in web_artifacts,
+        "web artifact probes must keep certificate validation enabled",
+        errors,
+    )
+    require(
+        "Policy::none()" in web_artifacts,
+        "web artifact probes must not follow redirects from local services",
+        errors,
+    )
+
+    updater = read("src/collectors/updater.rs")
+    require(
+        "downloaded_file.to_str().unwrap()" not in updater
+        and "extract_dir.to_str().unwrap()" not in updater,
+        "updater archive commands must pass filesystem paths without UTF-8 unwraps",
+        errors,
+    )
+
+    cleaner = read("src/collectors/cleaner.rs")
+    require(
+        "/Users/wishlife" not in cleaner,
+        "cleaner must not fall back to a hardcoded user's home directory",
+        errors,
+    )
+    for path, label in (
+        ("src/collectors/git_radar.rs", "Git radar"),
+        ("src/collectors/obsidian.rs", "Obsidian collector"),
+        ("src/collectors/env_vars.rs", "environment collector"),
+    ):
+        require(
+            "/Users/wishlife" not in read(path),
+            f"{label} must not fall back to a hardcoded user's home directory",
+            errors,
+        )
+
     changelog = read("CHANGELOG.md")
     english_marker = "# Changelog (English)"
     require(english_marker in changelog, "CHANGELOG.md is missing its English section", errors)

@@ -53,8 +53,7 @@ impl WebArtifactsManager {
 
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_millis(1500))
-            .danger_accept_invalid_certs(true)
-            .redirect(reqwest::redirect::Policy::limited(2))
+            .redirect(reqwest::redirect::Policy::none())
             .build()
             .unwrap_or_else(|_| reqwest::Client::new());
 
@@ -280,4 +279,3 @@ mod tests {
         );
     }
 }
-

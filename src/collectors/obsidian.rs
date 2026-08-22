@@ -149,9 +149,12 @@ impl ObsidianManager {
     /// Discovers the active Obsidian Vault path
     pub fn find_vault_path() -> Option<PathBuf> {
         let configured = std::env::var_os("OBSIDIAN_VAULT_PATH").map(PathBuf::from);
-        let home = std::env::var_os("HOME")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from("/Users/wishlife"));
+        if let Some(path) = configured.as_deref() {
+            if path.is_dir() && path.join(".obsidian").exists() {
+                return Some(path.to_path_buf());
+            }
+        }
+        let home = std::env::var_os("HOME").map(PathBuf::from)?;
         Self::find_vault_path_from(configured.as_deref(), &home)
     }
 

@@ -53,28 +53,39 @@ impl EnvVarsCollector {
 
         // Determine user home directory reliably
         let home = Self::resolve_home_dir(&all_vars);
+        if let Some(home) = home.as_deref() {
+            // Scan shell rc files and track source
+            let rc_files = [
+                (format!("{}/.zshenv", home), "~/.zshenv"),
+                (format!("{}/.zprofile", home), "~/.zprofile"),
+                (format!("{}/.zshrc", home), "~/.zshrc"),
+                (format!("{}/.bash_profile", home), "~/.bash_profile"),
+                (format!("{}/.bashrc", home), "~/.bashrc"),
+                (format!("{}/.profile", home), "~/.profile"),
+                (format!("{}/.env", home), "~/.env"),
+            ];
 
-        // Scan shell rc files and track source
-        let rc_files = [
-            (format!("{}/.zshenv", home), "~/.zshenv"),
-            (format!("{}/.zprofile", home), "~/.zprofile"),
-            (format!("{}/.zshrc", home), "~/.zshrc"),
-            (format!("{}/.bash_profile", home), "~/.bash_profile"),
-            (format!("{}/.bashrc", home), "~/.bashrc"),
-            (format!("{}/.profile", home), "~/.profile"),
-            (format!("{}/.env", home), "~/.env"),
-        ];
-
-        for (rc_path, display_name) in &rc_files {
-            if let Ok(content) = std::fs::read_to_string(rc_path) {
-                Self::parse_rc_content_with_source(&content, &mut all_vars, &mut var_sources, display_name);
+            for (rc_path, display_name) in &rc_files {
+                if let Ok(content) = std::fs::read_to_string(rc_path) {
+                    Self::parse_rc_content_with_source(
+                        &content,
+                        &mut all_vars,
+                        &mut var_sources,
+                        display_name,
+                    );
+                }
             }
-        }
 
-        // Scan AWS credentials file if present (~/.aws/credentials)
-        let aws_cred_path = format!("{}/.aws/credentials", home);
-        if let Ok(content) = std::fs::read_to_string(&aws_cred_path) {
-            Self::parse_ini_credentials(&content, &mut all_vars, &mut var_sources, "~/.aws/credentials");
+            // Scan AWS credentials file if present (~/.aws/credentials)
+            let aws_cred_path = format!("{}/.aws/credentials", home);
+            if let Ok(content) = std::fs::read_to_string(&aws_cred_path) {
+                Self::parse_ini_credentials(
+                    &content,
+                    &mut all_vars,
+                    &mut var_sources,
+                    "~/.aws/credentials",
+                );
+            }
         }
 
         let shell = all_vars
@@ -165,7 +176,7 @@ impl EnvVarsCollector {
         EnvVarsPayload {
             shell,
             user,
-            home,
+            home: home.unwrap_or_default(),
             proxy_configured,
             proxy_summary,
             path_entries,
@@ -174,34 +185,29 @@ impl EnvVarsCollector {
         }
     }
 
-    fn resolve_home_dir(all_vars: &HashMap<String, String>) -> String {
+    fn resolve_home_dir(all_vars: &HashMap<String, String>) -> Option<String> {
         if let Ok(sudo_user) = std::env::var("SUDO_USER") {
             if !sudo_user.trim().is_empty() && sudo_user != "root" {
                 let candidate = format!("/Users/{}", sudo_user);
                 if Path::new(&candidate).exists() {
-                    return candidate;
+                    return Some(candidate);
                 }
             }
         }
 
         if let Some(h) = all_vars.get("HOME") {
             if h != "/var/root" && Path::new(h).exists() {
-                return h.clone();
+                return Some(h.clone());
             }
         }
 
         if let Ok(h) = std::env::var("HOME") {
             if h != "/var/root" && Path::new(&h).exists() {
-                return h;
+                return Some(h);
             }
         }
 
-        // Fallback checks
-        if Path::new("/Users/wishlife").exists() {
-            return "/Users/wishlife".to_string();
-        }
-
-        "/Users/wishlife".to_string()
+        None
     }
 
     /// Parses export KEY="value" and KEY=value lines from shell profile files

@@ -18,7 +18,6 @@ impl AiRadarManager {
 
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_millis(3500))
-            .danger_accept_invalid_certs(true)
             .redirect(reqwest::redirect::Policy::limited(2))
             .build()
             .unwrap_or_else(|_| reqwest::Client::new());
@@ -547,4 +546,3 @@ impl AiRadarManager {
         }
     }
 }
-

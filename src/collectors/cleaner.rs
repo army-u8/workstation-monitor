@@ -13,7 +13,10 @@ impl SystemCleaner {
     const CLEAN_COMMAND_TIMEOUT: Duration = Duration::from_secs(120);
 
     pub fn scan() -> Vec<CleanerItem> {
-        let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/wishlife".to_string());
+        let Some(home) = std::env::var_os("HOME") else {
+            tracing::warn!("Skipping cleaner scan because HOME is not set");
+            return Vec::new();
+        };
         let home_path = Path::new(&home);
 
         let targets = vec![
@@ -119,7 +122,8 @@ impl SystemCleaner {
     }
 
     pub fn clean(id: &str) -> Result<String, String> {
-        let home = std::env::var("HOME").unwrap_or_else(|_| "/Users/wishlife".to_string());
+        let home = std::env::var_os("HOME")
+            .ok_or_else(|| "无法清理：HOME 环境变量未设置".to_string())?;
         let mut runner = Self::run_command_with_timeout;
         Self::clean_at_home_with_runner(Path::new(&home), id, &mut runner)
     }
