@@ -243,6 +243,16 @@ def main() -> int:
     require(ci_path.exists(), ".github/workflows/ci.yml quality gate is missing", errors)
     if ci_path.exists():
         ci_workflow = ci_path.read_text(encoding="utf-8")
+        require(
+            "actions/checkout@v5" in ci_workflow,
+            "CI quality gate must use the Node 24 checkout action",
+            errors,
+        )
+        require(
+            "actions/checkout@v4" not in ci_workflow,
+            "CI quality gate still references the Node 20 checkout action",
+            errors,
+        )
         for command in (
             "python3 scripts/check_release_consistency.py",
             "bun install --frozen-lockfile",
@@ -253,6 +263,21 @@ def main() -> int:
             require(command in ci_workflow, f"CI quality gate is missing `{command}`", errors)
 
     release_workflow = read(".github/workflows/release.yml")
+    require(
+        "actions/checkout@v5" in release_workflow,
+        "release workflow must use the Node 24 checkout action",
+        errors,
+    )
+    require(
+        "actions/checkout@v4" not in release_workflow,
+        "release workflow still references the Node 20 checkout action",
+        errors,
+    )
+    require(
+        "softprops/action-gh-release" not in release_workflow,
+        "release workflow still references the Node 20 softprops release action",
+        errors,
+    )
     for token, description in (
         ("tag:", "a required manual release tag input"),
         (
@@ -263,7 +288,10 @@ def main() -> int:
         ("bun install --frozen-lockfile", "frozen Bun frontend dependency installation"),
         ("bun run verify", "frontend lint/build validation"),
         ("cargo test --locked", "locked Rust tests"),
-        ("tag_name:", "an explicit release tag"),
+        ("gh release create", "official GitHub CLI release creation"),
+        ("gh release upload", "official GitHub CLI asset replacement for rebuilds"),
+        ("--verify-tag", "remote release tag verification"),
+        ("target/release-assets/*", "release asset upload"),
     ):
         require(token in release_workflow, f"release workflow is missing {description}", errors)
 

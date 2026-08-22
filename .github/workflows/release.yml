@@ -23,7 +23,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ env.RELEASE_TAG }}
 
@@ -97,14 +97,27 @@ jobs:
           \`\`\`
           EOF
 
-      - name: Create GitHub Release & Upload Assets
-        uses: softprops/action-gh-release@v2
-        with:
-          files: target/release-assets/*
-          body_path: release_body.md
-          tag_name: ${{ env.RELEASE_TAG }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
+      - name: Create or update GitHub Release & Upload Assets
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          GENERATED_NOTES="$(gh api --method POST "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+            -f tag_name="$RELEASE_TAG" --jq .body)"
+          {
+            cat release_body.md
+            printf '\n\n%s\n' "$GENERATED_NOTES"
+          } > release_notes.md
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" target/release-assets/* --clobber
+            gh release edit "$RELEASE_TAG" \
+              --title "$RELEASE_TAG" \
+              --notes-file release_notes.md \
+              --latest
+          else
+            gh release create "$RELEASE_TAG" target/release-assets/* \
+              --verify-tag \
+              --title "$RELEASE_TAG" \
+              --notes-file release_notes.md \
+              --latest
+          fi
