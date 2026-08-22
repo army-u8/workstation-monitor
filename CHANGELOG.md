@@ -4,6 +4,19 @@
 
 ---
 
+## [0.2.7] - 2026-08-22
+
+### 安全
+- **HTTPS 探测校验加固**：AI Radar 与本地 Web 产物探测恢复证书校验，禁止本地服务重定向到其他地址。
+- **用户目录边界加固**：Cleaner、Git Radar、Obsidian 与环境变量采集器不再猜测或访问硬编码用户目录。
+
+### 修复
+- **自动更新器路径兼容性**：支持非 UTF-8 文件系统路径，避免解压更新包时因路径转换失败而崩溃。
+- **Bun 依赖锁定**：锁文件统一使用官方 npm registry，避免构建依赖本机镜像配置。
+
+### 工程
+- **回归门禁**：新增上述安全边界的发布一致性检查，并完成 Rust、前端和 Bun 依赖审计。
+
 ## [0.2.6] - 2026-08-20
 
 ### 安全
@@ -201,6 +214,19 @@
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [0.2.7] - 2026-08-22
+
+### Security
+- **HTTPS probe hardening**: Restore certificate validation for AI Radar and local web artifact probes, and prevent local services from redirecting probes elsewhere.
+- **User directory containment**: Cleaner, Git Radar, Obsidian, and environment-variable collection no longer guess or access hardcoded user directories.
+
+### Fixed
+- **Updater path compatibility**: Preserve non-UTF-8 filesystem paths when extracting update archives instead of panicking during path conversion.
+- **Bun dependency locking**: Pin the Bun lockfile to the official npm registry instead of inheriting a machine-local mirror configuration.
+
+### Engineering
+- **Regression gates**: Add release consistency checks for the security boundaries above and complete Rust, frontend, and Bun dependency verification.
 
 ## [0.2.6] - 2026-08-20
 
