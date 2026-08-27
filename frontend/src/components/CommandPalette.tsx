@@ -5,6 +5,7 @@ import { ToastType } from '../constants';
 import { t } from '../i18n';
 import {
   confirmControlActionApi,
+  confirmModal,
   controlActions,
   executeControlActionApi,
   fetchControlActionsApi,
@@ -16,8 +17,10 @@ import {
 } from '../services/store';
 import type { ActionDefinition, ActionParameterDefinition, ActionRequest } from '../types';
 import {
+  canRestorePaletteFocus,
   parseActionParameters,
   rankActions,
+  shouldIgnorePaletteKeyDown,
   type RawActionParameterValues,
 } from '../utils/command-palette';
 import { trapDialogFocus } from '../utils/dialog-focus';
@@ -52,6 +55,8 @@ export const CommandPalette: Component = () => {
   const [isExecuting, setIsExecuting] = createSignal(false);
   const [error, setError] = createSignal<PaletteError | null>(null);
   let searchInput: HTMLInputElement | undefined;
+  let previouslyFocused: HTMLElement | null = null;
+  let pendingFocusRestore: HTMLElement | null = null;
   let wasOpen = false;
   let previousPath = location.pathname;
 
@@ -63,6 +68,26 @@ export const CommandPalette: Component = () => {
     setSelectedAction(null);
     setParameterValues({});
     setError(null);
+  };
+
+  const restorePendingPaletteFocus = () => {
+    const focusTarget = pendingFocusRestore;
+    if (
+      !focusTarget ||
+      !canRestorePaletteFocus(isCommandPaletteOpen(), Boolean(confirmModal()))
+    ) {
+      return;
+    }
+    queueMicrotask(() => {
+      if (
+        pendingFocusRestore !== focusTarget ||
+        !canRestorePaletteFocus(isCommandPaletteOpen(), Boolean(confirmModal()))
+      ) {
+        return;
+      }
+      pendingFocusRestore = null;
+      if (focusTarget.isConnected) focusTarget.focus();
+    });
   };
 
   const parameterLabel = (parameter: ActionParameterDefinition) =>
@@ -171,6 +196,7 @@ export const CommandPalette: Component = () => {
 
   onMount(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
+      if (shouldIgnorePaletteKeyDown(event.defaultPrevented, Boolean(confirmModal()))) return;
       if (event.metaKey && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         setIsCommandPaletteOpen(!isCommandPaletteOpen());
@@ -185,7 +211,10 @@ export const CommandPalette: Component = () => {
 
   createEffect(() => {
     const open = isCommandPaletteOpen();
+    const confirmationOpen = Boolean(confirmModal());
     if (open && !wasOpen) {
+      previouslyFocused =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
       setQuery('');
       setSelectedAction(null);
       setParameterValues({});
@@ -194,8 +223,12 @@ export const CommandPalette: Component = () => {
       if (controlActions().length === 0) {
         void fetchControlActionsApi().catch(() => setError({ code: 'load_failed' }));
       }
+    } else if (!open && wasOpen) {
+      pendingFocusRestore = previouslyFocused;
+      previouslyFocused = null;
     }
     wasOpen = open;
+    if (canRestorePaletteFocus(open, confirmationOpen)) restorePendingPaletteFocus();
   });
 
   createEffect(() => {
@@ -210,8 +243,12 @@ export const CommandPalette: Component = () => {
         class="fixed inset-0 z-40 flex items-start justify-center bg-black/60 px-4 pt-[10vh] backdrop-blur-xs"
         role="dialog"
         aria-modal="true"
+        aria-hidden={confirmModal() ? 'true' : undefined}
+        inert={Boolean(confirmModal())}
         aria-labelledby="command-palette-title"
-        onKeyDown={(event) => trapDialogFocus(event, event.currentTarget)}
+        onKeyDown={(event) => {
+          if (!confirmModal()) trapDialogFocus(event, event.currentTarget);
+        }}
         onClick={(event) => {
           if (event.target === event.currentTarget) closePalette();
         }}

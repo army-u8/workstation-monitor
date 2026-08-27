@@ -753,6 +753,8 @@ export const en: Dict = {
     loadFailed: 'Failed to load activity. Try again shortly.',
     empty: 'No activity matches the current filters',
     loadMore: 'Load more',
+    duration: 'Duration',
+    millisecondsShort: 'ms',
     filterSeverity: 'Severity',
     filterSource: 'Source',
     filterDevice: 'Device',
@@ -761,6 +763,14 @@ export const en: Dict = {
       warning: 'Warning',
       error: 'Error',
       critical: 'Critical',
+    },
+    actionStatuses: {
+      pending: 'Pending',
+      indeterminate: 'Needs verification',
+      confirmation_required: 'Awaiting confirmation',
+      succeeded: 'Succeeded',
+      failed: 'Failed',
+      denied: 'Denied',
     },
     eventTypes: {
       service_started: 'Service started',

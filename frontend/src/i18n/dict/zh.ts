@@ -740,6 +740,8 @@ export const zh = {
     loadFailed: '活动记录加载失败，请稍后重试',
     empty: '暂无符合条件的活动记录',
     loadMore: '加载更多',
+    duration: '耗时',
+    millisecondsShort: '毫秒',
     filterSeverity: '严重级别',
     filterSource: '事件来源',
     filterDevice: '设备',
@@ -748,6 +750,14 @@ export const zh = {
       warning: '警告',
       error: '错误',
       critical: '严重',
+    },
+    actionStatuses: {
+      pending: '等待执行',
+      indeterminate: '结果待核对',
+      confirmation_required: '等待确认',
+      succeeded: '执行成功',
+      failed: '执行失败',
+      denied: '已拒绝',
     },
     eventTypes: {
       service_started: '服务已启动',

@@ -9,7 +9,7 @@ import {
   workstationEventsCursor,
 } from '../services/store';
 import type { EventSeverity, WorkstationEvent } from '../types';
-import { filterActivityEvents, groupActivityEvents } from '../utils/activity';
+import { activityEventDetails, filterActivityEvents, groupActivityEvents } from '../utils/activity';
 import { FailureIcon, RefreshIcon, SuccessIcon, TimelineIcon, WarningIcon } from './Icons';
 import { Badge, Button } from './ui';
 
@@ -72,14 +72,6 @@ export const ActivityTimeline: Component = () => {
 
   const eventLabel = (event: WorkstationEvent) => t().activity.eventTypes[event.event_type];
   const severityLabel = (value: EventSeverity) => t().activity.severities[value];
-  const detail = (event: WorkstationEvent) => {
-    const actionId = event.payload.action_id;
-    const status = event.payload.status;
-    if (typeof actionId === 'string') return actionId;
-    if (typeof status === 'string') return status;
-    return event.source;
-  };
-
   return (
     <section class="space-y-3" aria-label={t().activity.title}>
       <div class="hud-box flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -171,26 +163,46 @@ export const ActivityTimeline: Component = () => {
               </div>
               <div class="divide-y divide-border-subtle">
                 <For each={group.events}>
-                  {(event) => (
-                    <div class="grid gap-2 px-3 py-2.5 sm:grid-cols-[20px_1fr_auto] sm:items-center">
+                  {(event) => {
+                    const details = () => activityEventDetails(event);
+                    return (
+                      <div class="grid gap-2 px-3 py-2.5 sm:grid-cols-[20px_1fr_auto] sm:items-center">
                       <EventStatusIcon event={event} />
                       <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
                           <span class="text-xs font-semibold text-text-primary">
                             {eventLabel(event)}
                           </span>
-                          <span class="font-mono text-[10px] text-text-muted">{detail(event)}</span>
+                          <Show when={details().actionId} fallback={event.source}>
+                            {(actionId) => (
+                              <span class="font-mono text-[10px] text-text-muted">{actionId()}</span>
+                            )}
+                          </Show>
+                          <Show when={details().status}>
+                            {(status) => (
+                              <Badge size="sm" variant="secondary">
+                                {t().activity.actionStatuses[status()]}
+                              </Badge>
+                            )}
+                          </Show>
                         </div>
                         <div class="mt-1 flex flex-wrap gap-2 font-mono text-[10px] text-text-muted">
                           <span>{event.device_id}</span>
                           <span>{event.source}</span>
+                          <Show when={details().durationMs !== null}>
+                            <span>
+                              {t().activity.duration}: {details().durationMs}{' '}
+                              {t().activity.millisecondsShort}
+                            </span>
+                          </Show>
                         </div>
                       </div>
                       <time class="font-mono text-[10px] text-text-muted">
                         {new Date(event.occurred_at).toLocaleString()}
                       </time>
-                    </div>
-                  )}
+                      </div>
+                    );
+                  }}
                 </For>
               </div>
             </article>

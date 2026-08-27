@@ -6,10 +6,11 @@ use crate::control::models::{
     ExecuteActionResponse, WorkstationEvent,
 };
 use crate::control::policy::{PolicyDecision, PolicyEngine};
-use crate::control::repository::ControlRepository;
+use crate::control::repository::{ActionClaim, ActionClaimOutcome, ControlRepository};
 use crate::types::WsEvent;
 use serde::Deserialize;
 use serde_json::{json, Value};
+use sha2::{Digest, Sha256};
 use std::process::Command;
 use std::sync::Arc;
 use tokio::sync::{broadcast, Mutex};
@@ -139,10 +140,19 @@ fn flush_dns() -> Result<(), String> {
     let responder = Command::new("killall")
         .args(["-HUP", "mDNSResponder"])
         .output();
-    if cache.is_err() && responder.is_err() {
-        Err("dns_flush_failed".to_string())
-    } else {
+    dns_flush_result(cache, responder)
+}
+
+fn dns_flush_result(
+    cache: std::io::Result<std::process::Output>,
+    responder: std::io::Result<std::process::Output>,
+) -> Result<(), String> {
+    if cache.is_ok_and(|output| output.status.success())
+        && responder.is_ok_and(|output| output.status.success())
+    {
         Ok(())
+    } else {
+        Err("dns_flush_failed".to_string())
     }
 }
 
@@ -150,6 +160,7 @@ fn flush_dns() -> Result<(), String> {
 pub enum ControlError {
     UnknownAction,
     InvalidParameters(String),
+    Conflict(String),
     Forbidden(String),
     Repository(String),
     Execution(String),
@@ -160,6 +171,7 @@ impl std::fmt::Display for ControlError {
         match self {
             Self::UnknownAction => formatter.write_str("unknown action"),
             Self::InvalidParameters(message) => write!(formatter, "invalid parameters: {message}"),
+            Self::Conflict(code) => write!(formatter, "action conflict: {code}"),
             Self::Forbidden(code) => write!(formatter, "action forbidden: {code}"),
             Self::Repository(message) => write!(formatter, "repository error: {message}"),
             Self::Execution(message) => write!(formatter, "execution error: {message}"),
@@ -176,52 +188,59 @@ pub struct ActionRegistry {
 
 impl ActionRegistry {
     pub fn built_in() -> Self {
-        Self {
-            definitions: vec![
-                definition(
-                    "app.open",
-                    ActionRisk::Safe,
-                    vec![
-                        parameter("path", ActionParameterType::String, true),
-                        parameter("app", ActionParameterType::String, false),
-                    ],
-                    &["open", "editor", "terminal", "finder"],
-                ),
-                definition(
-                    "snapshot.create",
-                    ActionRisk::Safe,
-                    vec![
-                        parameter("project_path", ActionParameterType::String, true),
-                        parameter("title", ActionParameterType::String, false),
-                    ],
-                    &["git", "save", "checkpoint", "snapshot"],
-                ),
-                definition(
-                    "process.kill",
-                    ActionRisk::ConfirmationRequired,
-                    vec![parameter("pid", ActionParameterType::Integer, true)],
-                    &["process", "kill", "stop"],
-                ),
-                definition(
-                    "port.kill",
-                    ActionRisk::ConfirmationRequired,
-                    vec![parameter("port", ActionParameterType::Integer, true)],
-                    &["port", "release", "kill"],
-                ),
-                definition(
-                    "cleaner.clean",
-                    ActionRisk::ConfirmationRequired,
-                    vec![parameter("id", ActionParameterType::String, true)],
-                    &["cache", "clean", "storage"],
-                ),
-                definition(
-                    "network.flush_dns",
-                    ActionRisk::AdministratorRequired,
-                    Vec::new(),
-                    &["dns", "network", "flush"],
-                ),
-            ],
+        let mut definitions = vec![
+            definition(
+                "app.open",
+                ActionRisk::Safe,
+                vec![
+                    parameter("path", ActionParameterType::String, true),
+                    parameter("app", ActionParameterType::String, false),
+                ],
+                &["open", "editor", "terminal", "finder"],
+            ),
+            definition(
+                "snapshot.create",
+                ActionRisk::Safe,
+                vec![
+                    parameter("project_path", ActionParameterType::String, true),
+                    parameter("title", ActionParameterType::String, false),
+                ],
+                &["git", "save", "checkpoint", "snapshot"],
+            ),
+            definition(
+                "process.kill",
+                ActionRisk::ConfirmationRequired,
+                vec![parameter("pid", ActionParameterType::Integer, true)],
+                &["process", "kill", "stop"],
+            ),
+            definition(
+                "port.kill",
+                ActionRisk::ConfirmationRequired,
+                vec![parameter("port", ActionParameterType::Integer, true)],
+                &["port", "release", "kill"],
+            ),
+            definition(
+                "cleaner.clean",
+                ActionRisk::ConfirmationRequired,
+                vec![parameter("id", ActionParameterType::String, true)],
+                &["cache", "clean", "storage"],
+            ),
+            definition(
+                "network.flush_dns",
+                ActionRisk::AdministratorRequired,
+                Vec::new(),
+                &["dns", "network", "flush"],
+            ),
+        ];
+        if let Some(action) = definitions
+            .iter_mut()
+            .find(|action| action.id == "network.flush_dns")
+        {
+            action.available = administrator_access_available();
+            action.unavailable_reason =
+                (!action.available).then(|| "administrator_required".to_string());
         }
+        Self { definitions }
     }
 
     pub fn catalog(&self) -> &[ActionDefinition] {
@@ -279,6 +298,16 @@ impl ActionRegistry {
         }
         Ok(())
     }
+}
+
+#[cfg(unix)]
+fn administrator_access_available() -> bool {
+    unsafe { libc::geteuid() == 0 }
+}
+
+#[cfg(not(unix))]
+fn administrator_access_available() -> bool {
+    false
 }
 
 fn parameter(
@@ -378,6 +407,36 @@ impl ControlPlane {
             .map_err(|error| ControlError::Repository(error.to_string()))
     }
 
+    async fn get_action_claim(
+        &self,
+        request_id: &str,
+    ) -> Result<Option<ActionClaim>, ControlError> {
+        let repository = Arc::clone(&self.repository);
+        let request_id = request_id.to_string();
+        tokio::task::spawn_blocking(move || repository.get_action_claim(&request_id))
+            .await
+            .map_err(|error| ControlError::Repository(error.to_string()))?
+            .map_err(|error| ControlError::Repository(error.to_string()))
+    }
+
+    async fn claim_action(
+        &self,
+        request: &ActionRequest,
+        parameters_hash: &str,
+    ) -> Result<ActionClaimOutcome, ControlError> {
+        let repository = Arc::clone(&self.repository);
+        let request_id = request.request_id.clone();
+        let action_id = request.action_id.clone();
+        let parameters_hash = parameters_hash.to_string();
+        let claimed_at = chrono::Utc::now().timestamp_millis();
+        tokio::task::spawn_blocking(move || {
+            repository.claim_action(&request_id, &action_id, &parameters_hash, claimed_at)
+        })
+        .await
+        .map_err(|error| ControlError::Repository(error.to_string()))?
+        .map_err(|error| ControlError::Repository(error.to_string()))
+    }
+
     pub async fn execute(
         &self,
         request: ActionRequest,
@@ -411,23 +470,42 @@ impl ControlPlane {
                 "remote targets are not enabled".to_string(),
             ));
         }
+        let parameters_hash = parameters_hash(&request.parameters);
+
+        let _execution_guard = self.execution_lock.lock().await;
+        if let Some(claim) = self.get_action_claim(&request.request_id).await? {
+            if claim.action_id != request.action_id || claim.parameters_hash != parameters_hash {
+                return Err(ControlError::Conflict(
+                    "request_id_binding_mismatch".to_string(),
+                ));
+            }
+            if let Some(result) = self.get_action_result(&request.request_id).await? {
+                return Ok(completed_response(result));
+            }
+            return Ok(indeterminate_response());
+        }
+        if let Some(result) = self.get_action_result(&request.request_id).await? {
+            if result.action_id != request.action_id {
+                return Err(ControlError::Conflict(
+                    "request_id_binding_mismatch".to_string(),
+                ));
+            }
+            return Ok(completed_response(result));
+        }
+
         let definition = self
             .registry
             .find(&request.action_id)
             .cloned()
             .ok_or(ControlError::UnknownAction)?;
-        self.registry.validate(&definition, &request.parameters)?;
-
-        let _execution_guard = self.execution_lock.lock().await;
-        if let Some(result) = self.get_action_result(&request.request_id).await? {
-            return Ok(ExecuteActionResponse {
-                status: result.status.clone(),
-                confirmation: None,
-                result: Some(result),
-                output: None,
-                error_code: None,
-            });
+        if !definition.available {
+            return Err(ControlError::Forbidden(
+                definition
+                    .unavailable_reason
+                    .unwrap_or_else(|| "action_unavailable".to_string()),
+            ));
         }
+        self.registry.validate(&definition, &request.parameters)?;
 
         if !trusted_local_confirmation {
             match self
@@ -461,6 +539,21 @@ impl ControlPlane {
                     return Err(ControlError::Forbidden(denial.code().to_string()))
                 }
                 PolicyDecision::Allowed => {}
+            }
+        }
+
+        match self.claim_action(&request, &parameters_hash).await? {
+            ActionClaimOutcome::Acquired => {}
+            ActionClaimOutcome::Conflict => {
+                return Err(ControlError::Conflict(
+                    "request_id_binding_mismatch".to_string(),
+                ))
+            }
+            ActionClaimOutcome::Existing => {
+                if let Some(result) = self.get_action_result(&request.request_id).await? {
+                    return Ok(completed_response(result));
+                }
+                return Ok(indeterminate_response());
             }
         }
 
@@ -557,6 +650,34 @@ impl ControlPlane {
         .with_correlation_id(request.request_id.clone());
         self.event_hub.publish(event).await;
     }
+}
+
+fn completed_response(result: ActionResult) -> ExecuteActionResponse {
+    ExecuteActionResponse {
+        status: result.status.clone(),
+        confirmation: None,
+        result: Some(result),
+        output: None,
+        error_code: None,
+    }
+}
+
+fn indeterminate_response() -> ExecuteActionResponse {
+    ExecuteActionResponse {
+        status: ActionExecutionStatus::Indeterminate,
+        confirmation: None,
+        result: None,
+        output: None,
+        error_code: Some("action_indeterminate".to_string()),
+    }
+}
+
+fn parameters_hash(parameters: &Value) -> String {
+    let encoded = serde_json::to_vec(parameters).unwrap_or_default();
+    Sha256::digest(encoded)
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn output_summary(output: &Value) -> String {
@@ -656,6 +777,59 @@ mod tests {
         );
     }
 
+    #[cfg(unix)]
+    #[test]
+    fn administrator_action_availability_matches_effective_user() {
+        let registry = ActionRegistry::built_in();
+        let flush_dns = registry.find("network.flush_dns").unwrap();
+        let has_administrator_access = unsafe { libc::geteuid() == 0 };
+
+        assert_eq!(flush_dns.available, has_administrator_access);
+        assert_eq!(
+            flush_dns.unavailable_reason.as_deref(),
+            (!has_administrator_access).then_some("administrator_required")
+        );
+    }
+
+    #[test]
+    fn dns_flush_rejects_unsuccessful_command_statuses() {
+        let failed_cache = Command::new("sh").args(["-c", "exit 1"]).output();
+        let successful_responder = Command::new("sh").args(["-c", "exit 0"]).output();
+
+        assert_eq!(
+            dns_flush_result(failed_cache, successful_responder),
+            Err("dns_flush_failed".to_string())
+        );
+    }
+
+    #[tokio::test]
+    async fn unavailable_actions_are_rejected_before_execution() {
+        let executor = Arc::new(CountingExecutor::success());
+        let (mut control, _) = test_control_plane(executor.clone());
+        let action = control
+            .registry
+            .definitions
+            .iter_mut()
+            .find(|action| action.id == "snapshot.create")
+            .unwrap();
+        action.available = false;
+        action.unavailable_reason = Some("administrator_required".to_string());
+
+        let result = control
+            .execute(request(
+                "request-unavailable",
+                "snapshot.create",
+                json!({"project_path": "/tmp/repo"}),
+            ))
+            .await;
+
+        assert!(matches!(
+            result,
+            Err(ControlError::Forbidden(code)) if code == "administrator_required"
+        ));
+        assert_eq!(executor.calls(), 0);
+    }
+
     #[tokio::test]
     async fn duplicate_request_ids_return_the_original_result() {
         let executor = Arc::new(CountingExecutor::success());
@@ -674,6 +848,90 @@ mod tests {
             second.result.as_ref().unwrap().request_id
         );
         assert_eq!(executor.calls(), 1);
+    }
+
+    #[tokio::test]
+    async fn duplicate_request_id_with_a_different_binding_is_rejected() {
+        let executor = Arc::new(CountingExecutor::success());
+        let (control, _) = test_control_plane(executor.clone());
+
+        control
+            .execute(request(
+                "request-conflict",
+                "snapshot.create",
+                json!({"project_path": "/tmp/repo", "title": "checkpoint"}),
+            ))
+            .await
+            .unwrap();
+        let conflict = control
+            .execute(request(
+                "request-conflict",
+                "snapshot.create",
+                json!({"project_path": "/tmp/other", "title": "checkpoint"}),
+            ))
+            .await;
+
+        assert!(matches!(conflict, Err(ControlError::Conflict(_))));
+        assert_eq!(executor.calls(), 1);
+    }
+
+    #[tokio::test]
+    async fn completed_request_binding_wins_over_current_action_availability() {
+        let executor = Arc::new(CountingExecutor::success());
+        let (mut control, _) = test_control_plane(executor.clone());
+        let original = request(
+            "request-availability-change",
+            "snapshot.create",
+            json!({"project_path": "/tmp/repo", "title": "checkpoint"}),
+        );
+
+        let first = control.execute(original.clone()).await.unwrap();
+        let action = control
+            .registry
+            .definitions
+            .iter_mut()
+            .find(|action| action.id == "snapshot.create")
+            .unwrap();
+        action.available = false;
+        action.unavailable_reason = Some("administrator_required".to_string());
+
+        let duplicate = control.execute(original).await.unwrap();
+        let conflict = control
+            .execute(request(
+                "request-availability-change",
+                "snapshot.create",
+                json!({"project_path": "/tmp/other", "title": "checkpoint"}),
+            ))
+            .await;
+
+        assert_eq!(first.result, duplicate.result);
+        assert!(matches!(conflict, Err(ControlError::Conflict(_))));
+        assert_eq!(executor.calls(), 1);
+    }
+
+    #[tokio::test]
+    async fn durable_claim_without_a_result_is_reported_as_indeterminate() {
+        let executor = Arc::new(CountingExecutor::success());
+        let (control, repository) = test_control_plane(executor.clone());
+        let request = request(
+            "request-pending",
+            "snapshot.create",
+            json!({"project_path": "/tmp/repo", "title": "checkpoint"}),
+        );
+        repository
+            .claim_action(
+                &request.request_id,
+                &request.action_id,
+                &parameters_hash(&request.parameters),
+                10,
+            )
+            .unwrap();
+
+        let response = control.execute(request).await.unwrap();
+
+        assert_eq!(response.status, ActionExecutionStatus::Indeterminate);
+        assert_eq!(response.error_code.as_deref(), Some("action_indeterminate"));
+        assert_eq!(executor.calls(), 0);
     }
 
     #[tokio::test]

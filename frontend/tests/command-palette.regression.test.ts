@@ -3,8 +3,10 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
+  canRestorePaletteFocus,
   parseActionParameters,
   rankActions,
+  shouldIgnorePaletteKeyDown,
   toCommandItem,
 } from '../src/utils/command-palette';
 import type { ActionDefinition } from '../src/types';
@@ -102,4 +104,33 @@ test('palette is globally mounted and header exposes the command trigger', () =>
   const header = readFileSync(new URL('../src/components/Header.tsx', import.meta.url), 'utf8');
   assert.match(layout, /<CommandPalette \/>/);
   assert.match(header, /setIsCommandPaletteOpen\(true\)/);
+});
+
+test('confirmation modal suspends the palette and palette close restores focus', () => {
+  const source = readFileSync(
+    new URL('../src/components/CommandPalette.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(source, /confirmModal,/);
+  assert.match(source, /event\.defaultPrevented/);
+  assert.match(source, /aria-hidden=\{confirmModal\(\) \? 'true' : undefined\}/);
+  assert.match(source, /inert=\{Boolean\(confirmModal\(\)\)\}/);
+  assert.match(source, /previouslyFocused/);
+  assert.match(source, /pendingFocusRestore/);
+  assert.match(source, /canRestorePaletteFocus/);
+  assert.match(source, /focusTarget\.isConnected/);
+});
+
+test('a handled confirmation key event cannot reach palette shortcuts', () => {
+  assert.equal(shouldIgnorePaletteKeyDown(true, false), true);
+  assert.equal(shouldIgnorePaletteKeyDown(false, true), true);
+  assert.equal(shouldIgnorePaletteKeyDown(false, false), false);
+});
+
+test('palette focus restoration waits until every modal surface is closed', () => {
+  assert.equal(canRestorePaletteFocus(true, false), false);
+  assert.equal(canRestorePaletteFocus(false, true), false);
+  assert.equal(canRestorePaletteFocus(true, true), false);
+  assert.equal(canRestorePaletteFocus(false, false), true);
 });

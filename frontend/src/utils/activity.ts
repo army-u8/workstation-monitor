@@ -1,4 +1,4 @@
-import type { EventSeverity, WorkstationEvent } from '../types';
+import type { ActionExecutionStatus, EventSeverity, WorkstationEvent } from '../types';
 
 export interface ActivityFilters {
   severity?: EventSeverity | '';
@@ -12,6 +12,41 @@ export interface ActivityGroup {
   severity: EventSeverity;
   events: WorkstationEvent[];
 }
+
+export interface ActivityEventDetails {
+  actionId: string | null;
+  status: ActionExecutionStatus | null;
+  durationMs: number | null;
+}
+
+const actionStatuses = new Set<ActionExecutionStatus>([
+  'pending',
+  'indeterminate',
+  'confirmation_required',
+  'succeeded',
+  'failed',
+  'denied',
+]);
+
+const isActionExecutionStatus = (value: unknown): value is ActionExecutionStatus =>
+  typeof value === 'string' && actionStatuses.has(value as ActionExecutionStatus);
+
+export const activityEventDetails = (event: WorkstationEvent): ActivityEventDetails => {
+  const actionId = event.payload.action_id;
+  const rawDetails = event.payload.details;
+  const details =
+    typeof rawDetails === 'object' && rawDetails !== null && !Array.isArray(rawDetails)
+      ? (rawDetails as Record<string, unknown>)
+      : {};
+  const status = details.status;
+  const duration = details.duration_ms;
+  return {
+    actionId: typeof actionId === 'string' ? actionId : null,
+    status: isActionExecutionStatus(status) ? status : null,
+    durationMs:
+      typeof duration === 'number' && Number.isFinite(duration) && duration >= 0 ? duration : null,
+  };
+};
 
 const severityRank: Record<EventSeverity, number> = {
   info: 0,

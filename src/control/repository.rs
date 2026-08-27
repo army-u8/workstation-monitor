@@ -7,7 +7,7 @@ use serde::Serialize;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 
-const SCHEMA_VERSION: i64 = 1;
+const SCHEMA_VERSION: i64 = 2;
 
 #[derive(Debug)]
 pub enum RepositoryError {
@@ -52,6 +52,21 @@ impl From<std::io::Error> for RepositoryError {
 
 pub type RepositoryResult<T> = Result<T, RepositoryError>;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ActionClaim {
+    pub request_id: String,
+    pub action_id: String,
+    pub parameters_hash: String,
+    pub claimed_at: i64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ActionClaimOutcome {
+    Acquired,
+    Existing,
+    Conflict,
+}
+
 pub struct ControlRepository {
     connection: Mutex<Connection>,
     persistent: bool,
@@ -61,9 +76,10 @@ impl ControlRepository {
     pub fn open(path: impl AsRef<Path>) -> RepositoryResult<Self> {
         let path = path.as_ref();
         if let Some(parent) = path.parent() {
+            let parent_existed = parent.exists();
             std::fs::create_dir_all(parent)?;
             #[cfg(unix)]
-            {
+            if !parent_existed {
                 use std::os::unix::fs::PermissionsExt;
                 std::fs::set_permissions(parent, std::fs::Permissions::from_mode(0o700))?;
             }
@@ -94,7 +110,7 @@ impl ControlRepository {
             [],
             |row| row.get(0),
         )?;
-        if current_version < SCHEMA_VERSION {
+        if current_version < 1 {
             connection.execute_batch(
                 "BEGIN IMMEDIATE;
                  CREATE TABLE IF NOT EXISTS events (
@@ -125,6 +141,20 @@ impl ControlRepository {
                  );
                  INSERT OR IGNORE INTO schema_migrations(version, applied_at)
                    VALUES (1, unixepoch('now') * 1000);
+                 COMMIT;",
+            )?;
+        }
+        if current_version < SCHEMA_VERSION {
+            connection.execute_batch(
+                "BEGIN IMMEDIATE;
+                 CREATE TABLE IF NOT EXISTS action_claims (
+                   request_id TEXT PRIMARY KEY,
+                   action_id TEXT NOT NULL,
+                   parameters_hash TEXT NOT NULL,
+                   claimed_at INTEGER NOT NULL
+                 );
+                 INSERT OR IGNORE INTO schema_migrations(version, applied_at)
+                   VALUES (2, unixepoch('now') * 1000);
                  COMMIT;",
             )?;
         }
@@ -285,6 +315,57 @@ impl ControlRepository {
         Ok(())
     }
 
+    pub fn claim_action(
+        &self,
+        request_id: &str,
+        action_id: &str,
+        parameters_hash: &str,
+        claimed_at: i64,
+    ) -> RepositoryResult<ActionClaimOutcome> {
+        let mut connection = self.connection()?;
+        let transaction =
+            connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
+        let inserted = transaction.execute(
+            "INSERT OR IGNORE INTO action_claims (
+               request_id, action_id, parameters_hash, claimed_at
+             ) VALUES (?1, ?2, ?3, ?4)",
+            params![request_id, action_id, parameters_hash, claimed_at],
+        )?;
+        let existing = transaction.query_row(
+            "SELECT action_id, parameters_hash FROM action_claims WHERE request_id = ?1",
+            [request_id],
+            |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)),
+        )?;
+        let outcome = if existing.0 != action_id || existing.1 != parameters_hash {
+            ActionClaimOutcome::Conflict
+        } else if inserted == 1 {
+            ActionClaimOutcome::Acquired
+        } else {
+            ActionClaimOutcome::Existing
+        };
+        transaction.commit()?;
+        Ok(outcome)
+    }
+
+    pub fn get_action_claim(&self, request_id: &str) -> RepositoryResult<Option<ActionClaim>> {
+        self.connection()?
+            .query_row(
+                "SELECT request_id, action_id, parameters_hash, claimed_at
+                 FROM action_claims WHERE request_id = ?1",
+                [request_id],
+                |row| {
+                    Ok(ActionClaim {
+                        request_id: row.get(0)?,
+                        action_id: row.get(1)?,
+                        parameters_hash: row.get(2)?,
+                        claimed_at: row.get(3)?,
+                    })
+                },
+            )
+            .optional()
+            .map_err(RepositoryError::from)
+    }
+
     pub fn get_action_result(&self, request_id: &str) -> RepositoryResult<Option<ActionResult>> {
         let row = self
             .connection()?
@@ -396,6 +477,10 @@ fn parse_cursor(cursor: Option<&str>) -> RepositoryResult<(Option<i64>, Option<S
     Ok((Some(timestamp), Some(event_id.to_string())))
 }
 
+pub fn validate_event_cursor(cursor: Option<&str>) -> RepositoryResult<()> {
+    parse_cursor(cursor).map(|_| ())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -433,9 +518,98 @@ mod tests {
     }
 
     #[test]
-    fn migration_creates_schema_version_one() {
+    fn migration_creates_current_schema_version() {
         let repository = ControlRepository::open_in_memory().unwrap();
-        assert_eq!(repository.schema_version().unwrap(), 1);
+        assert_eq!(repository.schema_version().unwrap(), SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn schema_version_one_upgrades_without_losing_existing_data() {
+        let directory = std::env::temp_dir().join(format!(
+            "workstation-monitor-migration-{}",
+            uuid::Uuid::new_v4()
+        ));
+        std::fs::create_dir(&directory).unwrap();
+        let database_path = directory.join("control.db");
+        let connection = Connection::open(&database_path).unwrap();
+        connection
+            .execute_batch(
+                "CREATE TABLE schema_migrations (
+                   version INTEGER PRIMARY KEY,
+                   applied_at INTEGER NOT NULL
+                 );
+                 INSERT INTO schema_migrations(version, applied_at) VALUES (1, 1);
+                 CREATE TABLE events (
+                   event_id TEXT PRIMARY KEY,
+                   device_id TEXT NOT NULL,
+                   event_type TEXT NOT NULL,
+                   severity TEXT NOT NULL,
+                   source TEXT NOT NULL,
+                   occurred_at INTEGER NOT NULL,
+                   correlation_id TEXT NOT NULL,
+                   schema_version INTEGER NOT NULL,
+                   payload_json TEXT NOT NULL
+                 );
+                 CREATE TABLE action_results (
+                   request_id TEXT PRIMARY KEY,
+                   action_id TEXT NOT NULL,
+                   status TEXT NOT NULL,
+                   started_at INTEGER NOT NULL,
+                   finished_at INTEGER,
+                   duration_ms INTEGER,
+                   output_summary TEXT,
+                   error TEXT,
+                   correlation_id TEXT NOT NULL
+                 );
+                 INSERT INTO events VALUES (
+                   'legacy-event', 'local', 'action_requested', 'info', 'actions',
+                   10, 'legacy-correlation', 1, '{}'
+                 );
+                 INSERT INTO action_results VALUES (
+                   'legacy-request', 'snapshot.create', 'succeeded', 10, 20, 10,
+                   'created', NULL, 'legacy-correlation'
+                 );",
+            )
+            .unwrap();
+        drop(connection);
+
+        let repository = ControlRepository::open(&database_path).unwrap();
+
+        assert_eq!(repository.schema_version().unwrap(), SCHEMA_VERSION);
+        assert_eq!(
+            repository.list_events(EventQuery::default()).unwrap().items[0].event_id,
+            "legacy-event"
+        );
+        assert_eq!(
+            repository
+                .get_action_result("legacy-request")
+                .unwrap()
+                .unwrap()
+                .status,
+            ActionExecutionStatus::Succeeded
+        );
+        drop(repository);
+        std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn opening_database_preserves_existing_parent_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let directory = std::env::temp_dir().join(format!(
+            "workstation-monitor-existing-{}",
+            uuid::Uuid::new_v4()
+        ));
+        std::fs::create_dir(&directory).unwrap();
+        std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o755)).unwrap();
+
+        let repository = ControlRepository::open(directory.join("control.db")).unwrap();
+        drop(repository);
+
+        let mode = std::fs::metadata(&directory).unwrap().permissions().mode() & 0o777;
+        std::fs::remove_dir_all(&directory).unwrap();
+        assert_eq!(mode, 0o755);
     }
 
     #[test]
@@ -495,6 +669,37 @@ mod tests {
             repository.get_action_result("request-1").unwrap().unwrap(),
             result
         );
+    }
+
+    #[test]
+    fn action_claims_are_durable_and_reject_mismatched_bindings() {
+        let repository = ControlRepository::open_in_memory().unwrap();
+
+        assert_eq!(
+            repository
+                .claim_action("request-claim", "process.kill", "hash-42", 10)
+                .unwrap(),
+            ActionClaimOutcome::Acquired
+        );
+        assert_eq!(
+            repository
+                .claim_action("request-claim", "process.kill", "hash-42", 20)
+                .unwrap(),
+            ActionClaimOutcome::Existing
+        );
+        assert_eq!(
+            repository
+                .claim_action("request-claim", "process.kill", "hash-43", 30)
+                .unwrap(),
+            ActionClaimOutcome::Conflict
+        );
+
+        let claim = repository
+            .get_action_claim("request-claim")
+            .unwrap()
+            .unwrap();
+        assert_eq!(claim.action_id, "process.kill");
+        assert_eq!(claim.parameters_hash, "hash-42");
     }
 
     #[test]

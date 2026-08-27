@@ -141,6 +141,7 @@ pub struct ActionRequest {
 #[serde(rename_all = "snake_case")]
 pub enum ActionExecutionStatus {
     Pending,
+    Indeterminate,
     ConfirmationRequired,
     Succeeded,
     Failed,

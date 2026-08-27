@@ -479,6 +479,7 @@ export type ActionRisk = 'safe' | 'confirmation_required' | 'administrator_requi
 export type ActionParameterType = 'string' | 'integer' | 'boolean' | 'string_list';
 export type ActionExecutionStatus =
   | 'pending'
+  | 'indeterminate'
   | 'confirmation_required'
   | 'succeeded'
   | 'failed'

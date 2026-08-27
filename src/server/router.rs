@@ -6,6 +6,7 @@ use crate::control::actions::ControlError;
 #[cfg(test)]
 use crate::control::actions::ControlPlane;
 use crate::control::models::{ActionOrigin, ActionRequest, EventQuery};
+use crate::control::repository::validate_event_cursor;
 use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};
 use crate::types::{
@@ -105,8 +106,22 @@ pub fn build_router(state: AppState) -> Router {
 async fn get_control_events(
     State(state): State<AppState>,
     Query(query): Query<EventQuery>,
-) -> impl IntoResponse {
-    (StatusCode::OK, Json(state.control.list_events(query).await))
+) -> Response {
+    if validate_event_cursor(query.before.as_deref()).is_err() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error_code": "invalid_event_cursor",
+                "message": "invalid event cursor",
+            })),
+        )
+            .into_response();
+    }
+    (
+        StatusCode::OK,
+        Json(serde_json::to_value(state.control.list_events(query).await).unwrap()),
+    )
+        .into_response()
 }
 
 async fn get_control_actions(State(state): State<AppState>) -> impl IntoResponse {
@@ -150,22 +165,40 @@ async fn post_control_action(
 }
 
 fn control_error_response(error: ControlError) -> Response {
-    let (status, error_code) = match &error {
-        ControlError::UnknownAction => (StatusCode::NOT_FOUND, "unknown_action"),
-        ControlError::InvalidParameters(_) => (StatusCode::BAD_REQUEST, "invalid_parameters"),
-        ControlError::Forbidden(_) => (StatusCode::FORBIDDEN, "action_forbidden"),
-        ControlError::Repository(_) | ControlError::Execution(_) => {
-            (StatusCode::INTERNAL_SERVER_ERROR, "control_internal_error")
+    let (status, error_code, message) = match &error {
+        ControlError::UnknownAction => (StatusCode::NOT_FOUND, "unknown_action", error.to_string()),
+        ControlError::InvalidParameters(_) => (
+            StatusCode::BAD_REQUEST,
+            "invalid_parameters",
+            error.to_string(),
+        ),
+        ControlError::Conflict(_) => (
+            StatusCode::CONFLICT,
+            "request_id_conflict",
+            error.to_string(),
+        ),
+        ControlError::Forbidden(_) => {
+            (StatusCode::FORBIDDEN, "action_forbidden", error.to_string())
         }
+        ControlError::Repository(_) | ControlError::Execution(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "control_internal_error",
+            public_control_error_message(&error, "internal control error"),
+        ),
     };
     (
         status,
         Json(serde_json::json!({
             "error_code": error_code,
-            "message": error.to_string(),
+            "message": message,
         })),
     )
         .into_response()
+}
+
+fn public_control_error_message(error: &ControlError, public_message: &str) -> String {
+    tracing::error!(error = %error, "workstation control operation failed");
+    public_message.to_string()
 }
 
 fn parse_browser_origin(origin: &str) -> Option<reqwest::Url> {
@@ -398,7 +431,7 @@ async fn post_cleaner_clean(
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(OpsResponse {
                 success: false,
-                message: format!("清理执行异常: {error}"),
+                message: public_control_error_message(&error, "清理执行异常"),
                 data: None,
             }),
         ),
@@ -640,7 +673,7 @@ async fn post_flush_dns(State(state): State<AppState>) -> impl IntoResponse {
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(OpsResponse {
                 success: false,
-                message: error.to_string(),
+                message: public_control_error_message(&error, "执行清理 DNS 指令失败"),
                 data: None,
             }),
         ),
@@ -1080,9 +1113,10 @@ async fn post_snapshot_create(
         ),
         Err(error) => (
             StatusCode::INTERNAL_SERVER_ERROR,
-            Json(
-                serde_json::json!({"success": false, "message": format!("Internal error: {error}")}),
-            ),
+            Json(serde_json::json!({
+                "success": false,
+                "message": public_control_error_message(&error, "Internal error"),
+            })),
         ),
     }
 }
@@ -1266,6 +1300,53 @@ mod tests {
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn internal_control_errors_do_not_expose_repository_details() {
+        let response = control_error_response(ControlError::Repository(
+            "/private/user/control.db: secret failure".to_string(),
+        ));
+
+        assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["error_code"], "control_internal_error");
+        assert_eq!(json["message"], "internal control error");
+        assert!(!String::from_utf8_lossy(&body).contains("/private/user"));
+    }
+
+    #[test]
+    fn legacy_internal_errors_return_only_the_stable_public_message() {
+        let error = ControlError::Repository("/private/user/control.db: secret".to_string());
+
+        assert_eq!(
+            public_control_error_message(&error, "operation failed"),
+            "operation failed"
+        );
+    }
+
+    #[tokio::test]
+    async fn invalid_event_cursor_is_a_client_error_not_storage_degradation() {
+        let response = build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .uri("/api/control/events?before=not-a-cursor")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["error_code"], "invalid_event_cursor");
+        assert!(json.get("storage_degraded").is_none());
     }
 
     #[tokio::test]

@@ -21,6 +21,14 @@ export type ParsedActionParameters =
       parameter: string;
     };
 
+export const shouldIgnorePaletteKeyDown = (
+  defaultPrevented: boolean,
+  confirmationOpen: boolean,
+) => defaultPrevented || confirmationOpen;
+
+export const canRestorePaletteFocus = (paletteOpen: boolean, confirmationOpen: boolean) =>
+  !paletteOpen && !confirmationOpen;
+
 const normalize = (value: string) =>
   value
     .toLocaleLowerCase()
