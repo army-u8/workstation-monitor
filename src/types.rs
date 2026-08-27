@@ -496,4 +496,5 @@ pub enum WsEvent {
     DisksUpdate(Vec<DiskInfo>),
     BatteryUpdate(Option<BatteryInfo>),
     DevToolsUpdate(Vec<DevToolInfo>),
+    WorkstationEvent(crate::control::models::WorkstationEvent),
 }
