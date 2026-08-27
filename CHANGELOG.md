@@ -6,14 +6,25 @@
 
 ## [未发布]
 
+## [0.2.9] - 2026-08-28
+
 ### 新增
 - **智能工作站控制内核**：新增版本化事件、SQLite 审计仓库、风险策略、一次性确认凭据、幂等操作注册表和兼容现有接口的统一审计链。
 - **活动时间线**：新增可过滤、关联分组、游标分页的持久化活动页面，并在存储失败时自动降级为有界内存时间线。
 - **全局命令面板**：新增 `⌘K` 强类型操作搜索、参数表单、风险与可用性提示，以及复用全局确认弹窗的安全执行流程。
 
+### 安全
+- **持久化操作幂等**：请求声明在副作用前持久化，并绑定操作 ID 与参数哈希；重复请求稳定返回原结果，冲突复用返回 409，无法判定的中断请求不会被再次执行。
+- **确认与权限边界**：一次性确认凭据采用有界、确定性的过期淘汰；管理员操作按有效 UID 显示与执行，DNS 刷新仅在全部系统命令成功时报告完成。
+
+### 修复
+- **存储迁移与权限**：SQLite v1 数据可无损升级至 v2，新建数据目录使用私有权限且不再修改既有父目录权限。
+- **API 错误隔离**：统一控制接口及旧接口的 500 响应不再泄露内部错误；完整诊断仅写入服务日志，无效活动游标返回明确的 400 错误。
+- **活动与弹窗交互**：活动详情独立显示本地化状态、操作 ID 与耗时；确认弹窗打开时暂停命令面板键盘处理和焦点恢复，阻止 Escape 与路由切换造成焦点穿透。
+
 ### 工程
 - **事件保留策略**：支持 `WORKSTATION_EVENT_RETENTION_DAYS`（默认 30 天，范围 1–365），启动时及每 24 小时清理过期事件。
-- **质量门禁**：补充控制面、活动时间线、命令面板、国际化与无障碍回归测试。
+- **质量门禁**：补充控制面、真实 v1→v2 迁移、活动时间线、命令面板、国际化与无障碍回归测试。
 
 ## [0.2.8] - 2026-08-22
 
@@ -235,6 +246,28 @@
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [Unreleased]
+
+## [0.2.9] - 2026-08-28
+
+### Added
+- **Workstation control kernel**: Add versioned events, a SQLite audit repository, risk policies, single-use confirmation tickets, an idempotent action registry, and a unified audit chain compatible with existing endpoints.
+- **Activity timeline**: Add a persistent, filterable, correlation-grouped timeline with cursor pagination and a bounded in-memory fallback when storage is degraded.
+- **Global command palette**: Add `⌘K` typed action search, parameter forms, risk and availability hints, and safe execution through the shared confirmation dialog.
+
+### Security
+- **Durable action idempotency**: Persist request claims before side effects and bind them to the action ID and parameter hash; duplicates return the original result, conflicting reuse returns 409, and interrupted indeterminate requests are never re-executed.
+- **Confirmation and privilege boundaries**: Bound and deterministically evict single-use confirmation challenges; derive administrator actions from the effective UID and report DNS flush success only when every system command succeeds.
+
+### Fixed
+- **Storage migration and permissions**: Preserve v1 SQLite data during the v2 upgrade, apply private permissions only to newly created data directories, and leave existing parent-directory modes unchanged.
+- **API error isolation**: Prevent unified and legacy 500 responses from exposing internal failures while retaining full server-side diagnostics; return a clear 400 response for invalid activity cursors.
+- **Activity and modal interactions**: Render localized status, action ID, and duration independently; suspend palette keyboard handling and focus restoration while confirmation is active so Escape and route changes cannot penetrate the modal.
+
+### Engineering
+- **Event retention policy**: Support `WORKSTATION_EVENT_RETENTION_DAYS` with a 30-day default, a 1–365 day bound, startup pruning, and 24-hour maintenance.
+- **Quality gates**: Add control-plane, real v1-to-v2 migration, activity timeline, command palette, i18n, and accessibility regressions.
 
 ## [0.2.8] - 2026-08-22
 
