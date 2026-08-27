@@ -1,5 +1,5 @@
-use std::fs;
 use crate::types::HostEntry;
+use std::fs;
 
 pub struct HostsManager;
 

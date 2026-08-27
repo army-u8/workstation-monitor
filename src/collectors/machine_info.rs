@@ -1,6 +1,6 @@
+use crate::types::{AppVersionInfo, MachineHardwareInfo, MachineInfoSummary};
 use std::path::Path;
 use std::process::Command;
-use crate::types::{AppVersionInfo, MachineHardwareInfo, MachineInfoSummary};
 
 pub struct MachineInfoCollector;
 
@@ -27,7 +27,10 @@ impl MachineInfoCollector {
                 if line.starts_with("ProductName:") {
                     os_name = line.trim_start_matches("ProductName:").trim().to_string();
                 } else if line.starts_with("ProductVersion:") {
-                    os_version = line.trim_start_matches("ProductVersion:").trim().to_string();
+                    os_version = line
+                        .trim_start_matches("ProductVersion:")
+                        .trim()
+                        .to_string();
                 } else if line.starts_with("BuildVersion:") {
                     build_version = line.trim_start_matches("BuildVersion:").trim().to_string();
                 }
@@ -40,8 +43,7 @@ impl MachineInfoCollector {
             .unwrap_or_else(|| "Apple Silicon".to_string());
 
         // Hardware Model ID
-        let model_name = Self::sysctl_string("hw.model")
-            .unwrap_or_else(|| "Mac".to_string());
+        let model_name = Self::sysctl_string("hw.model").unwrap_or_else(|| "Mac".to_string());
 
         // CPU cores
         let cpu_cores = Self::sysctl_string("hw.ncpu")
@@ -76,8 +78,8 @@ impl MachineInfoCollector {
         let current_user = std::env::var("USER").unwrap_or_else(|_| "user".to_string());
 
         // Hostname
-        let host_name = Self::sysctl_string("kern.hostname")
-            .unwrap_or_else(|| "localhost".to_string());
+        let host_name =
+            Self::sysctl_string("kern.hostname").unwrap_or_else(|| "localhost".to_string());
 
         // SIP Status
         let sip_status = match Command::new("csrutil").arg("status").output() {
@@ -116,31 +118,83 @@ impl MachineInfoCollector {
         let app_specs = vec![
             // 1. Browsers
             ("Safari", "/Applications/Safari.app", "Browser", "safari"),
-            ("Google Chrome", "/Applications/Google Chrome.app", "Browser", "chrome"),
-            ("Microsoft Edge", "/Applications/Microsoft Edge.app", "Browser", "edge"),
+            (
+                "Google Chrome",
+                "/Applications/Google Chrome.app",
+                "Browser",
+                "chrome",
+            ),
+            (
+                "Microsoft Edge",
+                "/Applications/Microsoft Edge.app",
+                "Browser",
+                "edge",
+            ),
             ("Arc", "/Applications/Arc.app", "Browser", "arc"),
             ("Firefox", "/Applications/Firefox.app", "Browser", "firefox"),
-            ("Brave Browser", "/Applications/Brave Browser.app", "Browser", "brave"),
-
+            (
+                "Brave Browser",
+                "/Applications/Brave Browser.app",
+                "Browser",
+                "brave",
+            ),
             // 2. System Core
-            ("Finder", "/System/Library/CoreServices/Finder.app", "System", "finder"),
-            ("Terminal", "/System/Applications/Utilities/Terminal.app", "System", "terminal"),
-            ("Activity Monitor", "/System/Applications/Utilities/Activity Monitor.app", "System", "activity"),
-            ("Console", "/System/Applications/Utilities/Console.app", "System", "console"),
-
+            (
+                "Finder",
+                "/System/Library/CoreServices/Finder.app",
+                "System",
+                "finder",
+            ),
+            (
+                "Terminal",
+                "/System/Applications/Utilities/Terminal.app",
+                "System",
+                "terminal",
+            ),
+            (
+                "Activity Monitor",
+                "/System/Applications/Utilities/Activity Monitor.app",
+                "System",
+                "activity",
+            ),
+            (
+                "Console",
+                "/System/Applications/Utilities/Console.app",
+                "System",
+                "console",
+            ),
             // 3. Editors & IDEs
             ("Xcode", "/Applications/Xcode.app", "Editor", "xcode"),
-            ("Visual Studio Code", "/Applications/Visual Studio Code.app", "Editor", "vscode"),
+            (
+                "Visual Studio Code",
+                "/Applications/Visual Studio Code.app",
+                "Editor",
+                "vscode",
+            ),
             ("Cursor", "/Applications/Cursor.app", "Editor", "cursor"),
-            ("Ghostty", "/Applications/Ghostty.app", "Terminal", "ghostty"),
+            (
+                "Ghostty",
+                "/Applications/Ghostty.app",
+                "Terminal",
+                "ghostty",
+            ),
             ("iTerm2", "/Applications/iTerm.app", "Terminal", "iterm"),
             ("Warp", "/Applications/Warp.app", "Terminal", "warp"),
-
             // 4. DevOps & Cloud
             ("Docker", "/Applications/Docker.app", "DevOps", "docker"),
-            ("OrbStack", "/Applications/OrbStack.app", "DevOps", "orbstack"),
+            (
+                "OrbStack",
+                "/Applications/OrbStack.app",
+                "DevOps",
+                "orbstack",
+            ),
             ("Postman", "/Applications/Postman.app", "DevOps", "postman"),
-            ("TablePlus", "/Applications/TablePlus.app", "DevOps", "tableplus"),
+            (
+                "TablePlus",
+                "/Applications/TablePlus.app",
+                "DevOps",
+                "tableplus",
+            ),
         ];
 
         let mut results = Vec::new();
@@ -170,7 +224,7 @@ impl MachineInfoCollector {
 
     fn read_app_version(app_path: &str) -> Option<String> {
         let plist_path = format!("{}/Contents/Info.plist", app_path);
-        
+
         // 1. Try reading CFBundleShortVersionString
         if let Ok(out) = Command::new("defaults")
             .args(["read", &plist_path, "CFBundleShortVersionString"])
@@ -224,7 +278,7 @@ mod tests {
         assert!(!info.hardware.os_name.is_empty());
         assert!(!info.hardware.model_name.is_empty());
         assert!(info.core_apps.len() > 5);
-        
+
         // Verify Safari presence
         let safari = info.core_apps.iter().find(|a| a.name == "Safari");
         assert!(safari.is_some());

@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo, TcpState};
-use sysinfo::System;
 use crate::types::{SocketEntry, SocketsPayload};
+use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo, TcpState};
+use std::collections::HashMap;
+use sysinfo::System;
 
 #[derive(Clone)]
 struct ProcessMeta {
@@ -51,7 +51,7 @@ fn resolve_process_meta(proc_: &sysinfo::Process) -> ProcessMeta {
         for arg in cmd.iter().skip(1) {
             let arg_str = arg.to_string_lossy();
             if !arg_str.starts_with('-') && !arg_str.ends_with(".js.map") {
-                if let Some(file_name) = arg_str.split('/').last() {
+                if let Some(file_name) = arg_str.split('/').next_back() {
                     if file_name.ends_with(".js")
                         || file_name.ends_with(".ts")
                         || file_name.ends_with(".mjs")
@@ -133,7 +133,8 @@ impl ConnectionsCollector {
     }
 
     pub fn collect(&mut self) -> SocketsPayload {
-        self.system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+        self.system
+            .refresh_processes(sysinfo::ProcessesToUpdate::All, true);
 
         // Build PID -> ProcessMeta map
         let mut pid_to_meta: HashMap<u32, ProcessMeta> = HashMap::new();
@@ -176,9 +177,15 @@ impl ConnectionsCollector {
 
                         // Fallback category detection based on port if unknown/app
                         if category.as_deref() == Some("app") || category.is_none() {
-                            if [80, 443, 3000, 5173, 8000, 8080, 8443, 9527, 9528, 9529, 4173].contains(&tcp.local_port) {
+                            if [
+                                80, 443, 3000, 5173, 8000, 8080, 8443, 9527, 9528, 9529, 4173,
+                            ]
+                            .contains(&tcp.local_port)
+                            {
                                 category = Some("web".to_string());
-                            } else if [3306, 5432, 6379, 27017, 9200, 9042].contains(&tcp.local_port) {
+                            } else if [3306, 5432, 6379, 27017, 9200, 9042]
+                                .contains(&tcp.local_port)
+                            {
                                 category = Some("db".to_string());
                             }
                         }
@@ -192,7 +199,11 @@ impl ConnectionsCollector {
                             } else {
                                 Some(tcp.remote_addr.to_string())
                             },
-                            remote_port: if tcp.remote_port == 0 { None } else { Some(tcp.remote_port) },
+                            remote_port: if tcp.remote_port == 0 {
+                                None
+                            } else {
+                                Some(tcp.remote_port)
+                            },
                             state: state_str.to_string(),
                             pid,
                             process_name,
@@ -231,14 +242,19 @@ impl ConnectionsCollector {
         listening_ports.sort_by_key(|a| a.local_port);
         // Deduplicate duplicate UDP / wildcards if needed
         listening_ports.dedup_by(|a, b| {
-            a.protocol == b.protocol && a.local_ip == b.local_ip && a.local_port == b.local_port && a.pid == b.pid
+            a.protocol == b.protocol
+                && a.local_ip == b.local_ip
+                && a.local_port == b.local_port
+                && a.pid == b.pid
         });
 
         // Sort active connections: ESTABLISHED first, then by remote_ip
         active_connections.sort_by(|a, b| {
             let state_order_a = if a.state == "ESTABLISHED" { 0 } else { 1 };
             let state_order_b = if b.state == "ESTABLISHED" { 0 } else { 1 };
-            state_order_a.cmp(&state_order_b).then(a.local_port.cmp(&b.local_port))
+            state_order_a
+                .cmp(&state_order_b)
+                .then(a.local_port.cmp(&b.local_port))
         });
 
         SocketsPayload {

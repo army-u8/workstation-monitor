@@ -311,7 +311,7 @@ impl SavePointManager {
 
                 let backup_msg = format!(
                     "🛡️ [Auto Safety Backup] 在回滚到 {} 前自动保存",
-                    &target_commit.chars().take(7).collect::<String>()
+                    target_commit.chars().take(7).collect::<String>()
                 );
                 let commit_out = Command::new("git")
                     .current_dir(repo_path)

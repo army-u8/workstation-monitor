@@ -1,6 +1,6 @@
+use crate::types::{CapturedPacket, WsEvent};
 use std::sync::atomic::{AtomicU64, Ordering};
 use tokio::sync::broadcast;
-use crate::types::{CapturedPacket, WsEvent};
 
 static PACKET_ID: AtomicU64 = AtomicU64::new(1);
 
@@ -50,7 +50,11 @@ pub fn start_sniffer(tx: broadcast::Sender<WsEvent>) -> SnifferHandle {
     {
         Ok(c) => c,
         Err(e) => {
-            tracing::warn!("Packet sniffer could not start on {}: {}. Run with sudo for raw packet sniffing.", dev_name, e);
+            tracing::warn!(
+                "Packet sniffer could not start on {}: {}. Run with sudo for raw packet sniffing.",
+                dev_name,
+                e
+            );
             return SnifferHandle {
                 active: false,
                 device_name: Some(dev_name),
@@ -153,11 +157,21 @@ fn parse_ethernet_packet(data: &[u8]) -> Option<CapturedPacket> {
                 let flags = if data.len() >= l4_offset + 14 {
                     let f = data[l4_offset + 13];
                     let mut flags_vec = Vec::new();
-                    if f & 0x02 != 0 { flags_vec.push("SYN"); }
-                    if f & 0x10 != 0 { flags_vec.push("ACK"); }
-                    if f & 0x01 != 0 { flags_vec.push("FIN"); }
-                    if f & 0x04 != 0 { flags_vec.push("RST"); }
-                    if f & 0x08 != 0 { flags_vec.push("PSH"); }
+                    if f & 0x02 != 0 {
+                        flags_vec.push("SYN");
+                    }
+                    if f & 0x10 != 0 {
+                        flags_vec.push("ACK");
+                    }
+                    if f & 0x01 != 0 {
+                        flags_vec.push("FIN");
+                    }
+                    if f & 0x04 != 0 {
+                        flags_vec.push("RST");
+                    }
+                    if f & 0x08 != 0 {
+                        flags_vec.push("PSH");
+                    }
                     flags_vec.join(",")
                 } else {
                     "".to_string()
@@ -166,7 +180,13 @@ fn parse_ethernet_packet(data: &[u8]) -> Option<CapturedPacket> {
                 if sp == 443 || dp == 443 || sp == 8443 || dp == 8443 {
                     proto_name = "TLS/HTTPS".to_string();
                     info = format!("TLS Traffic [{}]", flags);
-                } else if sp == 80 || dp == 80 || sp == 8080 || dp == 8080 || sp == 3000 || dp == 3000 {
+                } else if sp == 80
+                    || dp == 80
+                    || sp == 8080
+                    || dp == 8080
+                    || sp == 3000
+                    || dp == 3000
+                {
                     proto_name = "HTTP".to_string();
                     info = format!("HTTP Stream [{}]", flags);
                 } else if sp == 22 || dp == 22 {

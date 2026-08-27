@@ -36,7 +36,12 @@ fn main() {
 
     // Only install dependencies if `node_modules` does not exist.
     if !frontend.join("node_modules").exists() {
-        run(bun, &["install", "--frozen-lockfile"], frontend, "bun install --frozen-lockfile");
+        run(
+            bun,
+            &["install", "--frozen-lockfile"],
+            frontend,
+            "bun install --frozen-lockfile",
+        );
     }
 
     run(bun, &["run", "build"], frontend, "bun run build");

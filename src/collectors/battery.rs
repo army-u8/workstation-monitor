@@ -1,5 +1,5 @@
-use std::process::Command;
 use crate::types::BatteryInfo;
+use std::process::Command;
 
 pub struct BatteryCollector;
 
@@ -9,11 +9,7 @@ impl BatteryCollector {
     }
 
     pub fn collect(&self) -> Option<BatteryInfo> {
-        let output = Command::new("pmset")
-            .arg("-g")
-            .arg("batt")
-            .output()
-            .ok()?;
+        let output = Command::new("pmset").arg("-g").arg("batt").output().ok()?;
 
         if !output.status.success() {
             return None;
@@ -46,7 +42,7 @@ fn parse_pmset_output(text: &str) -> Option<BatteryInfo> {
                 let info_part = parts[1];
                 let tokens: Vec<&str> = info_part.split(';').map(|s| s.trim()).collect();
 
-                if let Some(pct_str) = tokens.get(0) {
+                if let Some(pct_str) = tokens.first() {
                     let num_str = pct_str.trim_end_matches('%');
                     if let Ok(num) = num_str.parse::<u8>() {
                         percentage = num;

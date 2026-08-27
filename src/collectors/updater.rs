@@ -489,13 +489,8 @@ exit 1
                 versions_dir.display()
             )
         })?;
-        let archive_target =
-            versions_dir.join(format!("workstation-monitor-v{current_version}"));
-        Self::prepare_executable_replacement(
-            candidate,
-            current_executable,
-            Some(&archive_target),
-        )
+        let archive_target = versions_dir.join(format!("workstation-monitor-v{current_version}"));
+        Self::prepare_executable_replacement(candidate, current_executable, Some(&archive_target))
     }
 
     fn commit_prepared_executable(
@@ -850,11 +845,9 @@ exit 1
         let latest_tag = if let Ok(client) = client {
             if let Ok(resp) = client.get(&web_url).send().await {
                 let final_url = resp.url().as_str();
-                if let Some(pos) = final_url.rfind("/tag/") {
-                    Some(final_url[pos + 5..].trim().to_string())
-                } else {
-                    None
-                }
+                final_url
+                    .rfind("/tag/")
+                    .map(|pos| final_url[pos + 5..].trim().to_string())
             } else {
                 None
             }
@@ -1028,11 +1021,10 @@ exit 1
         };
         let target_url =
             Self::validate_release_download_url_for_arch(&target_url, std::env::consts::ARCH)
-                .map_err(|error| {
+                .inspect_err(|error| {
                     Self::set_progress(UpdateProgress::Failed {
                         error: error.clone(),
                     });
-                    error
                 })?;
 
         tracing::info!("Downloading update package from: {}", target_url);
@@ -1121,10 +1113,7 @@ exit 1
         if target_url.path().ends_with(".app.zip") {
             // Unzip with macOS ditto
             let status = Command::new("ditto")
-                .args([
-                    "-x",
-                    "-k",
-                ])
+                .args(["-x", "-k"])
                 .arg(&downloaded_file)
                 .arg(&extract_dir)
                 .status()
@@ -1379,7 +1368,7 @@ exit 1
                 if path.is_file()
                     && path
                         .file_name()
-                        .map_or(false, |n| n == "workstation-monitor")
+                        .is_some_and(|name| name == "workstation-monitor")
                 {
                     return Some(path);
                 }

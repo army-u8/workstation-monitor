@@ -3,7 +3,7 @@ use crate::control::repository::{ControlRepository, RepositoryResult};
 use crate::types::WsEvent;
 use std::collections::{HashSet, VecDeque};
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
+    atomic::{AtomicBool, AtomicI64, Ordering},
     Arc,
 };
 use tokio::sync::{broadcast, RwLock};
@@ -11,6 +11,10 @@ use tokio::sync::{broadcast, RwLock};
 pub trait EventRepository: Send + Sync {
     fn insert_event(&self, event: &WorkstationEvent) -> RepositoryResult<()>;
     fn list_events(&self, query: EventQuery) -> RepositoryResult<EventPage>;
+
+    fn persistence_available(&self) -> bool {
+        true
+    }
 }
 
 impl EventRepository for ControlRepository {
@@ -20,6 +24,10 @@ impl EventRepository for ControlRepository {
 
     fn list_events(&self, query: EventQuery) -> RepositoryResult<EventPage> {
         ControlRepository::list_events(self, query)
+    }
+
+    fn persistence_available(&self) -> bool {
+        ControlRepository::persistence_available(self)
     }
 }
 
@@ -34,7 +42,9 @@ pub struct EventHub {
     tx: broadcast::Sender<WsEvent>,
     memory: Arc<RwLock<VecDeque<WorkstationEvent>>>,
     memory_limit: usize,
+    persistence_available: bool,
     storage_degraded: Arc<AtomicBool>,
+    last_occurred_at: Arc<AtomicI64>,
 }
 
 impl EventHub {
@@ -47,16 +57,20 @@ impl EventHub {
         tx: broadcast::Sender<WsEvent>,
         memory_limit: usize,
     ) -> Self {
+        let persistence_available = repository.persistence_available();
         Self {
             repository,
             tx,
             memory: Arc::new(RwLock::new(VecDeque::with_capacity(memory_limit.max(1)))),
             memory_limit: memory_limit.max(1),
-            storage_degraded: Arc::new(AtomicBool::new(false)),
+            persistence_available,
+            storage_degraded: Arc::new(AtomicBool::new(!persistence_available)),
+            last_occurred_at: Arc::new(AtomicI64::new(0)),
         }
     }
 
-    pub async fn publish(&self, event: WorkstationEvent) -> PublishedEvent {
+    pub async fn publish(&self, mut event: WorkstationEvent) -> PublishedEvent {
+        event.occurred_at = reserve_monotonic_timestamp(&self.last_occurred_at, event.occurred_at);
         let repository = Arc::clone(&self.repository);
         let persisted_event = event.clone();
         let persisted =
@@ -70,9 +84,9 @@ impl EventHub {
                     false
                 });
 
-        if persisted {
+        if persisted && self.persistence_available {
             self.storage_degraded.store(false, Ordering::Release);
-        } else {
+        } else if !persisted {
             self.storage_degraded.store(true, Ordering::Release);
             let mut memory = self.memory.write().await;
             memory.push_front(event.clone());
@@ -89,6 +103,7 @@ impl EventHub {
         self.storage_degraded.load(Ordering::Acquire)
     }
 
+    #[cfg(test)]
     pub async fn memory_events(&self) -> Vec<WorkstationEvent> {
         self.memory.read().await.iter().cloned().collect()
     }
@@ -140,6 +155,22 @@ impl EventHub {
             items,
             next_cursor,
             storage_degraded,
+        }
+    }
+}
+
+fn reserve_monotonic_timestamp(last_timestamp: &AtomicI64, requested: i64) -> i64 {
+    let mut observed = last_timestamp.load(Ordering::Acquire);
+    loop {
+        let candidate = requested.max(observed.saturating_add(1));
+        match last_timestamp.compare_exchange_weak(
+            observed,
+            candidate,
+            Ordering::AcqRel,
+            Ordering::Acquire,
+        ) {
+            Ok(_) => return candidate,
+            Err(actual) => observed = actual,
         }
     }
 }
@@ -274,5 +305,33 @@ mod tests {
         assert!(hub.storage_degraded());
         assert_eq!(hub.memory_events().await.len(), 2);
         assert_eq!(hub.memory_events().await[0].event_id, "three");
+    }
+
+    #[tokio::test]
+    async fn in_memory_repository_reports_degraded_persistence_immediately() {
+        let repository = Arc::new(ControlRepository::open_in_memory().unwrap());
+        let (tx, _) = broadcast::channel(8);
+        let hub = EventHub::new(repository, tx);
+
+        let page = hub.list_events(EventQuery::default()).await;
+
+        assert!(page.storage_degraded);
+    }
+
+    #[tokio::test]
+    async fn publishing_preserves_causal_order_for_same_millisecond_events() {
+        let repository = Arc::new(TestRepository::working());
+        let (tx, _) = broadcast::channel(8);
+        let hub = EventHub::new(repository.clone(), tx);
+        let mut requested = test_event("requested");
+        requested.occurred_at = 100;
+        let mut succeeded = test_event("succeeded");
+        succeeded.occurred_at = 100;
+
+        hub.publish(requested).await;
+        hub.publish(succeeded).await;
+
+        let events = repository.events();
+        assert!(events[1].occurred_at > events[0].occurred_at);
     }
 }

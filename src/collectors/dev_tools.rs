@@ -1,5 +1,5 @@
-use std::process::Command;
 use crate::types::DevToolInfo;
+use std::process::Command;
 
 pub struct DevToolsCollector;
 

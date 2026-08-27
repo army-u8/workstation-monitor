@@ -54,6 +54,7 @@ pub type RepositoryResult<T> = Result<T, RepositoryError>;
 
 pub struct ControlRepository {
     connection: Mutex<Connection>,
+    persistent: bool,
 }
 
 impl ControlRepository {
@@ -68,7 +69,7 @@ impl ControlRepository {
             }
         }
         let connection = Connection::open(path)?;
-        Self::from_connection(connection)
+        Self::from_connection(connection, true)
     }
 
     pub fn open_default() -> RepositoryResult<Self> {
@@ -76,10 +77,10 @@ impl ControlRepository {
     }
 
     pub fn open_in_memory() -> RepositoryResult<Self> {
-        Self::from_connection(Connection::open_in_memory()?)
+        Self::from_connection(Connection::open_in_memory()?, false)
     }
 
-    fn from_connection(connection: Connection) -> RepositoryResult<Self> {
+    fn from_connection(connection: Connection, persistent: bool) -> RepositoryResult<Self> {
         connection.busy_timeout(std::time::Duration::from_secs(5))?;
         connection.execute_batch(
             "PRAGMA foreign_keys = ON;
@@ -129,7 +130,12 @@ impl ControlRepository {
         }
         Ok(Self {
             connection: Mutex::new(connection),
+            persistent,
         })
+    }
+
+    pub fn persistence_available(&self) -> bool {
+        self.persistent
     }
 
     fn connection(&self) -> RepositoryResult<MutexGuard<'_, Connection>> {
@@ -138,6 +144,7 @@ impl ControlRepository {
             .map_err(|_| RepositoryError::LockPoisoned)
     }
 
+    #[cfg(test)]
     pub fn schema_version(&self) -> RepositoryResult<i64> {
         Ok(self.connection()?.query_row(
             "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
@@ -329,6 +336,7 @@ impl ControlRepository {
         .transpose()
     }
 
+    #[cfg(test)]
     pub fn count_action_results(&self) -> RepositoryResult<usize> {
         let count: i64 =
             self.connection()?

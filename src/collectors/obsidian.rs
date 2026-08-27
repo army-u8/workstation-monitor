@@ -293,7 +293,7 @@ impl ObsidianManager {
         }
 
         // Sort notes by modified time descending (newest first)
-        notes_list.sort_by(|a, b| b.modified_timestamp.cmp(&a.modified_timestamp));
+        notes_list.sort_by_key(|note| std::cmp::Reverse(note.modified_timestamp));
         let recent_notes = notes_list.into_iter().take(30).collect();
 
         // Sort tags by frequency descending
@@ -301,7 +301,7 @@ impl ObsidianManager {
             .into_iter()
             .map(|(name, count)| ObsidianTagItem { name, count })
             .collect();
-        top_tags.sort_by(|a, b| b.count.cmp(&a.count));
+        top_tags.sort_by_key(|tag| std::cmp::Reverse(tag.count));
         top_tags.truncate(20);
 
         // Git Status Check
@@ -720,16 +720,13 @@ impl ObsidianManager {
 
     fn extract_title(content: &str, path: &Path) -> String {
         // 1. Frontmatter title
-        if content.starts_with("---") {
-            if let Some(end_idx) = content[3..].find("---") {
-                let frontmatter = &content[3..end_idx + 3];
+        if let Some(stripped) = content.strip_prefix("---") {
+            if let Some(end_idx) = stripped.find("---") {
+                let frontmatter = &stripped[..end_idx];
                 for line in frontmatter.lines() {
                     let line_t = line.trim();
-                    if line_t.starts_with("title:") {
-                        let title = line_t["title:".len()..]
-                            .trim()
-                            .trim_matches('"')
-                            .trim_matches('\'');
+                    if let Some(title_value) = line_t.strip_prefix("title:") {
+                        let title = title_value.trim().trim_matches('"').trim_matches('\'');
                         if !title.is_empty() {
                             return title.to_string();
                         }
@@ -741,8 +738,8 @@ impl ObsidianManager {
         // 2. First Markdown # header
         for line in content.lines() {
             let line_t = line.trim();
-            if line_t.starts_with("# ") {
-                let heading = line_t[2..].trim();
+            if let Some(heading_value) = line_t.strip_prefix("# ") {
+                let heading = heading_value.trim();
                 if !heading.is_empty() {
                     return heading.to_string();
                 }
@@ -760,13 +757,13 @@ impl ObsidianManager {
         let mut tags = Vec::new();
 
         // 1. Frontmatter tags
-        if content.starts_with("---") {
-            if let Some(end_idx) = content[3..].find("---") {
-                let frontmatter = &content[3..end_idx + 3];
+        if let Some(stripped) = content.strip_prefix("---") {
+            if let Some(end_idx) = stripped.find("---") {
+                let frontmatter = &stripped[..end_idx];
                 for line in frontmatter.lines() {
                     let line_t = line.trim();
-                    if line_t.starts_with("tags:") {
-                        let tag_part = line_t["tags:".len()..].trim();
+                    if let Some(tags_value) = line_t.strip_prefix("tags:") {
+                        let tag_part = tags_value.trim();
                         if tag_part.starts_with('[') && tag_part.ends_with(']') {
                             for item in tag_part[1..tag_part.len() - 1].split(',') {
                                 let t = item.trim().trim_matches('"').trim_matches('\'');
@@ -812,9 +809,9 @@ impl ObsidianManager {
                 }
             } else {
                 in_ascii_word = false;
-                if (c >= '\u{4e00}' && c <= '\u{9fa5}')
-                    || (c >= '\u{3040}' && c <= '\u{30ff}')
-                    || (c >= '\u{ac00}' && c <= '\u{d7af}')
+                if ('\u{4e00}'..='\u{9fa5}').contains(&c)
+                    || ('\u{3040}'..='\u{30ff}').contains(&c)
+                    || ('\u{ac00}'..='\u{d7af}').contains(&c)
                 {
                     count += 1;
                 }

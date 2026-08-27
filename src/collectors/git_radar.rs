@@ -385,7 +385,7 @@ impl GitRadar {
                 return (0, 0);
             }
             let text = String::from_utf8_lossy(&out.stdout);
-            let parts: Vec<&str> = text.trim().split_whitespace().collect();
+            let parts: Vec<&str> = text.split_whitespace().collect();
             if parts.len() == 2 {
                 let behind = parts[0].parse::<usize>().unwrap_or(0);
                 let ahead = parts[1].parse::<usize>().unwrap_or(0);

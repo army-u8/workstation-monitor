@@ -1,8 +1,8 @@
+use crate::types::WebArtifactInfo;
+use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo, TcpState};
 use std::collections::{HashMap, HashSet};
 use std::time::Instant;
-use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo, TcpState};
 use sysinfo::System;
-use crate::types::WebArtifactInfo;
 
 pub struct WebArtifactsManager;
 
@@ -39,7 +39,8 @@ impl WebArtifactsManager {
 
         // Build list of ports to probe, prioritizing common web dev ports
         let dev_ports: HashSet<u16> = [
-            3000, 3001, 3002, 5173, 5174, 5175, 8000, 8080, 8081, 8888, 9000, 9528, 4321, 4000, 4200, 11434,
+            3000, 3001, 3002, 5173, 5174, 5175, 8000, 8080, 8081, 8888, 9000, 9528, 4321, 4000,
+            4200, 11434,
         ]
         .iter()
         .copied()
@@ -123,8 +124,16 @@ impl WebArtifactsManager {
             Err(_) => {
                 // If it's a known active listening dev port with an identified process, report it as starting/non-HTTP
                 if let Some(ref pname) = process_name {
-                    let is_dev = port == 3000 || port == 5173 || port == 8000 || port == 8080 || port == 9528;
-                    if is_dev || pname.to_lowercase().contains("node") || pname.to_lowercase().contains("python") || pname.to_lowercase().contains("cargo") {
+                    let is_dev = port == 3000
+                        || port == 5173
+                        || port == 8000
+                        || port == 8080
+                        || port == 9528;
+                    if is_dev
+                        || pname.to_lowercase().contains("node")
+                        || pname.to_lowercase().contains("python")
+                        || pname.to_lowercase().contains("cargo")
+                    {
                         return Some(WebArtifactInfo {
                             port,
                             url,

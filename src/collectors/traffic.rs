@@ -1,7 +1,7 @@
+use crate::types::{InterfaceTraffic, TrafficSummary};
 use std::collections::HashMap;
 use std::time::Instant;
 use sysinfo::Networks;
-use crate::types::{InterfaceTraffic, TrafficSummary};
 
 pub struct TrafficCollector {
     networks: Networks,
@@ -15,7 +15,10 @@ impl TrafficCollector {
         networks.refresh(true);
         let mut prev_stats = HashMap::new();
         for (name, data) in &networks {
-            prev_stats.insert(name.to_string(), (data.total_received(), data.total_transmitted()));
+            prev_stats.insert(
+                name.to_string(),
+                (data.total_received(), data.total_transmitted()),
+            );
         }
 
         Self {
@@ -44,7 +47,11 @@ impl TrafficCollector {
             total_rx_bytes = total_rx_bytes.saturating_add(cur_rx);
             total_tx_bytes = total_tx_bytes.saturating_add(cur_tx);
 
-            let (prev_rx, prev_tx) = self.prev_stats.get(name).cloned().unwrap_or((cur_rx, cur_tx));
+            let (prev_rx, prev_tx) = self
+                .prev_stats
+                .get(name)
+                .cloned()
+                .unwrap_or((cur_rx, cur_tx));
             self.prev_stats.insert(name.clone(), (cur_rx, cur_tx));
 
             let diff_rx = cur_rx.saturating_sub(prev_rx);
@@ -71,7 +78,8 @@ impl TrafficCollector {
         }
 
         // Sort interfaces by current active speed
-        interfaces.sort_by(|a, b| (b.rx_speed + b.tx_speed).cmp(&(a.rx_speed + a.tx_speed)));
+        interfaces
+            .sort_by_key(|interface| std::cmp::Reverse(interface.rx_speed + interface.tx_speed));
 
         TrafficSummary {
             total_rx_speed,

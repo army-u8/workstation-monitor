@@ -1,7 +1,7 @@
-use std::process::Command;
-use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo};
-use sysinfo::{Pid, ProcessStatus, System};
 use crate::types::ProcessInfo;
+use netstat2::{get_sockets_info, AddressFamilyFlags, ProtocolFlags, ProtocolSocketInfo};
+use std::process::Command;
+use sysinfo::{Pid, ProcessStatus, System};
 
 pub struct ProcessCollector {
     system: System,
@@ -15,7 +15,8 @@ impl ProcessCollector {
     }
 
     pub fn collect(&mut self) -> Vec<ProcessInfo> {
-        self.system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+        self.system
+            .refresh_processes(sysinfo::ProcessesToUpdate::All, true);
         let total_mem = self.system.total_memory() as f32;
 
         let mut list: Vec<ProcessInfo> = self

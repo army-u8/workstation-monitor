@@ -1,6 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::Path;
-use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnvVarEntry {
@@ -153,25 +153,26 @@ impl EnvVarsCollector {
             });
 
             // If it's a secret, API key or token, record in detected_api_keys
-            if is_secret || category == "API Keys & Secrets" {
-                if !value.trim().is_empty() {
-                    let (provider, cat, icon) = Self::infer_provider_and_category(name);
-                    let source = var_sources.get(name).cloned().unwrap_or_else(|| "Env".to_string());
-                    detected_api_keys.push(DetectedApiKey {
-                        key: name.clone(),
-                        value: value.clone(),
-                        provider,
-                        category: cat,
-                        source,
-                        icon,
-                    });
-                }
+            if (is_secret || category == "API Keys & Secrets") && !value.trim().is_empty() {
+                let (provider, cat, icon) = Self::infer_provider_and_category(name);
+                let source = var_sources
+                    .get(name)
+                    .cloned()
+                    .unwrap_or_else(|| "Env".to_string());
+                detected_api_keys.push(DetectedApiKey {
+                    key: name.clone(),
+                    value: value.clone(),
+                    provider,
+                    category: cat,
+                    source,
+                    icon,
+                });
             }
         }
 
         // Sort alphabetically
-        env_vars.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
-        detected_api_keys.sort_by(|a, b| a.key.to_lowercase().cmp(&b.key.to_lowercase()));
+        env_vars.sort_by_key(|entry| entry.name.to_lowercase());
+        detected_api_keys.sort_by_key(|entry| entry.key.to_lowercase());
 
         EnvVarsPayload {
             shell,
@@ -231,22 +232,17 @@ impl EnvVarsCollector {
 
             if let Some((k, v)) = line_to_parse.split_once('=') {
                 let key = k.trim().to_string();
-                if !key.is_empty()
-                    && key
-                        .chars()
-                        .all(|c| c.is_ascii_alphanumeric() || c == '_')
-                {
+                if !key.is_empty() && key.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
                     let mut val_str = v.trim();
                     if let Some(idx) = val_str.find(" #") {
                         val_str = val_str[..idx].trim();
                     }
 
-                    if (val_str.starts_with('"') && val_str.ends_with('"'))
-                        || (val_str.starts_with('\'') && val_str.ends_with('\''))
+                    if val_str.len() >= 2
+                        && ((val_str.starts_with('"') && val_str.ends_with('"'))
+                            || (val_str.starts_with('\'') && val_str.ends_with('\'')))
                     {
-                        if val_str.len() >= 2 {
-                            val_str = &val_str[1..val_str.len() - 1];
-                        }
+                        val_str = &val_str[1..val_str.len() - 1];
                     }
 
                     let val = val_str.to_string();
@@ -284,7 +280,9 @@ impl EnvVarsCollector {
                 };
 
                 if !val_raw.is_empty() {
-                    sources.entry(key.clone()).or_insert_with(|| source_name.to_string());
+                    sources
+                        .entry(key.clone())
+                        .or_insert_with(|| source_name.to_string());
                     vars.insert(key, val_raw.to_string());
                 }
             }
@@ -297,57 +295,145 @@ impl EnvVarsCollector {
         if upper.contains("OPENAI") {
             ("OpenAI".to_string(), "ai".to_string(), "openai".to_string())
         } else if upper.contains("ANTHROPIC") || upper.contains("CLAUDE") {
-            ("Anthropic Claude".to_string(), "ai".to_string(), "anthropic".to_string())
+            (
+                "Anthropic Claude".to_string(),
+                "ai".to_string(),
+                "anthropic".to_string(),
+            )
         } else if upper.contains("DEEPSEEK") {
-            ("DeepSeek".to_string(), "ai".to_string(), "deepseek".to_string())
+            (
+                "DeepSeek".to_string(),
+                "ai".to_string(),
+                "deepseek".to_string(),
+            )
         } else if upper.contains("GEMINI") || upper.contains("GOOGLE") {
-            ("Google Gemini".to_string(), "ai".to_string(), "gemini".to_string())
+            (
+                "Google Gemini".to_string(),
+                "ai".to_string(),
+                "gemini".to_string(),
+            )
         } else if upper.contains("GROQ") {
             ("Groq".to_string(), "ai".to_string(), "groq".to_string())
         } else if upper.contains("MISTRAL") {
-            ("Mistral AI".to_string(), "ai".to_string(), "mistral".to_string())
+            (
+                "Mistral AI".to_string(),
+                "ai".to_string(),
+                "mistral".to_string(),
+            )
         } else if upper.contains("OPENROUTER") {
-            ("OpenRouter".to_string(), "ai".to_string(), "openrouter".to_string())
+            (
+                "OpenRouter".to_string(),
+                "ai".to_string(),
+                "openrouter".to_string(),
+            )
         } else if upper.contains("SILICONFLOW") {
-            ("SiliconFlow".to_string(), "ai".to_string(), "siliconflow".to_string())
+            (
+                "SiliconFlow".to_string(),
+                "ai".to_string(),
+                "siliconflow".to_string(),
+            )
         } else if upper.contains("MOONSHOT") || upper.contains("KIMI") {
-            ("Moonshot Kimi".to_string(), "ai".to_string(), "moonshot".to_string())
+            (
+                "Moonshot Kimi".to_string(),
+                "ai".to_string(),
+                "moonshot".to_string(),
+            )
         } else if upper.contains("ZHIPU") || upper.contains("GLM") {
-            ("Zhipu AI".to_string(), "ai".to_string(), "zhipu".to_string())
+            (
+                "Zhipu AI".to_string(),
+                "ai".to_string(),
+                "zhipu".to_string(),
+            )
         } else if upper.contains("OLLAMA") {
             ("Ollama".to_string(), "ai".to_string(), "ollama".to_string())
         } else if upper.contains("ELEVENLABS") {
-            ("ElevenLabs".to_string(), "ai".to_string(), "elevenlabs".to_string())
+            (
+                "ElevenLabs".to_string(),
+                "ai".to_string(),
+                "elevenlabs".to_string(),
+            )
         } else if upper.contains("HUGGINGFACE") || upper.contains("HF_") {
-            ("HuggingFace".to_string(), "ai".to_string(), "huggingface".to_string())
+            (
+                "HuggingFace".to_string(),
+                "ai".to_string(),
+                "huggingface".to_string(),
+            )
         } else if upper.contains("TAVILY") {
-            ("Tavily AI".to_string(), "ai".to_string(), "tavily".to_string())
+            (
+                "Tavily AI".to_string(),
+                "ai".to_string(),
+                "tavily".to_string(),
+            )
         } else if upper.contains("PERPLEXITY") {
-            ("Perplexity AI".to_string(), "ai".to_string(), "perplexity".to_string())
+            (
+                "Perplexity AI".to_string(),
+                "ai".to_string(),
+                "perplexity".to_string(),
+            )
         } else if upper.contains("COHERE") {
             ("Cohere".to_string(), "ai".to_string(), "cohere".to_string())
         } else if upper.contains("GITHUB") || upper.contains("GH_") {
-            ("GitHub".to_string(), "cloud".to_string(), "github".to_string())
+            (
+                "GitHub".to_string(),
+                "cloud".to_string(),
+                "github".to_string(),
+            )
         } else if upper.contains("AWS_") {
-            ("Amazon Web Services".to_string(), "cloud".to_string(), "aws".to_string())
+            (
+                "Amazon Web Services".to_string(),
+                "cloud".to_string(),
+                "aws".to_string(),
+            )
         } else if upper.contains("CLOUDFLARE") {
-            ("Cloudflare".to_string(), "cloud".to_string(), "cloudflare".to_string())
+            (
+                "Cloudflare".to_string(),
+                "cloud".to_string(),
+                "cloudflare".to_string(),
+            )
         } else if upper.contains("VERCEL") {
-            ("Vercel".to_string(), "cloud".to_string(), "vercel".to_string())
+            (
+                "Vercel".to_string(),
+                "cloud".to_string(),
+                "vercel".to_string(),
+            )
         } else if upper.contains("SUPABASE") {
-            ("Supabase".to_string(), "cloud".to_string(), "supabase".to_string())
+            (
+                "Supabase".to_string(),
+                "cloud".to_string(),
+                "supabase".to_string(),
+            )
         } else if upper.contains("STRIPE") {
-            ("Stripe".to_string(), "cloud".to_string(), "stripe".to_string())
+            (
+                "Stripe".to_string(),
+                "cloud".to_string(),
+                "stripe".to_string(),
+            )
         } else if upper.contains("SENTRY") {
-            ("Sentry".to_string(), "cloud".to_string(), "sentry".to_string())
+            (
+                "Sentry".to_string(),
+                "cloud".to_string(),
+                "sentry".to_string(),
+            )
         } else if upper.contains("RESEND") {
-            ("Resend".to_string(), "cloud".to_string(), "resend".to_string())
+            (
+                "Resend".to_string(),
+                "cloud".to_string(),
+                "resend".to_string(),
+            )
         } else if upper.contains("ASANA") {
             ("Asana".to_string(), "saas".to_string(), "asana".to_string())
         } else if upper.contains("TENCENT") {
-            ("Tencent".to_string(), "saas".to_string(), "tencent".to_string())
+            (
+                "Tencent".to_string(),
+                "saas".to_string(),
+                "tencent".to_string(),
+            )
         } else {
-            ("Custom Credential".to_string(), "custom".to_string(), "key".to_string())
+            (
+                "Custom Credential".to_string(),
+                "custom".to_string(),
+                "key".to_string(),
+            )
         }
     }
 

@@ -1,7 +1,7 @@
+use crate::types::LatencyTarget;
 use std::time::{Duration, Instant};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
-use crate::types::LatencyTarget;
 
 pub struct LatencyProbeConfig {
     pub name: String,

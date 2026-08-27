@@ -2,7 +2,9 @@ use crate::collectors::{
     AiRadarManager, AutoUpdater, EnvVarsCollector, GitRadar, HostsManager, MachineInfoCollector,
     ObsidianManager, SavePointManager, SpeedTester, SystemCleaner, WebArtifactsManager,
 };
-use crate::control::actions::{ControlError, ControlPlane};
+use crate::control::actions::ControlError;
+#[cfg(test)]
+use crate::control::actions::ControlPlane;
 use crate::control::models::{ActionOrigin, ActionRequest, EventQuery};
 use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};

@@ -1,19 +1,47 @@
-use std::time::Instant;
-use serde_json::Value;
 use crate::types::{LlmApiLatency, OllamaModelInfo, OllamaStatusResponse};
+use serde_json::Value;
+use std::time::Instant;
 
 pub struct AiRadarManager;
 
 impl AiRadarManager {
     pub async fn probe_llm_apis() -> Vec<LlmApiLatency> {
         let targets = vec![
-            ("deepseek", "DeepSeek (深度求索)", "https://api.deepseek.com/models"),
-            ("claude", "Anthropic Claude", "https://api.anthropic.com/v1/messages"),
-            ("openai", "OpenAI (GPT-4o)", "https://api.openai.com/v1/models"),
-            ("gemini", "Google Gemini", "https://generativelanguage.googleapis.com/"),
-            ("openrouter", "OpenRouter", "https://openrouter.ai/api/v1/models"),
-            ("siliconflow", "SiliconFlow (硅基流动)", "https://api.siliconflow.cn/v1/models"),
-            ("ollama", "Ollama Local (本地模型)", "http://127.0.0.1:11434/api/tags"),
+            (
+                "deepseek",
+                "DeepSeek (深度求索)",
+                "https://api.deepseek.com/models",
+            ),
+            (
+                "claude",
+                "Anthropic Claude",
+                "https://api.anthropic.com/v1/messages",
+            ),
+            (
+                "openai",
+                "OpenAI (GPT-4o)",
+                "https://api.openai.com/v1/models",
+            ),
+            (
+                "gemini",
+                "Google Gemini",
+                "https://generativelanguage.googleapis.com/",
+            ),
+            (
+                "openrouter",
+                "OpenRouter",
+                "https://openrouter.ai/api/v1/models",
+            ),
+            (
+                "siliconflow",
+                "SiliconFlow (硅基流动)",
+                "https://api.siliconflow.cn/v1/models",
+            ),
+            (
+                "ollama",
+                "Ollama Local (本地模型)",
+                "http://127.0.0.1:11434/api/tags",
+            ),
         ];
 
         let client = reqwest::Client::builder()
@@ -131,10 +159,17 @@ impl AiRadarManager {
         }
 
         // Get version
-        if let Ok(ver_resp) = client.get("http://127.0.0.1:11434/api/version").send().await {
+        if let Ok(ver_resp) = client
+            .get("http://127.0.0.1:11434/api/version")
+            .send()
+            .await
+        {
             if let Ok(v_txt) = ver_resp.text().await {
                 if let Ok(v_json) = serde_json::from_str::<Value>(&v_txt) {
-                    version = v_json.get("version").and_then(|v| v.as_str()).map(|s| s.to_string());
+                    version = v_json
+                        .get("version")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
                 }
             }
         }
@@ -148,9 +183,16 @@ impl AiRadarManager {
                 if let Ok(ps_json) = serde_json::from_str::<Value>(&ps_txt) {
                     if let Some(models) = ps_json.get("models").and_then(|m| m.as_array()) {
                         for m in models {
-                            let name = m.get("name").and_then(|v| v.as_str()).unwrap_or("unknown").to_string();
+                            let name = m
+                                .get("name")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("unknown")
+                                .to_string();
                             let size_bytes = m.get("size").and_then(|v| v.as_u64()).unwrap_or(0);
-                            let vram_bytes = m.get("size_vram").and_then(|v| v.as_u64()).unwrap_or(size_bytes);
+                            let vram_bytes = m
+                                .get("size_vram")
+                                .and_then(|v| v.as_u64())
+                                .unwrap_or(size_bytes);
                             total_vram += vram_bytes;
 
                             let details = m.get("details");
@@ -174,7 +216,10 @@ impl AiRadarManager {
                                 .and_then(|v| v.as_str())
                                 .unwrap_or("-")
                                 .to_string();
-                            let expires_at = m.get("expires_at").and_then(|v| v.as_str()).map(|s| s.to_string());
+                            let expires_at = m
+                                .get("expires_at")
+                                .and_then(|v| v.as_str())
+                                .map(|s| s.to_string());
 
                             loaded_models.push(OllamaModelInfo {
                                 name,
@@ -233,7 +278,8 @@ impl AiRadarManager {
         system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
 
         // Map lowercase process name -> PID
-        let mut running_processes: std::collections::HashMap<String, u32> = std::collections::HashMap::new();
+        let mut running_processes: std::collections::HashMap<String, u32> =
+            std::collections::HashMap::new();
         for (pid, proc_) in system.processes() {
             let p_name = proc_.name().to_string_lossy().to_lowercase();
             running_processes.insert(p_name, pid.as_u32());
@@ -305,7 +351,8 @@ impl AiRadarManager {
             path: cursor_app.2.clone(),
             app_bundle: cursor_app.2,
             icon: "cursor".to_string(),
-            description: "原生 AI 赋能 IDE，支持 Tab 智能补全与 Composer 多文件自主重构".to_string(),
+            description: "原生 AI 赋能 IDE，支持 Tab 智能补全与 Composer 多文件自主重构"
+                .to_string(),
             pid: cursor_pid,
         });
 
@@ -394,7 +441,8 @@ impl AiRadarManager {
             path: aider_bin,
             app_bundle: None,
             icon: "aider".to_string(),
-            description: "终端自然语言结对编程 Agent，支持 Git 自动提交与代码树全景理解".to_string(),
+            description: "终端自然语言结对编程 Agent，支持 Git 自动提交与代码树全景理解"
+                .to_string(),
             pid: aider_pid,
         });
 
@@ -421,7 +469,8 @@ impl AiRadarManager {
             path: ollama_bin.or(ollama_app.2.clone()),
             app_bundle: ollama_app.2,
             icon: "ollama".to_string(),
-            description: "轻量级本地大模型运行与推理引擎，支持 Llama 3、DeepSeek-R1、Qwen".to_string(),
+            description: "轻量级本地大模型运行与推理引擎，支持 Llama 3、DeepSeek-R1、Qwen"
+                .to_string(),
             pid: ollama_pid,
         });
 
@@ -467,7 +516,8 @@ impl AiRadarManager {
             path: vscode_app.2.clone(),
             app_bundle: vscode_app.2,
             icon: "vscode".to_string(),
-            description: "主流代码编辑器，支持 Copilot、Continue、Cline 等 AI 智能体插件".to_string(),
+            description: "主流代码编辑器，支持 Copilot、Continue、Cline 等 AI 智能体插件"
+                .to_string(),
             pid: vscode_pid,
         });
 
@@ -487,7 +537,8 @@ impl AiRadarManager {
             path: claude_desktop.2.clone(),
             app_bundle: claude_desktop.2,
             icon: "claude".to_string(),
-            description: "Anthropic 官方桌面客户端，支持 MCP (Model Context Protocol) 扩展".to_string(),
+            description: "Anthropic 官方桌面客户端，支持 MCP (Model Context Protocol) 扩展"
+                .to_string(),
             pid: claude_desk_pid,
         });
 
@@ -514,10 +565,7 @@ impl AiRadarManager {
         list
     }
 
-    fn check_app_bundle(
-        sys_path: &str,
-        user_path: &str,
-    ) -> (bool, Option<String>, Option<String>) {
+    fn check_app_bundle(sys_path: &str, user_path: &str) -> (bool, Option<String>, Option<String>) {
         let p = if std::path::Path::new(sys_path).exists() {
             Some(sys_path.to_string())
         } else if std::path::Path::new(user_path).exists() {

@@ -1,6 +1,6 @@
-use std::time::Instant;
-use futures::StreamExt;
 use crate::types::SpeedTestResult;
+use futures::StreamExt;
+use std::time::Instant;
 
 pub struct SpeedTester;
 
@@ -83,7 +83,10 @@ impl SpeedTester {
 
         // Ensure we got meaningful bandwidth sample (at least 1MB to avoid fake small html pages)
         if total_bytes < 1_000_000 || duration <= 0.05 {
-            return Err(format!("采样数据过小 ({} bytes, {:.2}s)", total_bytes, duration));
+            return Err(format!(
+                "采样数据过小 ({} bytes, {:.2}s)",
+                total_bytes, duration
+            ));
         }
 
         // Calculate Mbps = (bytes * 8) / (duration * 1_000_000)

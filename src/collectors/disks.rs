@@ -1,5 +1,5 @@
-use sysinfo::Disks;
 use crate::types::DiskInfo;
+use sysinfo::Disks;
 
 pub struct DiskCollector {
     disks: Disks,
