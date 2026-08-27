@@ -267,7 +267,9 @@ impl ControlRepository {
                 enum_value(&result.status)?,
                 result.started_at,
                 result.finished_at,
-                result.duration_ms.and_then(|value| i64::try_from(value).ok()),
+                result
+                    .duration_ms
+                    .and_then(|value| i64::try_from(value).ok()),
                 result.output_summary,
                 result.error,
                 result.correlation_id,
@@ -328,11 +330,9 @@ impl ControlRepository {
     }
 
     pub fn count_action_results(&self) -> RepositoryResult<usize> {
-        let count: i64 = self.connection()?.query_row(
-            "SELECT COUNT(*) FROM action_results",
-            [],
-            |row| row.get(0),
-        )?;
+        let count: i64 =
+            self.connection()?
+                .query_row("SELECT COUNT(*) FROM action_results", [], |row| row.get(0))?;
         Ok(usize::try_from(count).unwrap_or(usize::MAX))
     }
 
@@ -484,10 +484,7 @@ mod tests {
         repository.upsert_action_result(&result).unwrap();
         assert_eq!(repository.count_action_results().unwrap(), 1);
         assert_eq!(
-            repository
-                .get_action_result("request-1")
-                .unwrap()
-                .unwrap(),
+            repository.get_action_result("request-1").unwrap().unwrap(),
             result
         );
     }

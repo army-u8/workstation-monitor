@@ -25,7 +25,6 @@ impl EventRepository for ControlRepository {
 
 #[derive(Debug, Clone)]
 pub struct PublishedEvent {
-    pub event: WorkstationEvent,
     pub persisted: bool,
 }
 
@@ -39,10 +38,7 @@ pub struct EventHub {
 }
 
 impl EventHub {
-    pub fn new(
-        repository: Arc<dyn EventRepository>,
-        tx: broadcast::Sender<WsEvent>,
-    ) -> Self {
+    pub fn new(repository: Arc<dyn EventRepository>, tx: broadcast::Sender<WsEvent>) -> Self {
         Self::with_memory_limit(repository, tx, 500)
     }
 
@@ -63,17 +59,16 @@ impl EventHub {
     pub async fn publish(&self, event: WorkstationEvent) -> PublishedEvent {
         let repository = Arc::clone(&self.repository);
         let persisted_event = event.clone();
-        let persisted = tokio::task::spawn_blocking(move || {
-            repository.insert_event(&persisted_event)
-        })
-        .await
-        .map_err(|error| error.to_string())
-        .and_then(|result| result.map_err(|error| error.to_string()))
-        .map(|_| true)
-        .unwrap_or_else(|error| {
-            tracing::warn!(error = %error, "workstation event persistence degraded");
-            false
-        });
+        let persisted =
+            tokio::task::spawn_blocking(move || repository.insert_event(&persisted_event))
+                .await
+                .map_err(|error| error.to_string())
+                .and_then(|result| result.map_err(|error| error.to_string()))
+                .map(|_| true)
+                .unwrap_or_else(|error| {
+                    tracing::warn!(error = %error, "workstation event persistence degraded");
+                    false
+                });
 
         if persisted {
             self.storage_degraded.store(false, Ordering::Release);
@@ -87,7 +82,7 @@ impl EventHub {
         }
 
         let _ = self.tx.send(WsEvent::WorkstationEvent(event.clone()));
-        PublishedEvent { event, persisted }
+        PublishedEvent { persisted }
     }
 
     pub fn storage_degraded(&self) -> bool {
@@ -101,10 +96,8 @@ impl EventHub {
     pub async fn list_events(&self, query: EventQuery) -> EventPage {
         let repository = Arc::clone(&self.repository);
         let persistent_query = query.clone();
-        let persistent = tokio::task::spawn_blocking(move || {
-            repository.list_events(persistent_query)
-        })
-        .await;
+        let persistent =
+            tokio::task::spawn_blocking(move || repository.list_events(persistent_query)).await;
         let (mut items, mut next_cursor, repository_failed) = match persistent {
             Ok(Ok(page)) => (page.items, page.next_cursor, false),
             Ok(Err(error)) => {
@@ -118,10 +111,8 @@ impl EventHub {
         };
 
         let memory = self.memory.read().await;
-        let mut known_ids: HashSet<String> = items
-            .iter()
-            .map(|event| event.event_id.clone())
-            .collect();
+        let mut known_ids: HashSet<String> =
+            items.iter().map(|event| event.event_id.clone()).collect();
         for event in memory.iter().filter(|event| matches_query(event, &query)) {
             if known_ids.insert(event.event_id.clone()) {
                 items.push(event.clone());

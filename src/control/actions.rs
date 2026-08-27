@@ -30,7 +30,8 @@ impl ActionExecutor for BuiltInActionExecutor {
             }
             "snapshot.create" => {
                 let params: SnapshotCreateParams = parse_parameters(parameters)?;
-                let result = SavePointManager::create_snapshot(&params.project_path, &params.title)?;
+                let result =
+                    SavePointManager::create_snapshot(&params.project_path, &params.title)?;
                 serde_json::to_value(result).map_err(|error| error.to_string())
             }
             "process.kill" => {
@@ -92,7 +93,8 @@ struct CleanerParams {
 }
 
 fn parse_parameters<T: for<'de> Deserialize<'de>>(parameters: &Value) -> Result<T, String> {
-    serde_json::from_value(parameters.clone()).map_err(|error| format!("invalid_parameters: {error}"))
+    serde_json::from_value(parameters.clone())
+        .map_err(|error| format!("invalid_parameters: {error}"))
 }
 
 fn open_app(path: &str, requested_app: Option<&str>) -> Result<(), String> {
@@ -227,7 +229,9 @@ impl ActionRegistry {
     }
 
     pub fn find(&self, action_id: &str) -> Option<&ActionDefinition> {
-        self.definitions.iter().find(|action| action.id == action_id)
+        self.definitions
+            .iter()
+            .find(|action| action.id == action_id)
     }
 
     pub fn validate(
@@ -239,7 +243,11 @@ impl ActionRegistry {
             .as_object()
             .ok_or_else(|| ControlError::InvalidParameters("expected an object".to_string()))?;
         for key in object.keys() {
-            if !definition.parameters.iter().any(|parameter| parameter.name == *key) {
+            if !definition
+                .parameters
+                .iter()
+                .any(|parameter| parameter.name == *key)
+            {
                 return Err(ControlError::InvalidParameters(format!(
                     "unknown parameter: {key}"
                 )));
@@ -299,7 +307,10 @@ fn definition(
         description_key: format!("control.actions.{translation_id}.description"),
         risk,
         parameters,
-        keywords: keywords.iter().map(|keyword| (*keyword).to_string()).collect(),
+        keywords: keywords
+            .iter()
+            .map(|keyword| (*keyword).to_string())
+            .collect(),
         available: true,
         unavailable_reason: None,
     }
@@ -331,10 +342,7 @@ impl ControlPlane {
         }
     }
 
-    pub fn built_in(
-        repository: Arc<ControlRepository>,
-        tx: broadcast::Sender<WsEvent>,
-    ) -> Self {
+    pub fn built_in(repository: Arc<ControlRepository>, tx: broadcast::Sender<WsEvent>) -> Self {
         Self::new(repository, tx, Arc::new(BuiltInActionExecutor))
     }
 
@@ -371,7 +379,11 @@ impl ControlPlane {
                 "request_id and action_id are required".to_string(),
             ));
         }
-        if request.target_device.as_deref().is_some_and(|target| target != "local") {
+        if request
+            .target_device
+            .as_deref()
+            .is_some_and(|target| target != "local")
+        {
             return Err(ControlError::InvalidParameters(
                 "remote targets are not enabled".to_string(),
             ));
@@ -439,9 +451,10 @@ impl ControlPlane {
         let executor = Arc::clone(&self.executor);
         let action_id = request.action_id.clone();
         let parameters = request.parameters.clone();
-        let execution = tokio::task::spawn_blocking(move || executor.execute(&action_id, &parameters))
-            .await
-            .map_err(|error| ControlError::Execution(error.to_string()))?;
+        let execution =
+            tokio::task::spawn_blocking(move || executor.execute(&action_id, &parameters))
+                .await
+                .map_err(|error| ControlError::Execution(error.to_string()))?;
         let finished_at = chrono::Utc::now().timestamp_millis();
         let duration_ms = u64::try_from(finished_at.saturating_sub(started_at)).unwrap_or_default();
         let (status, output, output_summary, error) = match execution {
@@ -600,7 +613,11 @@ mod tests {
     #[test]
     fn catalog_contains_the_initial_built_in_actions() {
         let registry = ActionRegistry::built_in();
-        let ids: Vec<&str> = registry.catalog().iter().map(|action| action.id.as_str()).collect();
+        let ids: Vec<&str> = registry
+            .catalog()
+            .iter()
+            .map(|action| action.id.as_str())
+            .collect();
         assert_eq!(
             ids,
             vec![
@@ -644,10 +661,7 @@ mod tests {
             .await
             .unwrap();
 
-        assert_eq!(
-            response.status,
-            ActionExecutionStatus::ConfirmationRequired
-        );
+        assert_eq!(response.status, ActionExecutionStatus::ConfirmationRequired);
         assert!(response.confirmation.is_some());
         assert_eq!(executor.calls(), 0);
     }

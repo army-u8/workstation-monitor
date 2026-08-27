@@ -1,3 +1,8 @@
+use crate::control::actions::ControlPlane;
+use crate::types::{
+    BatteryInfo, DevToolInfo, DiskInfo, LatencyTarget, ProcessInfo, SocketsPayload, SystemStats,
+    TrafficSummary, WsEvent,
+};
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
@@ -8,14 +13,11 @@ use axum::{
 use futures::{sink::SinkExt, stream::StreamExt};
 use std::sync::Arc;
 use tokio::sync::{broadcast, RwLock};
-use crate::types::{
-    BatteryInfo, DevToolInfo, DiskInfo, LatencyTarget, ProcessInfo, SocketsPayload, SystemStats,
-    TrafficSummary, WsEvent,
-};
 
 #[derive(Clone)]
 pub struct AppState {
     pub tx: broadcast::Sender<WsEvent>,
+    pub control: Arc<ControlPlane>,
     pub latest_traffic: Arc<RwLock<Option<TrafficSummary>>>,
     pub latest_sockets: Arc<RwLock<Option<SocketsPayload>>>,
     pub latest_latency: Arc<RwLock<Vec<LatencyTarget>>>,
@@ -26,10 +28,7 @@ pub struct AppState {
     pub latest_dev_tools: Arc<RwLock<Vec<DevToolInfo>>>,
 }
 
-pub async fn ws_handler(
-    ws: WebSocketUpgrade,
-    State(state): State<AppState>,
-) -> impl IntoResponse {
+pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> impl IntoResponse {
     ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 

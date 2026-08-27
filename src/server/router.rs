@@ -3,6 +3,8 @@ use crate::collectors::{
     HostsManager, MachineInfoCollector, ObsidianManager, SavePointManager, SpeedTester,
     SystemCleaner, WebArtifactsManager,
 };
+use crate::control::actions::{ControlError, ControlPlane};
+use crate::control::models::{ActionRequest, EventQuery};
 use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};
 use crate::types::{
@@ -12,7 +14,7 @@ use crate::types::{
 };
 use axum::{
     body::Body,
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::{header, Request, StatusCode},
     middleware::{self, Next},
     response::{IntoResponse, Response},
@@ -82,6 +84,14 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/port/kill", post(post_kill_port))
         .route("/api/tools/flush-dns", post(post_flush_dns))
         .route("/api/tools/ping", post(post_ping))
+        // Unified workstation control plane
+        .route("/api/control/events", get(get_control_events))
+        .route("/api/control/actions", get(get_control_actions))
+        .route(
+            "/api/control/actions/:request_id",
+            get(get_control_action_result),
+        )
+        .route("/api/control/actions/execute", post(post_control_action))
         // WebSocket & Static UI
         .route("/ws", get(ws_handler))
         .fallback(static_handler)
@@ -89,6 +99,72 @@ pub fn build_router(state: AppState) -> Router {
         .layer(middleware::from_fn(enforce_local_browser_origin))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
+}
+
+async fn get_control_events(
+    State(state): State<AppState>,
+    Query(query): Query<EventQuery>,
+) -> impl IntoResponse {
+    (StatusCode::OK, Json(state.control.list_events(query).await))
+}
+
+async fn get_control_actions(State(state): State<AppState>) -> impl IntoResponse {
+    (StatusCode::OK, Json(state.control.catalog().to_vec()))
+}
+
+async fn get_control_action_result(
+    State(state): State<AppState>,
+    Path(request_id): Path<String>,
+) -> Response {
+    match state.control.get_action_result(&request_id).await {
+        Ok(Some(result)) => {
+            (StatusCode::OK, Json(serde_json::to_value(result).unwrap())).into_response()
+        }
+        Ok(None) => (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({"error_code": "action_result_not_found"})),
+        )
+            .into_response(),
+        Err(error) => control_error_response(error),
+    }
+}
+
+async fn post_control_action(
+    State(state): State<AppState>,
+    Json(request): Json<ActionRequest>,
+) -> Response {
+    match state.control.execute(request).await {
+        Ok(response) => {
+            let status = if response.status
+                == crate::control::models::ActionExecutionStatus::ConfirmationRequired
+            {
+                StatusCode::ACCEPTED
+            } else {
+                StatusCode::OK
+            };
+            (status, Json(serde_json::to_value(response).unwrap())).into_response()
+        }
+        Err(error) => control_error_response(error),
+    }
+}
+
+fn control_error_response(error: ControlError) -> Response {
+    let (status, error_code) = match &error {
+        ControlError::UnknownAction => (StatusCode::NOT_FOUND, "unknown_action"),
+        ControlError::InvalidParameters(_) => (StatusCode::BAD_REQUEST, "invalid_parameters"),
+        ControlError::Forbidden(_) => (StatusCode::FORBIDDEN, "action_forbidden"),
+        ControlError::Repository(_) | ControlError::Execution(_) => {
+            (StatusCode::INTERNAL_SERVER_ERROR, "control_internal_error")
+        }
+    };
+    (
+        status,
+        Json(serde_json::json!({
+            "error_code": error_code,
+            "message": error.to_string(),
+        })),
+    )
+        .into_response()
 }
 
 fn parse_browser_origin(origin: &str) -> Option<reqwest::Url> {
@@ -981,6 +1057,8 @@ async fn get_ai_agents() -> impl IntoResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::control::actions::BuiltInActionExecutor;
+    use crate::control::repository::ControlRepository;
     use axum::{
         body::Body,
         http::{header, Method, Request},
@@ -991,8 +1069,15 @@ mod tests {
 
     fn test_state() -> AppState {
         let (tx, _) = broadcast::channel(8);
+        let repository = Arc::new(ControlRepository::open_in_memory().unwrap());
+        let control = Arc::new(ControlPlane::new(
+            repository,
+            tx.clone(),
+            Arc::new(BuiltInActionExecutor),
+        ));
         AppState {
             tx,
+            control,
             latest_traffic: Arc::new(RwLock::new(None)),
             latest_sockets: Arc::new(RwLock::new(None)),
             latest_latency: Arc::new(RwLock::new(Vec::new())),
@@ -1017,6 +1102,86 @@ mod tests {
             )
             .await
             .unwrap()
+    }
+
+    #[tokio::test]
+    async fn action_catalog_is_available_without_changing_existing_routes() {
+        let response = build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .uri("/api/control/actions")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn dangerous_action_api_returns_confirmation_required() {
+        let response = build_router(test_state())
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/api/control/actions/execute")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(
+                        serde_json::json!({
+                            "request_id": "request-1",
+                            "action_id": "process.kill",
+                            "parameters": {"pid": 999999}
+                        })
+                        .to_string(),
+                    ))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::ACCEPTED);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "confirmation_required");
+        assert!(json["confirmation"]["token"].is_string());
+    }
+
+    #[tokio::test]
+    async fn existing_status_route_keeps_its_response_shape() {
+        let state = test_state();
+        *state.latest_stats.write().await = Some(crate::types::SystemStats {
+            cpu_usage: 1.0,
+            memory_used: 2,
+            memory_total: 4,
+            memory_percent: 50.0,
+            uptime_secs: 10,
+            os_name: "macOS".to_string(),
+            host_name: "test-host".to_string(),
+            sniffer_active: false,
+            sniffer_device: None,
+            sniffer_error: None,
+        });
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .uri("/api/status")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["host_name"], "test-host");
+        assert!(json.get("status").is_none());
+        assert!(json.get("result").is_none());
     }
 
     #[tokio::test]

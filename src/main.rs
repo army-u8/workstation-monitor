@@ -14,6 +14,9 @@ use collectors::{
     start_sniffer, BatteryCollector, ConnectionsCollector, DevToolsCollector, DiskCollector,
     LatencyCollector, ProcessCollector, TrafficCollector,
 };
+use control::actions::ControlPlane;
+use control::models::{EventKind, EventSeverity, WorkstationEvent};
+use control::repository::ControlRepository;
 use server::{build_router, AppState};
 use types::{SystemStats, WsEvent};
 
@@ -105,13 +108,14 @@ fn lookup_user_identity(uid: u32) -> Result<(std::ffi::CString, std::ffi::OsStri
         )
     };
     if status != 0 || result.is_null() || passwd.pw_name.is_null() || passwd.pw_dir.is_null() {
-        return Err(format!("Cannot resolve invoking user identity for uid {uid}"));
+        return Err(format!(
+            "Cannot resolve invoking user identity for uid {uid}"
+        ));
     }
 
     let name = unsafe { CStr::from_ptr(passwd.pw_name) }.to_owned();
-    let home = std::ffi::OsString::from_vec(
-        unsafe { CStr::from_ptr(passwd.pw_dir) }.to_bytes().to_vec(),
-    );
+    let home =
+        std::ffi::OsString::from_vec(unsafe { CStr::from_ptr(passwd.pw_dir) }.to_bytes().to_vec());
     Ok((name, home))
 }
 
@@ -159,7 +163,11 @@ fn drop_server_privileges_after_sniffer() -> Result<(), String> {
     std::env::set_var("USER", &user_name);
     std::env::set_var("LOGNAME", &user_name);
 
-    tracing::info!(uid, gid, "Dropped root privileges after opening packet capture");
+    tracing::info!(
+        uid,
+        gid,
+        "Dropped root privileges after opening packet capture"
+    );
     Ok(())
 }
 
@@ -267,18 +275,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let latest_battery = Arc::new(RwLock::new(None));
     let latest_dev_tools = Arc::new(RwLock::new(Vec::new()));
 
-    let app_state = AppState {
-        tx: tx.clone(),
-        latest_traffic: latest_traffic.clone(),
-        latest_sockets: latest_sockets.clone(),
-        latest_latency: latest_latency.clone(),
-        latest_stats: latest_stats.clone(),
-        latest_processes: latest_processes.clone(),
-        latest_disks: latest_disks.clone(),
-        latest_battery: latest_battery.clone(),
-        latest_dev_tools: latest_dev_tools.clone(),
-    };
-
     // 1. Start Libpcap Sniffer (Runs in background thread if permissions allow)
     let sniffer_handle = start_sniffer(tx.clone());
     let sniffer_active = sniffer_handle.active;
@@ -294,6 +290,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // A sudo launch may open /dev/bpf while privileged, but the HTTP server and
     // every mutation endpoint must run as the invoking non-root user.
     drop_server_privileges_after_sniffer().map_err(std::io::Error::other)?;
+
+    let repository = ControlRepository::open_default()
+        .or_else(|error| {
+            tracing::warn!(error = %error, "falling back to in-memory control database");
+            ControlRepository::open_in_memory()
+        })
+        .map_err(|error| std::io::Error::other(error.to_string()))?;
+    let control = Arc::new(ControlPlane::built_in(Arc::new(repository), tx.clone()));
+    let app_state = AppState {
+        tx: tx.clone(),
+        control: control.clone(),
+        latest_traffic: latest_traffic.clone(),
+        latest_sockets: latest_sockets.clone(),
+        latest_latency: latest_latency.clone(),
+        latest_stats: latest_stats.clone(),
+        latest_processes: latest_processes.clone(),
+        latest_disks: latest_disks.clone(),
+        latest_battery: latest_battery.clone(),
+        latest_dev_tools: latest_dev_tools.clone(),
+    };
 
     // 2. Background Task: System Stats & Traffic Sampling (1000ms ticker)
     {
@@ -486,6 +502,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     socket.listen(1024)?;
     let std_listener: std::net::TcpListener = socket.into();
     let listener = tokio::net::TcpListener::from_std(std_listener)?;
+
+    control
+        .event_hub()
+        .publish(WorkstationEvent::new(
+            "local",
+            EventKind::ServiceStarted,
+            EventSeverity::Info,
+            "server",
+            serde_json::json!({
+                "port": port,
+                "bind_mode": if bind_ip.is_loopback() { "loopback" } else { "lan" },
+                "version": env!("CARGO_PKG_VERSION"),
+                "sniffer_active": sniffer_active,
+            }),
+        ))
+        .await;
 
     let dashboard_host = dashboard_host(bind_ip);
     println!("\n╔══════════════════════════════════════════════════════════════╗");
