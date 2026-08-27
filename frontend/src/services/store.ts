@@ -20,6 +20,8 @@ import {
   WsEventType,
 } from '../constants';
 import type {
+  ActionDefinition,
+  ActionRequest,
   BatteryInfo,
   CapturedPacket,
   CleanerItem,
@@ -27,6 +29,9 @@ import type {
   DevToolInfo,
   DiskInfo,
   EnvVarsPayload,
+  EventPage,
+  EventQuery,
+  ExecuteActionResponse,
   GitAccountSummary,
   GitProjectInfo,
   HostEntry,
@@ -55,6 +60,7 @@ import type {
   UpdateRollbackResponse,
   VersionBackupInfo,
   WebArtifactInfo,
+  WorkstationEvent,
   WsEvent,
 } from '../types';
 import { t } from '../i18n';
@@ -194,6 +200,17 @@ export const [isLoadingLocalAgents, setIsLoadingLocalAgents] = createSignal(fals
 export const [envVarsData, setEnvVarsData] = createSignal<EnvVarsPayload | null>(null);
 export const [isLoadingEnvVars, setIsLoadingEnvVars] = createSignal(false);
 
+// Unified workstation control plane
+export const [workstationEvents, setWorkstationEvents] = createSignal<WorkstationEvent[]>([]);
+export const [workstationEventsCursor, setWorkstationEventsCursor] = createSignal<string | null>(
+  null,
+);
+export const [isControlStorageDegraded, setIsControlStorageDegraded] = createSignal(false);
+export const [controlActions, setControlActions] = createSignal<ActionDefinition[]>([]);
+export const [isLoadingEvents, setIsLoadingEvents] = createSignal(false);
+export const [isLoadingControlActions, setIsLoadingControlActions] = createSignal(false);
+export const [isCommandPaletteOpen, setIsCommandPaletteOpen] = createSignal(false);
+
 export const [activeSection, setActiveSection] = createSignal<NavSectionId>(NavSectionId.OVERVIEW);
 export const [isSidebarOpen, setIsSidebarOpen] = createSignal(false);
 
@@ -305,6 +322,69 @@ export function formatUptime(secs: number): string {
 // ----------------------------------------------------
 // REST API Actions
 // ----------------------------------------------------
+
+export async function fetchWorkstationEventsApi(query: EventQuery = {}): Promise<EventPage> {
+  setIsLoadingEvents(true);
+  try {
+    const search = new URLSearchParams();
+    if (query.device_id) search.set('device_id', query.device_id);
+    if (query.event_type) search.set('event_type', query.event_type);
+    if (query.severity) search.set('severity', query.severity);
+    if (query.source) search.set('source', query.source);
+    if (query.before) search.set('before', query.before);
+    if (query.limit !== undefined) search.set('limit', String(query.limit));
+    const suffix = search.size ? `?${search.toString()}` : '';
+    const response = await fetch(`${ApiEndpoint.CONTROL_EVENTS}${suffix}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const page: EventPage = await response.json();
+    if (query.before) {
+      setWorkstationEvents((current) => {
+        const known = new Set(current.map((event) => event.event_id));
+        return [...current, ...page.items.filter((event) => !known.has(event.event_id))];
+      });
+    } else {
+      setWorkstationEvents(page.items);
+    }
+    setWorkstationEventsCursor(page.next_cursor ?? null);
+    setIsControlStorageDegraded(page.storage_degraded);
+    return page;
+  } finally {
+    setIsLoadingEvents(false);
+  }
+}
+
+export async function fetchControlActionsApi(): Promise<ActionDefinition[]> {
+  setIsLoadingControlActions(true);
+  try {
+    const response = await fetch(ApiEndpoint.CONTROL_ACTIONS);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const actions: ActionDefinition[] = await response.json();
+    setControlActions(actions);
+    return actions;
+  } finally {
+    setIsLoadingControlActions(false);
+  }
+}
+
+export async function executeControlActionApi(
+  request: ActionRequest,
+): Promise<ExecuteActionResponse> {
+  const response = await fetch(ApiEndpoint.CONTROL_ACTION_EXECUTE, {
+    method: HTTP_METHODS.POST,
+    headers: { 'Content-Type': CONTENT_TYPES.JSON },
+    body: JSON.stringify(request),
+  });
+  const payload: ExecuteActionResponse = await response.json();
+  if (!response.ok) throw new Error(payload.error_code || `HTTP ${response.status}`);
+  return payload;
+}
+
+export function confirmControlActionApi(
+  request: ActionRequest,
+  confirmationToken: string,
+): Promise<ExecuteActionResponse> {
+  return executeControlActionApi({ ...request, confirmation_token: confirmationToken });
+}
 
 export async function fetchMachineInfoApi(): Promise<void> {
   try {
@@ -1114,6 +1194,15 @@ function handleWsEvent(ev: WsEvent) {
     case WsEventType.DEV_TOOLS_UPDATE:
       setDevTools(ev.data as DevToolInfo[]);
       break;
+
+    case WsEventType.WORKSTATION_EVENT: {
+      const workstationEvent = ev.data as WorkstationEvent;
+      setWorkstationEvents((current) => {
+        if (current.some((event) => event.event_id === workstationEvent.event_id)) return current;
+        return [workstationEvent, ...current].slice(0, 200);
+      });
+      break;
+    }
 
     default:
       break;

@@ -466,6 +466,112 @@ export interface EnvVarsPayload {
   detected_api_keys: DetectedApiKey[];
 }
 
+export type EventKind =
+  | 'service_started'
+  | 'service_degraded'
+  | 'action_requested'
+  | 'action_confirmation_required'
+  | 'action_succeeded'
+  | 'action_failed';
+
+export type EventSeverity = 'info' | 'warning' | 'error' | 'critical';
+export type ActionRisk = 'safe' | 'confirmation_required' | 'administrator_required';
+export type ActionParameterType = 'string' | 'integer' | 'boolean' | 'string_list';
+export type ActionExecutionStatus =
+  | 'pending'
+  | 'confirmation_required'
+  | 'succeeded'
+  | 'failed'
+  | 'denied';
+export type ActionOrigin =
+  | 'api'
+  | 'command_palette'
+  | 'legacy_endpoint'
+  | 'automation'
+  | 'menu_bar'
+  | 'peer';
+
+export interface WorkstationEvent {
+  event_id: string;
+  device_id: string;
+  event_type: EventKind;
+  severity: EventSeverity;
+  source: string;
+  occurred_at: number;
+  correlation_id: string;
+  schema_version: number;
+  payload: Record<string, unknown>;
+}
+
+export interface EventQuery {
+  device_id?: string;
+  event_type?: EventKind;
+  severity?: EventSeverity;
+  source?: string;
+  before?: string;
+  limit?: number;
+}
+
+export interface EventPage {
+  items: WorkstationEvent[];
+  next_cursor?: string | null;
+  storage_degraded: boolean;
+}
+
+export interface ActionParameterDefinition {
+  name: string;
+  value_type: ActionParameterType;
+  required: boolean;
+  label_key: string;
+}
+
+export interface ActionDefinition {
+  id: string;
+  label_key: string;
+  description_key: string;
+  risk: ActionRisk;
+  parameters: ActionParameterDefinition[];
+  keywords: string[];
+  available: boolean;
+  unavailable_reason?: string | null;
+}
+
+export interface ActionRequest {
+  request_id: string;
+  action_id: string;
+  target_device?: string | null;
+  parameters: Record<string, unknown>;
+  origin: ActionOrigin;
+  requested_by: string;
+  confirmation_token?: string | null;
+}
+
+export interface ActionResult {
+  request_id: string;
+  action_id: string;
+  status: ActionExecutionStatus;
+  started_at: number;
+  finished_at?: number | null;
+  duration_ms?: number | null;
+  output_summary?: string | null;
+  error?: string | null;
+  correlation_id: string;
+}
+
+export interface ConfirmationChallenge {
+  token: string;
+  expires_at: number;
+  risk: ActionRisk;
+}
+
+export interface ExecuteActionResponse {
+  status: ActionExecutionStatus;
+  confirmation?: ConfirmationChallenge | null;
+  result?: ActionResult | null;
+  output?: Record<string, unknown> | null;
+  error_code?: string | null;
+}
+
 export type WsEvent =
   | { type: 'TrafficUpdate'; data: TrafficSummary }
   | { type: 'SocketsUpdate'; data: SocketsPayload }
@@ -475,4 +581,5 @@ export type WsEvent =
   | { type: 'ProcessesUpdate'; data: ProcessInfo[] }
   | { type: 'DisksUpdate'; data: DiskInfo[] }
   | { type: 'BatteryUpdate'; data: BatteryInfo | null }
-  | { type: 'DevToolsUpdate'; data: DevToolInfo[] };
+  | { type: 'DevToolsUpdate'; data: DevToolInfo[] }
+  | { type: 'WorkstationEvent'; data: WorkstationEvent };

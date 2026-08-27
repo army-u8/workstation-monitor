@@ -216,6 +216,9 @@ export const ApiEndpoint = {
   OLLAMA_UNLOAD: '/api/tools/ollama/unload',
   AI_AGENTS: '/api/ai/agents',
   ENV_VARS: '/api/system/env-vars',
+  CONTROL_EVENTS: '/api/control/events',
+  CONTROL_ACTIONS: '/api/control/actions',
+  CONTROL_ACTION_EXECUTE: '/api/control/actions/execute',
 } as const;
 export type ApiEndpoint = (typeof ApiEndpoint)[keyof typeof ApiEndpoint];
 
@@ -229,6 +232,7 @@ export const WsEventType = {
   DISKS_UPDATE: 'DisksUpdate',
   BATTERY_UPDATE: 'BatteryUpdate',
   DEV_TOOLS_UPDATE: 'DevToolsUpdate',
+  WORKSTATION_EVENT: 'WorkstationEvent',
 } as const;
 export type WsEventType = (typeof WsEventType)[keyof typeof WsEventType];
 
