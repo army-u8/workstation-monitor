@@ -6,6 +6,7 @@ use tokio::sync::{broadcast, RwLock};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod collectors;
+mod control;
 mod server;
 mod types;
 

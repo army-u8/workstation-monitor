@@ -26,6 +26,8 @@ reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"
 open = "5"
 libc = "0.2"
 socket2 = "0.6"
+rusqlite = { version = "0.37", features = ["bundled"] }
+uuid = { version = "1", features = ["v4", "serde"] }
 
 # Packaging config for `cargo bundle` (produces Workstation Monitor.app).
 # Usage: cargo install cargo-bundle && cargo bundle --release
