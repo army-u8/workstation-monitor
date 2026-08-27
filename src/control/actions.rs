@@ -374,6 +374,21 @@ impl ControlPlane {
         &self,
         request: ActionRequest,
     ) -> Result<ExecuteActionResponse, ControlError> {
+        self.execute_internal(request, false).await
+    }
+
+    pub(crate) async fn execute_trusted_local(
+        &self,
+        request: ActionRequest,
+    ) -> Result<ExecuteActionResponse, ControlError> {
+        self.execute_internal(request, true).await
+    }
+
+    async fn execute_internal(
+        &self,
+        request: ActionRequest,
+        trusted_local_confirmation: bool,
+    ) -> Result<ExecuteActionResponse, ControlError> {
         if request.request_id.trim().is_empty() || request.action_id.trim().is_empty() {
             return Err(ControlError::InvalidParameters(
                 "request_id and action_id are required".to_string(),
@@ -406,37 +421,39 @@ impl ControlPlane {
             });
         }
 
-        match self
-            .policy
-            .authorize(
-                &request.request_id,
-                &request.action_id,
-                &request.parameters,
-                definition.risk.clone(),
-                request.confirmation_token.as_deref(),
-            )
-            .await
-        {
-            PolicyDecision::ConfirmationRequired(challenge) => {
-                self.publish_action_event(
-                    &request,
-                    EventKind::ActionConfirmationRequired,
-                    EventSeverity::Warning,
-                    json!({"risk": definition.risk}),
+        if !trusted_local_confirmation {
+            match self
+                .policy
+                .authorize(
+                    &request.request_id,
+                    &request.action_id,
+                    &request.parameters,
+                    definition.risk.clone(),
+                    request.confirmation_token.as_deref(),
                 )
-                .await;
-                return Ok(ExecuteActionResponse {
-                    status: ActionExecutionStatus::ConfirmationRequired,
-                    confirmation: Some(challenge),
-                    result: None,
-                    output: None,
-                    error_code: None,
-                });
+                .await
+            {
+                PolicyDecision::ConfirmationRequired(challenge) => {
+                    self.publish_action_event(
+                        &request,
+                        EventKind::ActionConfirmationRequired,
+                        EventSeverity::Warning,
+                        json!({"risk": definition.risk}),
+                    )
+                    .await;
+                    return Ok(ExecuteActionResponse {
+                        status: ActionExecutionStatus::ConfirmationRequired,
+                        confirmation: Some(challenge),
+                        result: None,
+                        output: None,
+                        error_code: None,
+                    });
+                }
+                PolicyDecision::Denied(denial) => {
+                    return Err(ControlError::Forbidden(denial.code().to_string()))
+                }
+                PolicyDecision::Allowed => {}
             }
-            PolicyDecision::Denied(denial) => {
-                return Err(ControlError::Forbidden(denial.code().to_string()))
-            }
-            PolicyDecision::Allowed => {}
         }
 
         self.publish_action_event(

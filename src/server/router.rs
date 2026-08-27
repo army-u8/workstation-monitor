@@ -1,10 +1,9 @@
 use crate::collectors::{
-    kill_process, kill_process_by_port, AiRadarManager, AutoUpdater, EnvVarsCollector, GitRadar,
-    HostsManager, MachineInfoCollector, ObsidianManager, SavePointManager, SpeedTester,
-    SystemCleaner, WebArtifactsManager,
+    AiRadarManager, AutoUpdater, EnvVarsCollector, GitRadar, HostsManager, MachineInfoCollector,
+    ObsidianManager, SavePointManager, SpeedTester, SystemCleaner, WebArtifactsManager,
 };
 use crate::control::actions::{ControlError, ControlPlane};
-use crate::control::models::{ActionRequest, EventQuery};
+use crate::control::models::{ActionOrigin, ActionRequest, EventQuery};
 use crate::server::embedded::static_handler;
 use crate::server::ws::{ws_handler, AppState};
 use crate::types::{
@@ -352,31 +351,52 @@ async fn get_cleaner_scan() -> impl IntoResponse {
     (StatusCode::OK, Json(serde_json::to_value(items).unwrap()))
 }
 
-async fn post_cleaner_clean(Json(payload): Json<CleanRequest>) -> impl IntoResponse {
-    let target = payload.id.clone();
-    let res = tokio::task::spawn_blocking(move || SystemCleaner::clean(&target)).await;
-    match res {
-        Ok(Ok(msg)) => (
-            StatusCode::OK,
-            Json(OpsResponse {
-                success: true,
-                message: msg,
-                data: None,
-            }),
-        ),
-        Ok(Err(err)) => (
+async fn post_cleaner_clean(
+    State(state): State<AppState>,
+    Json(payload): Json<CleanRequest>,
+) -> impl IntoResponse {
+    match state
+        .control
+        .execute_trusted_local(legacy_action_request(
+            "cleaner.clean",
+            serde_json::json!({"id": payload.id}),
+        ))
+        .await
+    {
+        Ok(response)
+            if response.status == crate::control::models::ActionExecutionStatus::Succeeded =>
+        {
+            (
+                StatusCode::OK,
+                Json(OpsResponse {
+                    success: true,
+                    message: response
+                        .output
+                        .as_ref()
+                        .and_then(|output| output.get("message"))
+                        .and_then(serde_json::Value::as_str)
+                        .unwrap_or("清理完成")
+                        .to_string(),
+                    data: None,
+                }),
+            )
+        }
+        Ok(response) => (
             StatusCode::BAD_REQUEST,
             Json(OpsResponse {
                 success: false,
-                message: err,
+                message: response
+                    .result
+                    .and_then(|result| result.error)
+                    .unwrap_or_else(|| "清理失败".to_string()),
                 data: None,
             }),
         ),
-        Err(e) => (
+        Err(error) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(OpsResponse {
                 success: false,
-                message: format!("清理执行异常: {}", e),
+                message: format!("清理执行异常: {error}"),
                 data: None,
             }),
         ),
@@ -430,136 +450,195 @@ async fn post_speedtest() -> impl IntoResponse {
 }
 
 // 5. Open Project in Editor, Terminal, or Finder
-async fn post_open_app(Json(payload): Json<OpenAppRequest>) -> impl IntoResponse {
+async fn post_open_app(
+    State(state): State<AppState>,
+    Json(payload): Json<OpenAppRequest>,
+) -> impl IntoResponse {
     let path = payload.path.trim().to_string();
     let app = payload
         .app
         .unwrap_or_else(|| "finder".to_string())
         .to_lowercase();
-
-    let cmd_res = match app.as_str() {
-        "code" | "vscode" => {
-            // Use macOS App Bundle name first to avoid hijacked /usr/local/bin/code symlink
-            Command::new("open")
-                .args(["-a", "Visual Studio Code", &path])
-                .spawn()
-                .or_else(|_| Command::new("code").arg(&path).spawn())
+    match state
+        .control
+        .execute_trusted_local(legacy_action_request(
+            "app.open",
+            serde_json::json!({"path": path, "app": app}),
+        ))
+        .await
+    {
+        Ok(response)
+            if response.status == crate::control::models::ActionExecutionStatus::Succeeded =>
+        {
+            (
+                StatusCode::OK,
+                Json(OpsResponse {
+                    success: true,
+                    message: format!("已在 {} 中打开: {}", app, path),
+                    data: None,
+                }),
+            )
         }
-        "cursor" => Command::new("open")
-            .args(["-a", "Cursor", &path])
-            .spawn()
-            .or_else(|_| Command::new("cursor").arg(&path).spawn()),
-        "windsurf" => Command::new("open")
-            .args(["-a", "Windsurf", &path])
-            .spawn()
-            .or_else(|_| Command::new("windsurf").arg(&path).spawn()),
-        "zed" => Command::new("open")
-            .args(["-a", "Zed", &path])
-            .spawn()
-            .or_else(|_| Command::new("zed").arg(&path).spawn()),
-        "terminal" => {
-            // Try Ghostty / iTerm / Warp / default macOS Terminal
-            Command::new("open")
-                .args(["-a", "Ghostty", &path])
-                .spawn()
-                .or_else(|_| Command::new("open").args(["-a", "iTerm", &path]).spawn())
-                .or_else(|_| Command::new("open").args(["-a", "Warp", &path]).spawn())
-                .or_else(|_| Command::new("open").args(["-a", "Terminal", &path]).spawn())
+        Ok(response) => (
+            StatusCode::BAD_REQUEST,
+            Json(OpsResponse {
+                success: false,
+                message: format!(
+                    "打开失败: {}",
+                    response
+                        .result
+                        .and_then(|result| result.error)
+                        .unwrap_or_else(|| "unknown error".to_string())
+                ),
+                data: None,
+            }),
+        ),
+        Err(error) => (
+            StatusCode::BAD_REQUEST,
+            Json(OpsResponse {
+                success: false,
+                message: format!("打开失败: {error}"),
+                data: None,
+            }),
+        ),
+    }
+}
+
+async fn post_kill_process(
+    State(state): State<AppState>,
+    Json(payload): Json<KillProcessRequest>,
+) -> impl IntoResponse {
+    match state
+        .control
+        .execute_trusted_local(legacy_action_request(
+            "process.kill",
+            serde_json::json!({"pid": payload.pid}),
+        ))
+        .await
+    {
+        Ok(response)
+            if response.status == crate::control::models::ActionExecutionStatus::Succeeded =>
+        {
+            (
+                StatusCode::OK,
+                Json(OpsResponse {
+                    success: true,
+                    message: format!("已成功终止进程 PID {}", payload.pid),
+                    data: None,
+                }),
+            )
         }
-        "iterm" | "iterm2" => Command::new("open").args(["-a", "iTerm", &path]).spawn(),
-        "ghostty" => Command::new("open").args(["-a", "Ghostty", &path]).spawn(),
-        "warp" => Command::new("open").args(["-a", "Warp", &path]).spawn(),
-        _ => Command::new("open").arg(&path).spawn(),
-    };
-
-    match cmd_res {
-        Ok(_) => (
-            StatusCode::OK,
-            Json(OpsResponse {
-                success: true,
-                message: format!("已在 {} 中打开: {}", app, path),
-                data: None,
-            }),
-        ),
-        Err(err) => (
+        Ok(response) => (
             StatusCode::BAD_REQUEST,
             Json(OpsResponse {
                 success: false,
-                message: format!("打开失败: {}", err),
+                message: response
+                    .result
+                    .and_then(|result| result.error)
+                    .unwrap_or_else(|| "终止进程失败".to_string()),
+                data: None,
+            }),
+        ),
+        Err(error) => (
+            StatusCode::BAD_REQUEST,
+            Json(OpsResponse {
+                success: false,
+                message: error.to_string(),
                 data: None,
             }),
         ),
     }
 }
 
-async fn post_kill_process(Json(payload): Json<KillProcessRequest>) -> impl IntoResponse {
-    match kill_process(payload.pid) {
-        Ok(_) => (
-            StatusCode::OK,
-            Json(OpsResponse {
-                success: true,
-                message: format!("已成功终止进程 PID {}", payload.pid),
-                data: None,
-            }),
-        ),
-        Err(err) => (
+async fn post_kill_port(
+    State(state): State<AppState>,
+    Json(payload): Json<KillPortRequest>,
+) -> impl IntoResponse {
+    match state
+        .control
+        .execute_trusted_local(legacy_action_request(
+            "port.kill",
+            serde_json::json!({"port": payload.port}),
+        ))
+        .await
+    {
+        Ok(response)
+            if response.status == crate::control::models::ActionExecutionStatus::Succeeded =>
+        {
+            let pids = response
+                .output
+                .as_ref()
+                .and_then(|output| output.get("pids"))
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!([]));
+            (
+                StatusCode::OK,
+                Json(OpsResponse {
+                    success: true,
+                    message: format!("已成功终止占用端口 :{} 的进程: {:?}", payload.port, pids),
+                    data: Some(serde_json::json!({ "pids": pids })),
+                }),
+            )
+        }
+        Ok(response) => (
             StatusCode::BAD_REQUEST,
             Json(OpsResponse {
                 success: false,
-                message: err,
+                message: response
+                    .result
+                    .and_then(|result| result.error)
+                    .unwrap_or_else(|| "释放端口失败".to_string()),
+                data: None,
+            }),
+        ),
+        Err(error) => (
+            StatusCode::BAD_REQUEST,
+            Json(OpsResponse {
+                success: false,
+                message: error.to_string(),
                 data: None,
             }),
         ),
     }
 }
 
-async fn post_kill_port(Json(payload): Json<KillPortRequest>) -> impl IntoResponse {
-    match kill_process_by_port(payload.port) {
-        Ok(pids) => (
-            StatusCode::OK,
-            Json(OpsResponse {
-                success: true,
-                message: format!("已成功终止占用端口 :{} 的进程: {:?}", payload.port, pids),
-                data: Some(serde_json::json!({ "pids": pids })),
-            }),
-        ),
-        Err(err) => (
-            StatusCode::BAD_REQUEST,
-            Json(OpsResponse {
-                success: false,
-                message: err,
-                data: None,
-            }),
-        ),
-    }
-}
-
-async fn post_flush_dns() -> impl IntoResponse {
-    let mut err_msg = None;
-
-    let res1 = Command::new("dscacheutil").arg("-flushcache").output();
-    let res2 = Command::new("killall")
-        .args(["-HUP", "mDNSResponder"])
-        .output();
-
-    if res1.is_err() && res2.is_err() {
-        err_msg = Some("执行清理 DNS 指令失败".to_string());
-    }
-
-    match err_msg {
-        None => (
-            StatusCode::OK,
-            Json(OpsResponse {
-                success: true,
-                message: "macOS DNS 缓存已成功刷新并重载 mDNSResponder".to_string(),
-                data: None,
-            }),
-        ),
-        Some(e) => (
+async fn post_flush_dns(State(state): State<AppState>) -> impl IntoResponse {
+    match state
+        .control
+        .execute_trusted_local(legacy_action_request(
+            "network.flush_dns",
+            serde_json::json!({}),
+        ))
+        .await
+    {
+        Ok(response)
+            if response.status == crate::control::models::ActionExecutionStatus::Succeeded =>
+        {
+            (
+                StatusCode::OK,
+                Json(OpsResponse {
+                    success: true,
+                    message: "macOS DNS 缓存已成功刷新并重载 mDNSResponder".to_string(),
+                    data: None,
+                }),
+            )
+        }
+        Ok(response) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(OpsResponse {
                 success: false,
-                message: e,
+                message: response
+                    .result
+                    .and_then(|result| result.error)
+                    .unwrap_or_else(|| "执行清理 DNS 指令失败".to_string()),
+                data: None,
+            }),
+        ),
+        Err(error) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(OpsResponse {
+                success: false,
+                message: error.to_string(),
                 data: None,
             }),
         ),
@@ -962,23 +1041,59 @@ async fn get_snapshots(Query(params): Query<SnapshotQuery>) -> impl IntoResponse
     }
 }
 
-async fn post_snapshot_create(Json(payload): Json<CreateSnapshotRequest>) -> impl IntoResponse {
-    match tokio::task::spawn_blocking(move || {
-        SavePointManager::create_snapshot(&payload.project_path, &payload.title)
-    })
-    .await
+async fn post_snapshot_create(
+    State(state): State<AppState>,
+    Json(payload): Json<CreateSnapshotRequest>,
+) -> impl IntoResponse {
+    match state
+        .control
+        .execute_trusted_local(legacy_action_request(
+            "snapshot.create",
+            serde_json::json!({
+                "project_path": payload.project_path,
+                "title": payload.title,
+            }),
+        ))
+        .await
     {
-        Ok(Ok(res)) => (StatusCode::OK, Json(serde_json::to_value(res).unwrap())),
-        Ok(Err(e)) => (
+        Ok(response)
+            if response.status == crate::control::models::ActionExecutionStatus::Succeeded =>
+        {
+            (
+                StatusCode::OK,
+                Json(response.output.unwrap_or_else(
+                    || serde_json::json!({"success": true, "message": "", "snapshot": null}),
+                )),
+            )
+        }
+        Ok(response) => (
             StatusCode::BAD_REQUEST,
-            Json(serde_json::json!({"success": false, "message": e})),
+            Json(serde_json::json!({
+                "success": false,
+                "message": response
+                    .result
+                    .and_then(|result| result.error)
+                    .unwrap_or_else(|| "snapshot failed".to_string()),
+            })),
         ),
-        Err(e) => (
+        Err(error) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(
-                serde_json::json!({"success": false, "message": format!("Internal error: {}", e)}),
+                serde_json::json!({"success": false, "message": format!("Internal error: {error}")}),
             ),
         ),
+    }
+}
+
+fn legacy_action_request(action_id: &str, parameters: serde_json::Value) -> ActionRequest {
+    ActionRequest {
+        request_id: uuid::Uuid::new_v4().simple().to_string(),
+        action_id: action_id.to_string(),
+        target_device: None,
+        parameters,
+        origin: ActionOrigin::LegacyEndpoint,
+        requested_by: "local-user".to_string(),
+        confirmation_token: None,
     }
 }
 
@@ -1057,7 +1172,7 @@ async fn get_ai_agents() -> impl IntoResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::control::actions::BuiltInActionExecutor;
+    use crate::control::actions::{ActionExecutor, BuiltInActionExecutor};
     use crate::control::repository::ControlRepository;
     use axum::{
         body::Body,
@@ -1067,14 +1182,42 @@ mod tests {
     use tokio::sync::{broadcast, RwLock};
     use tower::ServiceExt;
 
-    fn test_state() -> AppState {
+    struct SuccessfulTestExecutor;
+
+    impl ActionExecutor for SuccessfulTestExecutor {
+        fn execute(
+            &self,
+            action_id: &str,
+            parameters: &serde_json::Value,
+        ) -> Result<serde_json::Value, String> {
+            Ok(match action_id {
+                "process.kill" => serde_json::json!({
+                    "summary": "process_terminated",
+                    "pid": parameters["pid"],
+                }),
+                "port.kill" => serde_json::json!({
+                    "summary": "port_released",
+                    "port": parameters["port"],
+                    "pids": [42],
+                }),
+                "cleaner.clean" => serde_json::json!({
+                    "summary": "cache_cleaned",
+                    "message": "cleaned",
+                }),
+                "snapshot.create" => serde_json::json!({
+                    "success": true,
+                    "message": "saved",
+                    "snapshot": null,
+                }),
+                _ => serde_json::json!({"summary": "completed"}),
+            })
+        }
+    }
+
+    fn test_state_with_executor(executor: Arc<dyn ActionExecutor>) -> AppState {
         let (tx, _) = broadcast::channel(8);
         let repository = Arc::new(ControlRepository::open_in_memory().unwrap());
-        let control = Arc::new(ControlPlane::new(
-            repository,
-            tx.clone(),
-            Arc::new(BuiltInActionExecutor),
-        ));
+        let control = Arc::new(ControlPlane::new(repository, tx.clone(), executor));
         AppState {
             tx,
             control,
@@ -1087,6 +1230,10 @@ mod tests {
             latest_battery: Arc::new(RwLock::new(None)),
             latest_dev_tools: Arc::new(RwLock::new(Vec::new())),
         }
+    }
+
+    fn test_state() -> AppState {
+        test_state_with_executor(Arc::new(BuiltInActionExecutor))
     }
 
     async fn preflight(origin: &'static str) -> axum::response::Response {
@@ -1182,6 +1329,84 @@ mod tests {
         assert_eq!(json["host_name"], "test-host");
         assert!(json.get("status").is_none());
         assert!(json.get("result").is_none());
+    }
+
+    #[tokio::test]
+    async fn legacy_mutation_keeps_response_shape_and_writes_audit_result() {
+        let state = test_state_with_executor(Arc::new(SuccessfulTestExecutor));
+        let control = state.control.clone();
+        let response = build_router(state)
+            .oneshot(
+                Request::builder()
+                    .method(Method::POST)
+                    .uri("/api/process/kill")
+                    .header(header::CONTENT_TYPE, "application/json")
+                    .body(Body::from(r#"{"pid":42}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+            .await
+            .unwrap();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["success"], true);
+        assert_eq!(json["data"], serde_json::Value::Null);
+
+        let events = control.list_events(EventQuery::default()).await.items;
+        assert_eq!(events.len(), 2);
+        assert_eq!(
+            events[0].event_type,
+            crate::control::models::EventKind::ActionSucceeded
+        );
+    }
+
+    #[tokio::test]
+    async fn legacy_mutation_adapters_preserve_success_envelopes() {
+        let cases = [
+            ("/api/port/kill", r#"{"port":9527}"#, "data"),
+            ("/api/cleaner/clean", r#"{"id":"npm_cache"}"#, "success"),
+            (
+                "/api/projects/snapshots/create",
+                r#"{"project_path":"/tmp/repo","title":"checkpoint"}"#,
+                "snapshot",
+            ),
+            (
+                "/api/tools/open-app",
+                r#"{"path":"/tmp/repo","app":"finder"}"#,
+                "success",
+            ),
+        ];
+
+        for (uri, body, expected_key) in cases {
+            let state = test_state_with_executor(Arc::new(SuccessfulTestExecutor));
+            let control = state.control.clone();
+            let response = build_router(state)
+                .oneshot(
+                    Request::builder()
+                        .method(Method::POST)
+                        .uri(uri)
+                        .header(header::CONTENT_TYPE, "application/json")
+                        .body(Body::from(body))
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+
+            assert_eq!(response.status(), StatusCode::OK, "{uri}");
+            let bytes = axum::body::to_bytes(response.into_body(), usize::MAX)
+                .await
+                .unwrap();
+            let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+            assert!(json.get(expected_key).is_some(), "{uri}: {json}");
+            assert_eq!(
+                control.list_events(EventQuery::default()).await.items.len(),
+                2,
+                "{uri}"
+            );
+        }
     }
 
     #[tokio::test]
