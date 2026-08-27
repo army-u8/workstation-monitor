@@ -21,6 +21,7 @@ import {
   SnifferIcon,
   SocketsIcon,
   SpeedIcon,
+  TimelineIcon,
 } from './Icons';
 import {
   battery,
@@ -77,6 +78,11 @@ export const Sidebar: Component = () => {
           id: NavSectionId.OVERVIEW,
           icon: OverviewIcon,
           label: () => t().sidebar.navOverview,
+        },
+        {
+          id: NavSectionId.ACTIVITY,
+          icon: TimelineIcon,
+          label: () => t().sidebar.navActivity,
         },
       ],
     },

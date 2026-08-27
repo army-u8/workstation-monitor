@@ -42,6 +42,7 @@ export const NavSectionId = {
   OPS: 'ops',
   ARTIFACTS: 'artifacts',
   AI_RADAR: 'ai_radar',
+  ACTIVITY: 'activity',
 } as const;
 export type NavSectionId = (typeof NavSectionId)[keyof typeof NavSectionId];
 
@@ -63,6 +64,7 @@ export const RoutePath = {
   OPS: '/ops',
   ARTIFACTS: '/artifacts',
   AI_RADAR: '/ai-radar',
+  ACTIVITY: '/activity',
 } as const;
 export type RoutePath = (typeof RoutePath)[keyof typeof RoutePath];
 
@@ -84,6 +86,7 @@ export const sectionToPathMap: Record<NavSectionId, RoutePath> = {
   [NavSectionId.OPS]: RoutePath.OPS,
   [NavSectionId.ARTIFACTS]: RoutePath.ARTIFACTS,
   [NavSectionId.AI_RADAR]: RoutePath.AI_RADAR,
+  [NavSectionId.ACTIVITY]: RoutePath.ACTIVITY,
 };
 
 export const pathToSectionMap: Record<string, NavSectionId> = {
@@ -104,6 +107,7 @@ export const pathToSectionMap: Record<string, NavSectionId> = {
   [RoutePath.OPS]: NavSectionId.OPS,
   [RoutePath.ARTIFACTS]: NavSectionId.ARTIFACTS,
   [RoutePath.AI_RADAR]: NavSectionId.AI_RADAR,
+  [RoutePath.ACTIVITY]: NavSectionId.ACTIVITY,
   '/git_radar': NavSectionId.GIT_RADAR,
   '/machine_info': NavSectionId.MACHINE_INFO,
   '/': NavSectionId.OVERVIEW,

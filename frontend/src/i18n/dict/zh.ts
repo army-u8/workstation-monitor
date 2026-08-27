@@ -68,6 +68,7 @@ export const zh = {
     navOps: '运维总控',
     navArtifacts: '产物画廊',
     navAiRadar: 'AI 测速 & 显控',
+    navActivity: '活动时间线',
     navigationLabel: '侧边栏导航',
   },
   header: {
@@ -89,6 +90,7 @@ export const zh = {
       ops: '快捷运维与网络诊断',
       artifacts: '本地 Web 产物即时画廊 & 端口自愈',
       ai_radar: '全球主流 LLM API 测速雷达 & 本地大模型显控',
+      activity: '工作站活动与审计时间线',
     },
   },
   kpi: {
@@ -729,6 +731,32 @@ export const zh = {
   },
   ops: {
     subtitle: 'macOS 本机网络诊断、DNS 缓存刷新与端口占用清理快捷运维动作',
+  },
+  activity: {
+    title: '工作站活动时间线',
+    subtitle: '统一追踪系统事件、操作请求、确认和执行结果',
+    loading: '加载中...',
+    storageDegraded: '持久化存储暂不可用，当前事件仅保留在内存中',
+    loadFailed: '活动记录加载失败，请稍后重试',
+    empty: '暂无符合条件的活动记录',
+    loadMore: '加载更多',
+    filterSeverity: '严重级别',
+    filterSource: '事件来源',
+    filterDevice: '设备',
+    severities: {
+      info: '信息',
+      warning: '警告',
+      error: '错误',
+      critical: '严重',
+    },
+    eventTypes: {
+      service_started: '服务已启动',
+      service_degraded: '服务已降级',
+      action_requested: '操作已请求',
+      action_confirmation_required: '操作等待确认',
+      action_succeeded: '操作已完成',
+      action_failed: '操作失败',
+    },
   },
 };
 

@@ -70,6 +70,7 @@ export const en: Dict = {
     navOps: 'Ops Toolkit',
     navArtifacts: 'Web Artifacts',
     navAiRadar: 'AI Radar & Hub',
+    navActivity: 'Activity Timeline',
     navigationLabel: 'Sidebar navigation',
   },
   header: {
@@ -91,6 +92,7 @@ export const en: Dict = {
       ops: 'Workstation Ops Toolkit',
       artifacts: 'Local Live Web Artifacts & Port Auto-Healer',
       ai_radar: 'Global LLM API Radar & Ollama Controller',
+      activity: 'Workstation Activity & Audit Timeline',
     },
   },
   kpi: {
@@ -742,5 +744,31 @@ export const en: Dict = {
   },
   ops: {
     subtitle: 'macOS local network diagnostics, DNS cache flush and port freeing quick actions',
+  },
+  activity: {
+    title: 'Workstation Activity Timeline',
+    subtitle: 'Trace system events, action requests, confirmations, and execution results',
+    loading: 'Loading...',
+    storageDegraded: 'Persistent storage is unavailable; current events are retained in memory',
+    loadFailed: 'Failed to load activity. Try again shortly.',
+    empty: 'No activity matches the current filters',
+    loadMore: 'Load more',
+    filterSeverity: 'Severity',
+    filterSource: 'Source',
+    filterDevice: 'Device',
+    severities: {
+      info: 'Info',
+      warning: 'Warning',
+      error: 'Error',
+      critical: 'Critical',
+    },
+    eventTypes: {
+      service_started: 'Service started',
+      service_degraded: 'Service degraded',
+      action_requested: 'Action requested',
+      action_confirmation_required: 'Action awaiting confirmation',
+      action_succeeded: 'Action completed',
+      action_failed: 'Action failed',
+    },
   },
 };
