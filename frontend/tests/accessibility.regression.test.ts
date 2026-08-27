@@ -107,3 +107,28 @@ test('all custom dialogs keep Tab focus inside the active surface', () => {
     assert.match(source, /trapDialogFocus\(e, e\.currentTarget\)/, component);
   }
 });
+
+test('Activity navigation is exposed through the bilingual navigation label', () => {
+  const source = readSource('components/Sidebar.tsx');
+
+  assert.match(source, /label: \(\) => t\(\)\.sidebar\.navActivity/);
+  assert.match(source, /aria-label=\{t\(\)\.sidebar\.navigationLabel\}/);
+});
+
+test('the command palette has dialog semantics and keyboard lifecycle ownership', () => {
+  const source = readSource('components/CommandPalette.tsx');
+
+  assert.match(source, /role="dialog"/);
+  assert.match(source, /aria-modal="true"/);
+  assert.match(source, /aria-labelledby="command-palette-title"/);
+  assert.match(source, /event\.key === 'Escape'/);
+  assert.match(source, /removeEventListener/);
+  assert.match(source, /trapDialogFocus\(event, event\.currentTarget\)/);
+});
+
+test('command results are focusable controls with explicit accessible names', () => {
+  const source = readSource('components/CommandPalette.tsx');
+
+  assert.match(source, /<button[\s\S]*?onClick=\{\(\) => chooseAction\(item\.action\)\}/);
+  assert.match(source, /aria-label=\{item\.label\}/);
+});

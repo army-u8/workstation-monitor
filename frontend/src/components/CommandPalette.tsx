@@ -275,6 +275,7 @@ export const CommandPalette: Component = () => {
                           type="button"
                           class="flex w-full items-start gap-3 rounded-lg border border-transparent px-3 py-2.5 text-left transition-colors hover:border-border-hover hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-55"
                           disabled={item.disabled}
+                          aria-label={item.label}
                           onClick={() => chooseAction(item.action)}
                         >
                           <CommandIcon class="mt-0.5 h-4 w-4 shrink-0 text-accent" />

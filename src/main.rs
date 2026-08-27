@@ -59,6 +59,27 @@ fn dashboard_host(bind_ip: std::net::IpAddr) -> String {
     }
 }
 
+const DEFAULT_EVENT_RETENTION_DAYS: u64 = 30;
+const MIN_EVENT_RETENTION_DAYS: u64 = 1;
+const MAX_EVENT_RETENTION_DAYS: u64 = 365;
+const MILLIS_PER_DAY: i64 = 86_400_000;
+
+fn parse_retention_days(configured: Option<&str>) -> u64 {
+    configured
+        .and_then(|value| value.parse::<u64>().ok())
+        .unwrap_or(DEFAULT_EVENT_RETENTION_DAYS)
+        .clamp(MIN_EVENT_RETENTION_DAYS, MAX_EVENT_RETENTION_DAYS)
+}
+
+fn retention_cutoff_timestamp(retention_days: u64) -> i64 {
+    let retention_millis = i64::try_from(retention_days)
+        .unwrap_or(MAX_EVENT_RETENTION_DAYS as i64)
+        .saturating_mul(MILLIS_PER_DAY);
+    chrono::Utc::now()
+        .timestamp_millis()
+        .saturating_sub(retention_millis)
+}
+
 #[derive(Debug, PartialEq, Eq)]
 enum PrivilegePlan {
     AlreadyUnprivileged,
@@ -176,82 +197,6 @@ fn drop_server_privileges_after_sniffer() -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(test)]
-mod bind_tests {
-    use super::*;
-
-    #[test]
-    fn server_binds_to_loopback_by_default() {
-        assert!(resolve_bind_ip(None).unwrap().is_loopback());
-    }
-
-    #[test]
-    fn server_allows_explicit_lan_bind_opt_in() {
-        assert_eq!(
-            resolve_bind_ip(Some("0.0.0.0")).unwrap(),
-            std::net::IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED)
-        );
-    }
-
-    #[test]
-    fn server_uses_ipv6_socket_for_ipv6_bind_address() {
-        let ip = "::1".parse().unwrap();
-        assert_eq!(socket_domain_for(ip), socket2::Domain::IPV6);
-        assert_eq!(
-            socket_addr_for(ip, 9527),
-            std::net::SocketAddr::new(ip, 9527)
-        );
-    }
-
-    #[test]
-    fn health_probe_uses_reachable_address_for_each_bind_mode() {
-        let ipv6_loopback = "::1".parse().unwrap();
-        let ipv6_unspecified = "::".parse().unwrap();
-        let ipv4_unspecified = "0.0.0.0".parse().unwrap();
-
-        assert_eq!(health_probe_ip(ipv6_loopback), ipv6_loopback);
-        assert_eq!(health_probe_ip(ipv6_unspecified), ipv6_loopback);
-        assert_eq!(
-            health_probe_ip(ipv4_unspecified),
-            "127.0.0.1".parse::<std::net::IpAddr>().unwrap()
-        );
-    }
-
-    #[test]
-    fn dashboard_host_uses_the_explicit_bind_address() {
-        assert_eq!(
-            dashboard_host("192.168.1.44".parse().unwrap()),
-            "192.168.1.44"
-        );
-        assert_eq!(dashboard_host("::1".parse().unwrap()), "[::1]");
-        assert_eq!(dashboard_host("0.0.0.0".parse().unwrap()), "localhost");
-        assert_eq!(dashboard_host("::".parse().unwrap()), "localhost");
-    }
-
-    #[test]
-    fn root_server_requires_a_non_root_sudo_identity_for_privilege_drop() {
-        assert_eq!(
-            privilege_plan(0, Some("501"), Some("20")).unwrap(),
-            PrivilegePlan::DropTo { uid: 501, gid: 20 }
-        );
-        assert!(privilege_plan(0, None, None).is_err());
-        assert!(privilege_plan(0, Some("0"), Some("0")).is_err());
-        assert_eq!(
-            privilege_plan(501, None, None).unwrap(),
-            PrivilegePlan::AlreadyUnprivileged
-        );
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn invoking_user_identity_resolves_to_a_named_home_directory() {
-        let (name, home) = lookup_user_identity(unsafe { libc::getuid() }).unwrap();
-
-        assert!(!name.as_bytes().is_empty());
-        assert!(std::path::Path::new(&home).is_absolute());
-    }
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::registry()
@@ -298,6 +243,45 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .map_err(|error| std::io::Error::other(error.to_string()))?;
     let control = Arc::new(ControlPlane::built_in(Arc::new(repository), tx.clone()));
+    let retention_days = parse_retention_days(
+        std::env::var("WORKSTATION_EVENT_RETENTION_DAYS")
+            .ok()
+            .as_deref(),
+    );
+    match control
+        .prune_events(retention_cutoff_timestamp(retention_days))
+        .await
+    {
+        Ok(pruned) => tracing::info!(retention_days, pruned, "pruned expired workstation events"),
+        Err(error) => tracing::warn!(
+            retention_days,
+            error = %error,
+            "failed to prune expired workstation events"
+        ),
+    }
+    {
+        let control = Arc::clone(&control);
+        tokio::spawn(async move {
+            let mut ticker = tokio::time::interval(Duration::from_secs(24 * 60 * 60));
+            ticker.tick().await;
+            loop {
+                ticker.tick().await;
+                match control
+                    .prune_events(retention_cutoff_timestamp(retention_days))
+                    .await
+                {
+                    Ok(pruned) => {
+                        tracing::info!(retention_days, pruned, "pruned expired workstation events")
+                    }
+                    Err(error) => tracing::warn!(
+                        retention_days,
+                        error = %error,
+                        "failed to prune expired workstation events"
+                    ),
+                }
+            }
+        });
+    }
     let app_state = AppState {
         tx: tx.clone(),
         control: control.clone(),
@@ -503,7 +487,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let std_listener: std::net::TcpListener = socket.into();
     let listener = tokio::net::TcpListener::from_std(std_listener)?;
 
-    control
+    let service_started = control
         .event_hub()
         .publish(WorkstationEvent::new(
             "local",
@@ -518,6 +502,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }),
         ))
         .await;
+    if !service_started.persisted {
+        tracing::warn!("service-start event retained in memory because storage is degraded");
+    }
 
     let dashboard_host = dashboard_host(bind_ip);
     println!("\n╔══════════════════════════════════════════════════════════════╗");
@@ -577,4 +564,89 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     axum::serve(listener, router).await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod bind_tests {
+    use super::*;
+
+    #[test]
+    fn event_retention_days_is_bounded() {
+        assert_eq!(parse_retention_days(Some("30")), 30);
+        assert_eq!(parse_retention_days(Some("0")), 1);
+        assert_eq!(parse_retention_days(Some("99999")), 365);
+        assert_eq!(parse_retention_days(Some("invalid")), 30);
+        assert_eq!(parse_retention_days(None), 30);
+    }
+
+    #[test]
+    fn server_binds_to_loopback_by_default() {
+        assert!(resolve_bind_ip(None).unwrap().is_loopback());
+    }
+
+    #[test]
+    fn server_allows_explicit_lan_bind_opt_in() {
+        assert_eq!(
+            resolve_bind_ip(Some("0.0.0.0")).unwrap(),
+            std::net::IpAddr::V4(std::net::Ipv4Addr::UNSPECIFIED)
+        );
+    }
+
+    #[test]
+    fn server_uses_ipv6_socket_for_ipv6_bind_address() {
+        let ip = "::1".parse().unwrap();
+        assert_eq!(socket_domain_for(ip), socket2::Domain::IPV6);
+        assert_eq!(
+            socket_addr_for(ip, 9527),
+            std::net::SocketAddr::new(ip, 9527)
+        );
+    }
+
+    #[test]
+    fn health_probe_uses_reachable_address_for_each_bind_mode() {
+        let ipv6_loopback = "::1".parse().unwrap();
+        let ipv6_unspecified = "::".parse().unwrap();
+        let ipv4_unspecified = "0.0.0.0".parse().unwrap();
+
+        assert_eq!(health_probe_ip(ipv6_loopback), ipv6_loopback);
+        assert_eq!(health_probe_ip(ipv6_unspecified), ipv6_loopback);
+        assert_eq!(
+            health_probe_ip(ipv4_unspecified),
+            "127.0.0.1".parse::<std::net::IpAddr>().unwrap()
+        );
+    }
+
+    #[test]
+    fn dashboard_host_uses_the_explicit_bind_address() {
+        assert_eq!(
+            dashboard_host("192.168.1.44".parse().unwrap()),
+            "192.168.1.44"
+        );
+        assert_eq!(dashboard_host("::1".parse().unwrap()), "[::1]");
+        assert_eq!(dashboard_host("0.0.0.0".parse().unwrap()), "localhost");
+        assert_eq!(dashboard_host("::".parse().unwrap()), "localhost");
+    }
+
+    #[test]
+    fn root_server_requires_a_non_root_sudo_identity_for_privilege_drop() {
+        assert_eq!(
+            privilege_plan(0, Some("501"), Some("20")).unwrap(),
+            PrivilegePlan::DropTo { uid: 501, gid: 20 }
+        );
+        assert!(privilege_plan(0, None, None).is_err());
+        assert!(privilege_plan(0, Some("0"), Some("0")).is_err());
+        assert_eq!(
+            privilege_plan(501, None, None).unwrap(),
+            PrivilegePlan::AlreadyUnprivileged
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn invoking_user_identity_resolves_to_a_named_home_directory() {
+        let (name, home) = lookup_user_identity(unsafe { libc::getuid() }).unwrap();
+
+        assert!(!name.as_bytes().is_empty());
+        assert!(std::path::Path::new(&home).is_absolute());
+    }
 }

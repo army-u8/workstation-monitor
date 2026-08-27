@@ -18,6 +18,8 @@
 - **磁盘与电源** —— APFS 卷使用率与电池/供电状态监控。
 - **运维工具箱** —— 运行时版本探测（Node/Rust/Go/Python/Git/Docker/Homebrew）、刷新 DNS 缓存、释放端口、Ping 诊断。
 - **扩展功能** —— Git 项目雷达、hosts 文件管理、系统清理、Obsidian 仓库浏览、网速测试。
+- **活动与审计** —— 持久化展示服务事件、操作请求、确认和执行结果，并按关联 ID 组成完整时间线。
+- **全局命令面板** —— 在任意页面按 `⌘K` 搜索强类型工作站操作，查看风险等级，并对受保护操作进行一次性确认。
 - **单一二进制** —— 前端通过 `rust-embed` 打包进 Rust 二进制，无需单独静态服务器。
 
 ---
@@ -98,6 +100,14 @@ bun run dev
 | --- | --- | --- |
 | `PORT` | `9527` | HTTP/WebSocket 监听端口，也可通过第一个命令行参数覆盖（`cargo run -- 9999`）。 |
 | `RUST_LOG` | `workstation_monitor=info,tower_http=warn` | 日志过滤级别（如 `RUST_LOG=debug`）。 |
+| `WORKSTATION_DATA_DIR` | `~/Library/Application Support/VibeDesk` | 持久化控制数据库 `vibedesk.db` 所在目录。 |
+| `WORKSTATION_EVENT_RETENTION_DAYS` | `30` | 活动事件保留天数，自动限制在 `1..=365`；启动时及每 24 小时清理过期事件。 |
+
+### 工作站控制安全
+
+活动页面与 `⌘K` 命令面板使用同一个本机控制平面。安全操作在强类型参数校验后立即执行；受保护操作会返回短时有效、仅可使用一次的确认凭据，并绑定请求、操作和参数。需要管理员权限的操作不会自动提权。活动时间线不会展示确认凭据或原始敏感信息。
+
+事件和操作结果保存在 `vibedesk.db`。若配置的数据库无法打开或写入，实时监控仍会继续，系统改用有上限的内存时间线，并在活动页面显示存储降级提示；仅保存在内存中的事件不会跨重启保留。
 
 ---
 
@@ -124,6 +134,9 @@ bun run dev
 | GET | `/api/hosts/get` | hosts 文件条目 |
 | GET | `/api/obsidian/vault` | Obsidian 仓库摘要 |
 | GET | `/api/obsidian/note?path=` | 笔记内容 |
+| GET | `/api/control/events` | 支持过滤和游标分页的持久化活动时间线 |
+| GET | `/api/control/actions` | 强类型工作站操作目录 |
+| GET | `/api/control/actions/:request_id` | 幂等操作请求的执行结果 |
 
 ### 操作接口（POST）
 
@@ -139,6 +152,7 @@ bun run dev
 | `/api/port/kill` | `{ "port": 3000 }` | 释放占用端口的进程 |
 | `/api/tools/flush-dns` | — | 刷新 macOS DNS 缓存 |
 | `/api/tools/ping` | `{ "host": "...", "count": 4 }` | Ping / TCP 往返探测 |
+| `/api/control/actions/execute` | 强类型 `ActionRequest` | 执行或确认幂等控制操作 |
 
 ---
 
@@ -148,6 +162,7 @@ bun run dev
 workstation-monitor/
 ├── src/                  # Rust 后端（Axum 服务 + 采集器）
 │   ├── main.rs           # 入口，后台采集任务，服务启动
+│   ├── control/          # 事件、SQLite 审计仓库、策略与操作注册表
 │   ├── server/           # 路由、WebSocket、内嵌前端资源
 │   ├── collectors/       # 流量、连接、延迟、进程、磁盘、电池、运行时、嗅探、git、hosts、obsidian、清理
 │   └── types.rs          # 共享数据模型

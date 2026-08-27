@@ -18,6 +18,8 @@
 - **Disks & Power** — APFS volume usage and battery/power-state monitoring.
 - **DevOps Toolkit** — runtime version probes (Node/Rust/Go/Python/Git/Docker/Homebrew), flush DNS cache, release a port, and ping diagnostics.
 - **Extras** — Git project radar, hosts file manager, system cleaner, Obsidian vault browser, and speed test.
+- **Activity & Audit** — a persistent, correlated timeline for service events, action requests, confirmations, and results.
+- **Global Command Palette** — press `⌘K` anywhere to search typed workstation actions, with risk labels and one-time confirmation for guarded operations.
 - **Single binary** — the SolidJS frontend is embedded into the Rust binary via `rust-embed`; no separate static server needed.
 
 ---
@@ -98,6 +100,14 @@ Set `VITE_BACKEND_PORT` when the backend uses a custom port, for example
 | --- | --- | --- |
 | `PORT` | `9527` | HTTP/WebSocket listen port. Also overridable by the first CLI arg (`cargo run -- 9999`). |
 | `RUST_LOG` | `workstation_monitor=info,tower_http=warn` | Tracing filter (e.g. `RUST_LOG=debug`). |
+| `WORKSTATION_DATA_DIR` | `~/Library/Application Support/VibeDesk` | Directory containing the persistent control database `vibedesk.db`. |
+| `WORKSTATION_EVENT_RETENTION_DAYS` | `30` | Activity retention in days, clamped to `1..=365`; expired events are pruned at startup and every 24 hours. |
+
+### Workstation control safety
+
+The Activity page and `⌘K` palette share one local control plane. Safe actions execute immediately after typed parameter validation. Guarded actions return a short-lived, single-use confirmation challenge bound to the request, action, and parameters; administrator actions never escalate privileges automatically. Confirmation tokens and raw secrets are never rendered in Activity.
+
+Events and action results are stored in `vibedesk.db`. If the configured database cannot be opened or written, monitoring continues with a bounded in-memory timeline and the Activity page displays a degraded-storage notice. Events retained only in memory do not survive a restart.
 
 ---
 
@@ -124,6 +134,9 @@ All endpoints return JSON. A WebSocket feed is available at `/ws`.
 | GET | `/api/hosts/get` | Hosts file entries |
 | GET | `/api/obsidian/vault` | Obsidian vault summary |
 | GET | `/api/obsidian/note?path=` | Note content |
+| GET | `/api/control/events` | Persistent Activity timeline with filters and cursor pagination |
+| GET | `/api/control/actions` | Typed workstation action catalog |
+| GET | `/api/control/actions/:request_id` | Result for an idempotent action request |
 
 ### Actions (POST)
 
@@ -139,6 +152,7 @@ All endpoints return JSON. A WebSocket feed is available at `/ws`.
 | `/api/port/kill` | `{ "port": 3000 }` | Kill process on a port |
 | `/api/tools/flush-dns` | — | Flush macOS DNS cache |
 | `/api/tools/ping` | `{ "host": "...", "count": 4 }` | Ping / TCP RTT probe |
+| `/api/control/actions/execute` | Typed `ActionRequest` | Execute or confirm an idempotent control action |
 
 ---
 
@@ -148,6 +162,7 @@ All endpoints return JSON. A WebSocket feed is available at `/ws`.
 workstation-monitor/
 ├── src/                  # Rust backend (Axum server + collectors)
 │   ├── main.rs           # Entry point, background collectors, server bootstrap
+│   ├── control/          # Events, SQLite audit repository, policy, and action registry
 │   ├── server/           # Router, WebSocket, embedded frontend assets
 │   ├── collectors/       # traffic, sockets, latency, processes, disks, battery, dev-tools, sniffer, git, hosts, obsidian, cleaner
 │   └── types.rs          # Shared data models

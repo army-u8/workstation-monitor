@@ -358,6 +358,14 @@ impl ControlPlane {
         self.event_hub.list_events(query).await
     }
 
+    pub async fn prune_events(&self, before_timestamp: i64) -> Result<usize, ControlError> {
+        let repository = Arc::clone(&self.repository);
+        tokio::task::spawn_blocking(move || repository.prune_events(before_timestamp))
+            .await
+            .map_err(|error| ControlError::Repository(error.to_string()))?
+            .map_err(|error| ControlError::Repository(error.to_string()))
+    }
+
     pub async fn get_action_result(
         &self,
         request_id: &str,
