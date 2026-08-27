@@ -115,6 +115,7 @@ export const PackageIcon = IconPackage;
 export const RobotIcon = IconRobot;
 export const BrainIcon = IconBrain;
 export const SparklesIcon = IconSparkles;
+export const CommandIcon = IconSparkles;
 export const FlameIcon = IconFlame;
 export const AntennaIcon = IconAntenna;
 export const LayersIntersectIcon = IconLayersIntersect;

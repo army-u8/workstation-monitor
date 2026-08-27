@@ -771,4 +771,77 @@ export const en: Dict = {
       action_failed: 'Action failed',
     },
   },
+  control: {
+    openCommandPalette: 'Open workstation command palette',
+    shortcut: '⌘K',
+    title: 'Workstation Command Palette',
+    subtitle: 'Search and safely execute local workstation actions',
+    searchPlaceholder: 'Search actions, capabilities, or keywords',
+    loading: 'Loading available actions...',
+    empty: 'No matching actions',
+    back: 'Back to action list',
+    execute: 'Run action',
+    executing: 'Running...',
+    unavailable: 'This action is unavailable in the current environment',
+    confirmationTitle: 'Confirm action',
+    confirmationMessage: 'You are about to run “{action}”. Review the impact before continuing.',
+    confirmationAction: 'Run action',
+    success: 'Action “{action}” completed',
+    riskLabel: 'Risk level',
+    risk: {
+      safe: 'Safe',
+      confirmation_required: 'Confirmation required',
+      administrator_required: 'Administrator required',
+    },
+    validation: {
+      required: 'Enter “{parameter}”',
+      invalid_integer: '“{parameter}” must be an integer',
+      invalid_boolean: '“{parameter}” must be a boolean',
+    },
+    errors: {
+      loadFailed: 'Unable to load the action catalog. Try again shortly.',
+      executeFailed: 'The action failed. Check the Activity timeline for details.',
+      invalidConfirmation: 'Confirmation expired or was rejected. Run the action again.',
+    },
+    unavailableReasons: {
+      permission_required: 'The current process does not have the required permission',
+      administrator_required: 'Run VibeDesk with administrator privileges',
+      unsupported_platform: 'This action is not supported on the current platform',
+    },
+    parameters: {
+      path: 'File or application path',
+      app: 'Open with',
+      project_path: 'Project path',
+      title: 'Snapshot title',
+      pid: 'Process PID',
+      port: 'Port number',
+      id: 'Cleaner item ID',
+    },
+    actions: {
+      app_open: {
+        label: 'Open app or path',
+        description: 'Open a local file or directory with a selected application',
+      },
+      snapshot_create: {
+        label: 'Create workspace snapshot',
+        description: 'Create a recoverable safety checkpoint for a Git project',
+      },
+      process_kill: {
+        label: 'Terminate process',
+        description: 'Stop a local process by PID',
+      },
+      port_kill: {
+        label: 'Release port',
+        description: 'Stop the process listening on a selected port',
+      },
+      cleaner_clean: {
+        label: 'Clean developer cache',
+        description: 'Safely clean a selected developer-tool cache',
+      },
+      network_flush_dns: {
+        label: 'Flush DNS cache',
+        description: 'Flush the local macOS DNS resolver cache',
+      },
+    },
+  },
 };

@@ -758,6 +758,79 @@ export const zh = {
       action_failed: '操作失败',
     },
   },
+  control: {
+    openCommandPalette: '打开工作站命令面板',
+    shortcut: '⌘K',
+    title: '工作站命令面板',
+    subtitle: '搜索并安全执行本机操作',
+    searchPlaceholder: '搜索操作、能力或关键字',
+    loading: '正在加载可用操作...',
+    empty: '没有匹配的操作',
+    back: '返回操作列表',
+    execute: '执行操作',
+    executing: '正在执行...',
+    unavailable: '当前环境无法执行此操作',
+    confirmationTitle: '确认执行操作',
+    confirmationMessage: '即将执行“{action}”。请确认影响范围后继续。',
+    confirmationAction: '确认执行',
+    success: '操作“{action}”已完成',
+    riskLabel: '风险等级',
+    risk: {
+      safe: '安全操作',
+      confirmation_required: '需要确认',
+      administrator_required: '需要管理员权限',
+    },
+    validation: {
+      required: '请填写“{parameter}”',
+      invalid_integer: '“{parameter}”必须是整数',
+      invalid_boolean: '“{parameter}”必须是布尔值',
+    },
+    errors: {
+      loadFailed: '无法加载操作目录，请稍后重试',
+      executeFailed: '操作执行失败，请查看活动时间线',
+      invalidConfirmation: '确认凭据无效或已过期，请重新执行',
+    },
+    unavailableReasons: {
+      permission_required: '当前进程缺少所需权限',
+      administrator_required: '需要以管理员权限运行 VibeDesk',
+      unsupported_platform: '当前平台不支持此操作',
+    },
+    parameters: {
+      path: '文件或应用路径',
+      app: '打开方式',
+      project_path: '项目路径',
+      title: '快照标题',
+      pid: '进程 PID',
+      port: '端口号',
+      id: '清理项目 ID',
+    },
+    actions: {
+      app_open: {
+        label: '打开应用或路径',
+        description: '使用指定应用打开本机文件或目录',
+      },
+      snapshot_create: {
+        label: '创建工作区快照',
+        description: '为 Git 项目创建可回滚的安全保存点',
+      },
+      process_kill: {
+        label: '终止进程',
+        description: '按 PID 停止本机进程',
+      },
+      port_kill: {
+        label: '释放端口',
+        description: '停止正在监听指定端口的进程',
+      },
+      cleaner_clean: {
+        label: '清理开发缓存',
+        description: '安全清理选定的开发工具缓存',
+      },
+      network_flush_dns: {
+        label: '刷新 DNS 缓存',
+        description: '刷新 macOS 本机 DNS 缓存',
+      },
+    },
+  },
 };
 
 export type Dict = typeof zh;

@@ -5,6 +5,7 @@ import {
   fetchUpdateCheckApi,
   formatUptime,
   isCheckingUpdate,
+  setIsCommandPaletteOpen,
   setIsSidebarOpen,
   setIsUpdateModalOpen,
   setTheme,
@@ -21,7 +22,7 @@ import {
   WsConnectionStatus,
   pathToSectionMap,
 } from '../constants';
-import { CompactIcon, MoonIcon, SunIcon, SystemThemeIcon } from './Icons';
+import { CommandIcon, CompactIcon, MoonIcon, SunIcon, SystemThemeIcon } from './Icons';
 import { Button } from './ui';
 
 export const Header: Component = () => {
@@ -86,6 +87,22 @@ export const Header: Component = () => {
 
       {/* Right: Compact Vitals, Theme Switcher & Lang Switcher */}
       <div class="flex items-center gap-2.5">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setIsCommandPaletteOpen(true)}
+          aria-label={t().control.openCommandPalette}
+          title={t().control.openCommandPalette}
+          class="gap-2"
+        >
+          <CommandIcon class="h-3.5 w-3.5 text-accent" />
+          <span class="hidden xl:inline">{t().control.title}</span>
+          <kbd class="rounded border border-border-default bg-bg-subtle px-1 py-0.5 text-[9px] text-text-muted">
+            {t().control.shortcut}
+          </kbd>
+        </Button>
+
         {/* Theme Select Dropdown */}
         <div class="relative flex items-center rounded-lg border border-border-default bg-bg-subtle/80 px-2 py-1 text-[11px] font-mono text-text-secondary hover:border-border-hover hover:text-text-primary transition-all shadow-2xs">
           <span class="mr-1.5 flex items-center pointer-events-none shrink-0">

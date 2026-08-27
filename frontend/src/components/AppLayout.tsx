@@ -5,6 +5,7 @@ import { Footer } from './Footer';
 import { ToastShelf } from './ToastShelf';
 import { ConfirmModal } from './ConfirmModal';
 import { UpdateModal } from './UpdateModal';
+import { CommandPalette } from './CommandPalette';
 
 export const AppLayout: ParentComponent = (props) => {
   return (
@@ -28,6 +29,9 @@ export const AppLayout: ParentComponent = (props) => {
 
       {/* Global Confirmation Modal Dialog */}
       <ConfirmModal />
+
+      {/* Global Workstation Command Palette */}
+      <CommandPalette />
 
       {/* Global Auto-Update Modal Dialog */}
       <UpdateModal />
