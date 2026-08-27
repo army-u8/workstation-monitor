@@ -179,6 +179,8 @@ pub struct ExecuteActionResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub result: Option<ActionResult>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub output: Option<serde_json::Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub error_code: Option<String>,
 }
 
