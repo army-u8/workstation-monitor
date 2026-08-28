@@ -216,6 +216,9 @@ const KNOWN_API_KEYS: KnownApiKeyDef[] = [
 
 export const DevToolsView: Component = () => {
   const [activeTab, setActiveTab] = createSignal<'tools' | 'api_keys' | 'path' | 'env'>('tools');
+  const [searchTool, setSearchTool] = createSignal('');
+  const [selectedToolCategory, setSelectedToolCategory] = createSignal<string>('ALL');
+  const [onlyInstalledTools, setOnlyInstalledTools] = createSignal(false);
   const [searchEnv, setSearchEnv] = createSignal('');
   const [searchKeys, setSearchKeys] = createSignal('');
   const [selectedKeyCategory, setSelectedKeyCategory] = createSignal<
@@ -233,6 +236,33 @@ export const DevToolsView: Component = () => {
 
   const installedCount = createMemo(() => {
     return tools().filter((d) => d.is_installed).length;
+  });
+
+  const toolCategories = createMemo(() => {
+    const set = new Set<string>();
+    for (const t of tools()) {
+      if (t.category) set.add(t.category);
+    }
+    return ['ALL', ...Array.from(set)];
+  });
+
+  const filteredTools = createMemo(() => {
+    const list = tools();
+    const q = searchTool().trim().toLowerCase();
+    const cat = selectedToolCategory();
+    const onlyInst = onlyInstalledTools();
+
+    return list.filter((tool) => {
+      if (onlyInst && !tool.is_installed) return false;
+      if (cat !== 'ALL' && tool.category !== cat) return false;
+      if (!q) return true;
+      return (
+        tool.name.toLowerCase().includes(q) ||
+        tool.category.toLowerCase().includes(q) ||
+        (tool.version && tool.version.toLowerCase().includes(q)) ||
+        (tool.path && tool.path.toLowerCase().includes(q))
+      );
+    });
   });
 
   // Map variable names to values for rapid lookup
@@ -423,10 +453,52 @@ export const DevToolsView: Component = () => {
 
         {/* TAB 1: Toolchains & Runtimes Matrix */}
         <TabsContent value="tools">
-          <section class="glass-card p-4">
+          <section class="glass-card p-4 space-y-4">
+            {/* Filter Bar */}
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div class="relative flex-1 max-w-md">
+                <SearchIcon class="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted" />
+                <Input
+                  type="text"
+                  placeholder={t().devops.searchToolPlaceholder}
+                  value={searchTool()}
+                  onInput={(e) => setSearchTool(e.currentTarget.value)}
+                  class="pl-8 w-full text-xs h-8"
+                />
+              </div>
+
+              <div class="flex flex-wrap items-center gap-1.5">
+                <Button
+                  type="button"
+                  variant={onlyInstalledTools() ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setOnlyInstalledTools(!onlyInstalledTools())}
+                  class="h-8 text-xs font-medium"
+                >
+                  {t().devops.onlyInstalled}
+                </Button>
+
+                <div class="h-4 w-px bg-border-subtle mx-1" />
+
+                <For each={toolCategories()}>
+                  {(cat) => (
+                    <Button
+                      type="button"
+                      variant={selectedToolCategory() === cat ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setSelectedToolCategory(cat)}
+                      class="h-8 text-xs font-medium"
+                    >
+                      {cat === 'ALL' ? t().devops.allTools : cat}
+                    </Button>
+                  )}
+                </For>
+              </div>
+            </div>
+
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               <For
-                each={tools()}
+                each={filteredTools()}
                 fallback={
                   <div class="col-span-full py-12 text-center text-xs text-text-muted font-mono">
                     {t().devops.scanningTools}
