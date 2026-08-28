@@ -14,6 +14,7 @@ pub mod processes;
 pub mod save_point;
 pub mod sniffer;
 pub mod speedtest;
+pub mod token_analyzer;
 pub mod traffic;
 pub mod updater;
 pub mod web_artifacts;
@@ -34,6 +35,8 @@ pub use processes::{kill_process, kill_process_by_port, ProcessCollector};
 pub use save_point::SavePointManager;
 pub use sniffer::start_sniffer;
 pub use speedtest::SpeedTester;
+pub use token_analyzer::TokenAnalyzerManager;
 pub use traffic::TrafficCollector;
 pub use updater::AutoUpdater;
 pub use web_artifacts::WebArtifactsManager;
+

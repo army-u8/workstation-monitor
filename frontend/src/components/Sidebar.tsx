@@ -7,6 +7,7 @@ import {
   BoltIcon,
   CleanerIcon,
   CloseIcon,
+  CoinsIcon,
   DevToolsIcon,
   DiskIcon,
   GitIcon,
@@ -40,6 +41,7 @@ import {
   sockets,
   speedTestResult,
   stats,
+  tokenSummary,
   traffic,
   webArtifacts,
   wsStatus,
@@ -228,6 +230,22 @@ export const Sidebar: Component = () => {
           id: NavSectionId.AI_RADAR,
           icon: RobotIcon,
           label: () => t().sidebar.navAiRadar,
+        },
+        {
+          id: NavSectionId.TOKEN_ANALYTICS,
+          icon: CoinsIcon,
+          label: () => t().sidebar.navTokenAnalytics,
+          badge: () => {
+            const summary = tokenSummary();
+            if (!summary || !summary.total_tokens) return null;
+            if (summary.total_tokens >= 1_000_000) {
+              return `${(summary.total_tokens / 1_000_000).toFixed(1)}M`;
+            }
+            if (summary.total_tokens >= 1_000) {
+              return `${(summary.total_tokens / 1_000).toFixed(0)}k`;
+            }
+            return `${summary.total_tokens}`;
+          },
         },
         {
           id: NavSectionId.DEVTOOLS,

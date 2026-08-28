@@ -6,6 +6,23 @@
 
 ## [未发布]
 
+## [0.3.0] - 2026-08-29
+
+### 新增
+- **NPX 零安装即开即用与全功能 CLI 启动套件**：新增 `npx vibedesk` 启动支持与全局 CLI 指令（`vibedesk status`, `vibedesk stop`, `vibedesk open`，`-p/--port`, `-n/--no-open`, `-H/--host`），支持跨平台自动探测系统架构并拉取官方单文件预编译二进制。
+- **一键 Shell 安装脚本**：提供 `curl -fsSL .../install.sh | bash` 便捷安装至本机系统路径。
+- **全智能本地 AI 编程 Agent Token 消耗分析中枢**：全新上线 AI Token 全局统计看板，支持全自动扫描和解析 Claude Code、Cursor、Windsurf、Google Antigravity、OpenAI Codex、Cline、Roo Code、Aider 等主流 AI Agent 的本地数据库与日志。
+- **双层平滑 Token 消耗趋势波形与柱状图**：支持 24 小时、7 天、30 天多周期连续贝塞尔平滑面积曲线与微拟物柱体切换，带发光峰值、费用折算与富交互悬浮气泡。
+- **GitHub 风格年度全息活动热力图**：支持 52 周 371 天活动格子色阶展示，悬浮卡片精准展示每日活跃请求数、Token 消耗量与中英文格式化日期。
+- **全动态模型自适应探测引擎**：废除静态硬编码模型规则，基于真实会话日志和请求载荷动态提取模型标识，智能适配最新发布的各系列模型与多币种价格计算。
+
+### 优化与性能
+- **零拷贝分析引擎**：重构 Token 聚合算法为零拷贝引用遍历，15 万条记录分析耗时从 4.5 秒降至 1 毫秒内完成。
+- **原生 Rust CLI 参数解析**：后端主程序原生支持 `--help`, `--version`, `-p`, `-H`, `-n` 参数。
+
+### 工程与测试
+- **全面质量门禁**：新增 CLI 参数解析单元测试，Rust 单元测试增至 112 项，前端全量测试与 842 项双语 i18n 字典全部保持 100% 同步。
+
 ## [0.2.9] - 2026-08-28
 
 ### 新增
@@ -248,6 +265,23 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
+
+## [0.3.0] - 2026-08-29
+
+### Added
+- **NPX Instant Launch & Full CLI Suite**: Add `npx vibedesk` instant launch and global CLI commands (`vibedesk status`, `vibedesk stop`, `vibedesk open`, `-p/--port`, `-n/--no-open`, `-H/--host`), supporting cross-platform auto-architecture detection and automated pre-compiled binary downloads.
+- **One-Line POSIX Shell Installer**: Provide `curl -fsSL .../install.sh | bash` for automated binary installation into the system PATH.
+- **AI Coding Agent Token Analytics Hub**: Comprehensive local AI Token analytics dashboard, parsing SQLite and JSONL session data from Claude Code, Cursor, Windsurf, Google Antigravity, OpenAI Codex, Cline, Roo Code, and Aider.
+- **Dual-Layer Token Consumption Trend Waveform**: Smooth Catmull-Rom/Bezier continuous area curve with micro-skeuomorphic histogram bars for 24h, 7d, and 30d timeframes, dynamic peak badges, currency conversion, and rich floating tooltips.
+- **GitHub-Style 52-Week Activity Heatmap**: Interactive 371-day contribution matrix with dynamic green color scale and date/request/token tooltips.
+- **Dynamic AI Model Detection Engine**: Automatically identify models dynamically from session traces, replacing static hardcoded lists and supporting latest LLM releases.
+
+### Performance & Optimization
+- **Zero-Copy Analytics Engine**: Optimize token analytics aggregation using zero-copy pointer slice iteration, reducing 150k record processing latency from 4.5s to under 1ms.
+- **Native Rust CLI Argument Parsing**: The backend executable natively supports `--help`, `--version`, `-p`, `-H`, and `-n` options.
+
+### Engineering & Quality Gates
+- **Comprehensive Quality Gates**: Add CLI argument unit tests, expanding Rust tests to 112 passed, with 48 frontend regression tests and 842 synchronized i18n keys.
 
 ## [0.2.9] - 2026-08-28
 

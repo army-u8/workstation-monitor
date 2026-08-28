@@ -53,6 +53,10 @@ import type {
   SocketsPayload,
   SpeedTestResult,
   SystemStats,
+  TokenAnalyticsResponse,
+  TokenSessionItem,
+  TokenSessionsResponse,
+  TokenUsageSummary,
   TrafficSummary,
   UpdateApplyResponse,
   UpdateCheckResponse,
@@ -195,6 +199,19 @@ export const [isUnloadingOllama, setIsUnloadingOllama] = createSignal(false);
 // Local AI Coding Agents Signals
 export const [localAgents, setLocalAgents] = createSignal<LocalAgentInfo[]>([]);
 export const [isLoadingLocalAgents, setIsLoadingLocalAgents] = createSignal(false);
+
+// AI Token Usage Analytics Signals
+export const [tokenSummary, setTokenSummary] = createSignal<TokenUsageSummary | null>(null);
+export const [tokenAnalytics, setTokenAnalytics] = createSignal<TokenAnalyticsResponse | null>(null);
+export const [tokenSessions, setTokenSessions] = createSignal<TokenSessionItem[]>([]);
+export const [tokenSessionsTotalCount, setTokenSessionsTotalCount] = createSignal(0);
+export const [isLoadingTokenSummary, setIsLoadingTokenSummary] = createSignal(false);
+export const [isLoadingTokenAnalytics, setIsLoadingTokenAnalytics] = createSignal(false);
+export const [isLoadingTokenSessions, setIsLoadingTokenSessions] = createSignal(false);
+export const [isRefreshingTokenAnalytics, setIsRefreshingTokenAnalytics] = createSignal(false);
+export const [tokenTimeRange, setTokenTimeRange] = createSignal<'today' | '7d' | '30d' | 'all'>('30d');
+export const [tokenCurrency, setTokenCurrency] = createSignal<'USD' | 'CNY'>('USD');
+export const [tokenSelectedAgent, setTokenSelectedAgent] = createSignal<string | null>(null);
 
 // Environment Variables Signals
 export const [envVarsData, setEnvVarsData] = createSignal<EnvVarsPayload | null>(null);
@@ -1051,6 +1068,93 @@ export async function fetchLocalAgentsApi(): Promise<LocalAgentInfo[]> {
     return [];
   } finally {
     setIsLoadingLocalAgents(false);
+  }
+}
+
+// ----------------------------------------------------
+// AI Token Usage Analytics API Functions
+// ----------------------------------------------------
+
+export async function fetchTokenSummaryApi(timeRange?: string): Promise<TokenUsageSummary | null> {
+  setIsLoadingTokenSummary(true);
+  try {
+    const range = timeRange || tokenTimeRange();
+    const url = `${ApiEndpoint.TOKEN_USAGE_SUMMARY}?range=${encodeURIComponent(range)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: TokenUsageSummary = await res.json();
+    setTokenSummary(data);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to fetch token usage summary', ToastType.ERROR);
+    return null;
+  } finally {
+    setIsLoadingTokenSummary(false);
+  }
+}
+
+export async function fetchTokenAnalyticsApi(timeRange?: string): Promise<TokenAnalyticsResponse | null> {
+  setIsLoadingTokenAnalytics(true);
+  try {
+    const range = timeRange || tokenTimeRange();
+    const url = `${ApiEndpoint.TOKEN_USAGE_ANALYTICS}?range=${encodeURIComponent(range)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: TokenAnalyticsResponse = await res.json();
+    setTokenAnalytics(data);
+    setTokenSummary(data.summary);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to fetch token analytics data', ToastType.ERROR);
+    return null;
+  } finally {
+    setIsLoadingTokenAnalytics(false);
+  }
+}
+
+export async function fetchTokenSessionsApi(
+  limit = 50,
+  offset = 0,
+  client?: string,
+): Promise<TokenSessionsResponse | null> {
+  setIsLoadingTokenSessions(true);
+  try {
+    let url = `${ApiEndpoint.TOKEN_USAGE_SESSIONS}?limit=${limit}&offset=${offset}`;
+    if (client) {
+      url += `&client=${encodeURIComponent(client)}`;
+    }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: TokenSessionsResponse = await res.json();
+    setTokenSessions(data.sessions);
+    setTokenSessionsTotalCount(data.total_count);
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to fetch token sessions', ToastType.ERROR);
+    return null;
+  } finally {
+    setIsLoadingTokenSessions(false);
+  }
+}
+
+export async function refreshTokenAnalyticsApi(): Promise<TokenUsageSummary | null> {
+  setIsRefreshingTokenAnalytics(true);
+  try {
+    const res = await fetch(ApiEndpoint.TOKEN_USAGE_REFRESH, {
+      method: HTTP_METHODS.POST,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data: TokenUsageSummary = await res.json();
+    setTokenSummary(data);
+    showToast(t().tokenAnalytics.refreshSuccess || 'Token usage records refreshed successfully', ToastType.SUCCESS);
+    await fetchTokenAnalyticsApi();
+    await fetchTokenSessionsApi();
+    return data;
+  } catch (err: any) {
+    showToast(err.message || 'Failed to refresh token usage', ToastType.ERROR);
+    return null;
+  } finally {
+    setIsRefreshingTokenAnalytics(false);
   }
 }
 

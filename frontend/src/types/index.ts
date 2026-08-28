@@ -584,3 +584,123 @@ export type WsEvent =
   | { type: 'BatteryUpdate'; data: BatteryInfo | null }
   | { type: 'DevToolsUpdate'; data: DevToolInfo[] }
   | { type: 'WorkstationEvent'; data: WorkstationEvent };
+
+export interface Claude5hBlockInfo {
+  is_active: boolean;
+  block_start_at: number;
+  block_end_at: number;
+  resets_in_seconds: number;
+  current_tokens: number;
+  current_cost_usd: number;
+  request_count: number;
+  burn_rate_tokens_per_min: number;
+}
+
+export interface TokenUsageSummary {
+  total_input_tokens: number;
+  total_output_tokens: number;
+  total_cache_read_tokens: number;
+  total_cache_write_tokens: number;
+  total_reasoning_tokens: number;
+  total_tokens: number;
+  total_cost_usd: number;
+  total_cost_cny: number;
+  cache_savings_usd: number;
+  cache_savings_cny: number;
+  cache_hit_rate_pct: number;
+  active_agents_count: number;
+  total_sessions_count: number;
+  total_requests_count: number;
+  claude_5h_block?: Claude5hBlockInfo | null;
+  last_scanned_at: number;
+}
+
+export interface TokenHeatmapDay {
+  date: string;
+  total_tokens: number;
+  cost_usd: number;
+  cost_cny: number;
+  requests_count: number;
+  level: number;
+}
+
+export interface TokenTrendPoint {
+  label: string;
+  timestamp: number;
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  cache_write_tokens: number;
+  total_tokens: number;
+  cost_usd: number;
+}
+
+export interface TokenModelStats {
+  model: string;
+  display_name: string;
+  provider: string;
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  total_tokens: number;
+  cost_usd: number;
+  cost_cny: number;
+  percentage: number;
+  requests_count: number;
+}
+
+export interface TokenAgentStats {
+  agent_id: string;
+  name: string;
+  icon: string;
+  input_tokens: number;
+  output_tokens: number;
+  cache_tokens: number;
+  total_tokens: number;
+  cost_usd: number;
+  cost_cny: number;
+  percentage: number;
+  sessions_count: number;
+}
+
+export interface TokenProjectStats {
+  project_name: string;
+  project_path?: string | null;
+  total_tokens: number;
+  cost_usd: number;
+  cost_cny: number;
+  percentage: number;
+  requests_count: number;
+}
+
+export interface TokenSessionItem {
+  id: string;
+  client: string;
+  session_id: string;
+  project_name?: string | null;
+  model: string;
+  timestamp: number;
+  input_tokens: number;
+  output_tokens: number;
+  cache_read_tokens: number;
+  cache_write_tokens: number;
+  total_tokens: number;
+  cost_usd: number;
+}
+
+export interface TokenAnalyticsResponse {
+  summary: TokenUsageSummary;
+  heatmap: TokenHeatmapDay[];
+  trend_24h: TokenTrendPoint[];
+  trend_7d: TokenTrendPoint[];
+  trend_30d: TokenTrendPoint[];
+  models: TokenModelStats[];
+  agents: TokenAgentStats[];
+  projects: TokenProjectStats[];
+}
+
+export interface TokenSessionsResponse {
+  sessions: TokenSessionItem[];
+  total_count: number;
+}
+

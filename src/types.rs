@@ -498,3 +498,151 @@ pub enum WsEvent {
     DevToolsUpdate(Vec<DevToolInfo>),
     WorkstationEvent(crate::control::models::WorkstationEvent),
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenRecord {
+    pub id: String,
+    pub client: String,
+    pub session_id: String,
+    pub project_path: Option<String>,
+    pub project_name: Option<String>,
+    pub model: String,
+    pub timestamp: i64,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub cache_read_tokens: u64,
+    pub cache_write_tokens: u64,
+    pub reasoning_tokens: u64,
+    pub cost_usd: f64,
+    pub cost_cny: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Claude5hBlockInfo {
+    pub is_active: bool,
+    pub block_start_at: i64,
+    pub block_end_at: i64,
+    pub resets_in_seconds: i64,
+    pub current_tokens: u64,
+    pub current_cost_usd: f64,
+    pub request_count: usize,
+    pub burn_rate_tokens_per_min: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenUsageSummary {
+    pub total_input_tokens: u64,
+    pub total_output_tokens: u64,
+    pub total_cache_read_tokens: u64,
+    pub total_cache_write_tokens: u64,
+    pub total_reasoning_tokens: u64,
+    pub total_tokens: u64,
+    pub total_cost_usd: f64,
+    pub total_cost_cny: f64,
+    pub cache_savings_usd: f64,
+    pub cache_savings_cny: f64,
+    pub cache_hit_rate_pct: f64,
+    pub active_agents_count: usize,
+    pub total_sessions_count: usize,
+    pub total_requests_count: usize,
+    pub claude_5h_block: Option<Claude5hBlockInfo>,
+    pub last_scanned_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenHeatmapDay {
+    pub date: String,
+    pub total_tokens: u64,
+    pub cost_usd: f64,
+    pub cost_cny: f64,
+    pub requests_count: usize,
+    pub level: u8,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenTrendPoint {
+    pub label: String,
+    pub timestamp: i64,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub cache_read_tokens: u64,
+    pub cache_write_tokens: u64,
+    pub total_tokens: u64,
+    pub cost_usd: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenModelStats {
+    pub model: String,
+    pub display_name: String,
+    pub provider: String,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub cache_read_tokens: u64,
+    pub total_tokens: u64,
+    pub cost_usd: f64,
+    pub cost_cny: f64,
+    pub percentage: f64,
+    pub requests_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenAgentStats {
+    pub agent_id: String,
+    pub name: String,
+    pub icon: String,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub cache_tokens: u64,
+    pub total_tokens: u64,
+    pub cost_usd: f64,
+    pub cost_cny: f64,
+    pub percentage: f64,
+    pub sessions_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenProjectStats {
+    pub project_name: String,
+    pub project_path: Option<String>,
+    pub total_tokens: u64,
+    pub cost_usd: f64,
+    pub cost_cny: f64,
+    pub percentage: f64,
+    pub requests_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenSessionItem {
+    pub id: String,
+    pub client: String,
+    pub session_id: String,
+    pub project_name: Option<String>,
+    pub model: String,
+    pub timestamp: i64,
+    pub input_tokens: u64,
+    pub output_tokens: u64,
+    pub cache_read_tokens: u64,
+    pub cache_write_tokens: u64,
+    pub total_tokens: u64,
+    pub cost_usd: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenAnalyticsResponse {
+    pub summary: TokenUsageSummary,
+    pub heatmap: Vec<TokenHeatmapDay>,
+    pub trend_24h: Vec<TokenTrendPoint>,
+    pub trend_7d: Vec<TokenTrendPoint>,
+    pub trend_30d: Vec<TokenTrendPoint>,
+    pub models: Vec<TokenModelStats>,
+    pub agents: Vec<TokenAgentStats>,
+    pub projects: Vec<TokenProjectStats>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TokenSessionsResponse {
+    pub sessions: Vec<TokenSessionItem>,
+    pub total_count: usize,
+}
+

@@ -42,6 +42,7 @@ export const NavSectionId = {
   OPS: 'ops',
   ARTIFACTS: 'artifacts',
   AI_RADAR: 'ai_radar',
+  TOKEN_ANALYTICS: 'token_analytics',
   ACTIVITY: 'activity',
 } as const;
 export type NavSectionId = (typeof NavSectionId)[keyof typeof NavSectionId];
@@ -64,6 +65,7 @@ export const RoutePath = {
   OPS: '/ops',
   ARTIFACTS: '/artifacts',
   AI_RADAR: '/ai-radar',
+  TOKEN_ANALYTICS: '/token-analytics',
   ACTIVITY: '/activity',
 } as const;
 export type RoutePath = (typeof RoutePath)[keyof typeof RoutePath];
@@ -86,6 +88,7 @@ export const sectionToPathMap: Record<NavSectionId, RoutePath> = {
   [NavSectionId.OPS]: RoutePath.OPS,
   [NavSectionId.ARTIFACTS]: RoutePath.ARTIFACTS,
   [NavSectionId.AI_RADAR]: RoutePath.AI_RADAR,
+  [NavSectionId.TOKEN_ANALYTICS]: RoutePath.TOKEN_ANALYTICS,
   [NavSectionId.ACTIVITY]: RoutePath.ACTIVITY,
 };
 
@@ -107,9 +110,11 @@ export const pathToSectionMap: Record<string, NavSectionId> = {
   [RoutePath.OPS]: NavSectionId.OPS,
   [RoutePath.ARTIFACTS]: NavSectionId.ARTIFACTS,
   [RoutePath.AI_RADAR]: NavSectionId.AI_RADAR,
+  [RoutePath.TOKEN_ANALYTICS]: NavSectionId.TOKEN_ANALYTICS,
   [RoutePath.ACTIVITY]: NavSectionId.ACTIVITY,
   '/git_radar': NavSectionId.GIT_RADAR,
   '/machine_info': NavSectionId.MACHINE_INFO,
+  '/token_analytics': NavSectionId.TOKEN_ANALYTICS,
   '/': NavSectionId.OVERVIEW,
 };
 
@@ -219,6 +224,10 @@ export const ApiEndpoint = {
   OLLAMA_STATUS: '/api/tools/ollama/status',
   OLLAMA_UNLOAD: '/api/tools/ollama/unload',
   AI_AGENTS: '/api/ai/agents',
+  TOKEN_USAGE_SUMMARY: '/api/ai/token-usage/summary',
+  TOKEN_USAGE_ANALYTICS: '/api/ai/token-usage/analytics',
+  TOKEN_USAGE_SESSIONS: '/api/ai/token-usage/sessions',
+  TOKEN_USAGE_REFRESH: '/api/ai/token-usage/refresh',
   ENV_VARS: '/api/system/env-vars',
   CONTROL_EVENTS: '/api/control/events',
   CONTROL_ACTIONS: '/api/control/actions',

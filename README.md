@@ -37,11 +37,44 @@
 
 ---
 
-## Quick Start (no build needed)
+## Quick Start (Instant Launch via NPX)
 
-For most users — **no command line, no toolchain required**:
+Run directly with zero install:
 
-1. Go to **[Releases](https://github.com/army-u8/workstation-monitor/releases)** and download the archive for your Mac: `Workstation_Monitor_VERSION_aarch64.app.zip` for Apple Silicon or `Workstation_Monitor_VERSION_x64.app.zip` for Intel. The Universal archive supports both architectures.
+```bash
+# Launch dashboard and auto-open browser at http://localhost:9527
+npx vibedesk
+```
+
+Or install globally via npm or curl:
+
+```bash
+# Global install via npm
+npm install -g vibedesk
+vibedesk
+
+# Or one-line curl install
+curl -fsSL https://raw.githubusercontent.com/army-u8/workstation-monitor/main/scripts/install.sh | bash
+```
+
+### CLI Command Options
+
+```bash
+vibedesk                     # Start server on default port 9527
+vibedesk -p 9999 --no-open   # Start on custom port without opening browser
+vibedesk status              # Check if daemon is active, print PID and uptime
+vibedesk stop                # Stop running VibeDesk server daemon
+vibedesk open                # Open active dashboard in default web browser
+vibedesk --help              # View full CLI help
+```
+
+---
+
+## Desktop App Download (.app)
+
+For users who prefer a double-clickable macOS desktop application:
+
+1. Go to **[Releases](https://github.com/army-u8/workstation-monitor/releases)** and download `Workstation_Monitor_VERSION_aarch64.app.zip` (Apple Silicon) or `Workstation_Monitor_VERSION_x64.app.zip` (Intel).
 2. Unzip and drag **Workstation Monitor** into your `Applications` folder.
 3. Double-click it. Your browser opens automatically to **http://localhost:9527**.
 

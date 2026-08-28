@@ -1,6 +1,7 @@
 use crate::collectors::{
     AiRadarManager, AutoUpdater, EnvVarsCollector, GitRadar, HostsManager, MachineInfoCollector,
-    ObsidianManager, SavePointManager, SpeedTester, SystemCleaner, WebArtifactsManager,
+    ObsidianManager, SavePointManager, SpeedTester, SystemCleaner, TokenAnalyzerManager,
+    WebArtifactsManager,
 };
 use crate::control::actions::ControlError;
 #[cfg(test)]
@@ -69,6 +70,19 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/tools/ollama/status", get(get_ollama_status))
         .route("/api/tools/ollama/unload", post(post_ollama_unload))
         .route("/api/ai/agents", get(get_ai_agents))
+        .route("/api/ai/token-usage/summary", get(get_token_usage_summary))
+        .route(
+            "/api/ai/token-usage/analytics",
+            get(get_token_usage_analytics),
+        )
+        .route(
+            "/api/ai/token-usage/sessions",
+            get(get_token_usage_sessions),
+        )
+        .route(
+            "/api/ai/token-usage/refresh",
+            post(post_token_usage_refresh),
+        )
         .route("/api/hosts/get", get(get_hosts))
         .route("/api/tools/speedtest", post(post_speedtest))
         .route("/api/tools/open-app", post(post_open_app))
@@ -1203,6 +1217,65 @@ async fn get_ai_agents() -> impl IntoResponse {
         .await
         .unwrap_or_else(|_| AiRadarManager::detect_local_agents());
     (StatusCode::OK, Json(serde_json::to_value(agents).unwrap()))
+}
+
+#[derive(Debug, Deserialize)]
+struct TokenTimeRangeQuery {
+    range: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct TokenSessionPaginationQuery {
+    limit: Option<usize>,
+    offset: Option<usize>,
+    client: Option<String>,
+}
+
+async fn get_token_usage_summary(Query(params): Query<TokenTimeRangeQuery>) -> impl IntoResponse {
+    let summary = tokio::task::spawn_blocking(move || {
+        TokenAnalyzerManager::global().get_summary(params.range.as_deref())
+    })
+    .await
+    .unwrap_or_else(|_| TokenAnalyzerManager::global().get_summary(None));
+    (StatusCode::OK, Json(serde_json::to_value(summary).unwrap()))
+}
+
+async fn get_token_usage_analytics(
+    Query(params): Query<TokenTimeRangeQuery>,
+) -> impl IntoResponse {
+    let analytics = tokio::task::spawn_blocking(move || {
+        TokenAnalyzerManager::global().get_analytics(params.range.as_deref())
+    })
+    .await
+    .unwrap_or_else(|_| TokenAnalyzerManager::global().get_analytics(None));
+    (StatusCode::OK, Json(serde_json::to_value(analytics).unwrap()))
+}
+
+async fn get_token_usage_sessions(
+    Query(params): Query<TokenSessionPaginationQuery>,
+) -> impl IntoResponse {
+    let limit = params.limit.unwrap_or(50).clamp(1, 200);
+    let offset = params.offset.unwrap_or(0);
+    let client = params.client;
+    let sessions = tokio::task::spawn_blocking(move || {
+        TokenAnalyzerManager::global().get_sessions(limit, offset, client.as_deref())
+    })
+    .await
+    .unwrap_or_else(|_| crate::types::TokenSessionsResponse {
+        sessions: Vec::new(),
+        total_count: 0,
+    });
+    (StatusCode::OK, Json(serde_json::to_value(sessions).unwrap()))
+}
+
+async fn post_token_usage_refresh() -> impl IntoResponse {
+    let summary = tokio::task::spawn_blocking(|| {
+        TokenAnalyzerManager::global().scan_and_sync();
+        TokenAnalyzerManager::global().get_summary(None)
+    })
+    .await
+    .unwrap_or_else(|_| TokenAnalyzerManager::global().get_summary(None));
+    (StatusCode::OK, Json(serde_json::to_value(summary).unwrap()))
 }
 
 #[cfg(test)]

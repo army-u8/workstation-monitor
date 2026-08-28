@@ -192,13 +192,126 @@ fn drop_server_privileges_after_sniffer() -> Result<(), String> {
     Ok(())
 }
 
-#[cfg(not(unix))]
-fn drop_server_privileges_after_sniffer() -> Result<(), String> {
-    Ok(())
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct CliConfig {
+    port: u16,
+    bind_ip: std::net::IpAddr,
+    no_open: bool,
+}
+
+fn print_cli_help() {
+    let version = env!("CARGO_PKG_VERSION");
+    println!("VibeDesk (Workstation Monitor) v{}", version);
+    println!("macOS Workstation Mission Control & AI Coding Cockpit\n");
+    println!("USAGE:");
+    println!("    workstation-monitor [OPTIONS] [PORT]");
+    println!("    vibedesk [OPTIONS] [PORT]\n");
+    println!("ARGS:");
+    println!("    <PORT>                      Port to listen on (default: 9527, env: PORT)\n");
+    println!("OPTIONS:");
+    println!("    -p, --port <PORT>           Port to listen on (default: 9527)");
+    println!("    -H, --host <IP>             Bind host IP address (default: 127.0.0.1, env: WORKSTATION_BIND_ADDR)");
+    println!("    -n, --no-open               Do not automatically open the dashboard in browser");
+    println!("    -v, --version               Print version information");
+    println!("    -h, --help                  Print this help menu\n");
+}
+
+fn parse_cli_args_from<I, T>(
+    args: I,
+    env_port: Option<&str>,
+    env_bind: Option<&str>,
+    env_no_open: Option<&str>,
+) -> Result<Option<CliConfig>, String>
+where
+    I: IntoIterator<Item = T>,
+    T: AsRef<str>,
+{
+    let args: Vec<String> = args.into_iter().map(|s| s.as_ref().to_string()).collect();
+    let mut port: Option<u16> = None;
+    let mut bind_ip_str: Option<String> = env_bind.map(|s| s.to_string());
+    let mut no_open = env_no_open
+        .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+
+    let mut i = 1;
+    while i < args.len() {
+        let arg = &args[i];
+        match arg.as_str() {
+            "-h" | "--help" | "help" => {
+                print_cli_help();
+                return Ok(None);
+            }
+            "-v" | "--version" | "version" => {
+                println!("workstation-monitor v{}", env!("CARGO_PKG_VERSION"));
+                return Ok(None);
+            }
+            "-n" | "--no-open" => {
+                no_open = true;
+            }
+            "-p" | "--port" => {
+                i += 1;
+                if i < args.len() {
+                    let p = args[i]
+                        .parse::<u16>()
+                        .map_err(|_| format!("Invalid port number: {}", args[i]))?;
+                    port = Some(p);
+                } else {
+                    return Err("Flag --port requires a port number argument".to_string());
+                }
+            }
+            "-H" | "--host" | "--bind" => {
+                i += 1;
+                if i < args.len() {
+                    bind_ip_str = Some(args[i].clone());
+                } else {
+                    return Err("Flag --host requires an IP address argument".to_string());
+                }
+            }
+            val => {
+                if let Ok(p) = val.parse::<u16>() {
+                    port = Some(p);
+                } else if val.starts_with('-') {
+                    return Err(format!("Unknown option: {}", val));
+                }
+            }
+        }
+        i += 1;
+    }
+
+    let final_port = port
+        .or_else(|| env_port.and_then(|p| p.parse().ok()))
+        .unwrap_or(9527);
+
+    let bind_ip = resolve_bind_ip(bind_ip_str.as_deref())?;
+
+    Ok(Some(CliConfig {
+        port: final_port,
+        bind_ip,
+        no_open,
+    }))
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args: Vec<String> = std::env::args().collect();
+    let env_port = std::env::var("PORT").ok();
+    let env_bind = std::env::var("WORKSTATION_BIND_ADDR").ok();
+    let env_no_open = std::env::var("WORKSTATION_NO_OPEN").ok();
+
+    let cli_config = match parse_cli_args_from(
+        &args,
+        env_port.as_deref(),
+        env_bind.as_deref(),
+        env_no_open.as_deref(),
+    ) {
+        Ok(Some(cfg)) => cfg,
+        Ok(None) => return Ok(()),
+        Err(err) => {
+            eprintln!("Error: {}", err);
+            std::process::exit(1);
+        }
+    };
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -461,17 +574,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 9. Build Axum Router & Start HTTP/WS Server
     let router = build_router(app_state);
-    let port: u16 = std::env::args()
-        .nth(1)
-        .and_then(|arg| arg.parse::<u16>().ok())
-        .or_else(|| {
-            std::env::var("PORT")
-                .ok()
-                .and_then(|p| p.parse::<u16>().ok())
-        })
-        .unwrap_or(9527);
-    let bind_ip = resolve_bind_ip(std::env::var("WORKSTATION_BIND_ADDR").ok().as_deref())
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e))?;
+    let port = cli_config.port;
+    let bind_ip = cli_config.bind_ip;
     let socket_addr = socket_addr_for(bind_ip, port);
     let socket = socket2::Socket::new(
         socket_domain_for(bind_ip),
@@ -530,10 +634,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // listening, so double-clicking the bundled .app just works without a transient
     // "cannot connect" error. We poll the port in a background task instead of
     // opening before `axum::serve` starts.
-    let no_open = std::env::args().any(|a| a == "--no-open" || a == "-n")
-        || std::env::var("WORKSTATION_NO_OPEN")
-            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-            .unwrap_or(false);
+    let no_open = cli_config.no_open;
 
     if !no_open {
         let dashboard_url = format!("http://{}:{}", dashboard_host, port);
@@ -648,5 +749,40 @@ mod bind_tests {
 
         assert!(!name.as_bytes().is_empty());
         assert!(std::path::Path::new(&home).is_absolute());
+    }
+
+    #[test]
+    fn cli_parser_default_args() {
+        let cfg = parse_cli_args_from(["workstation-monitor"], None, None, None)
+            .unwrap()
+            .unwrap();
+        assert_eq!(cfg.port, 9527);
+        assert!(cfg.bind_ip.is_loopback());
+        assert!(!cfg.no_open);
+    }
+
+    #[test]
+    fn cli_parser_custom_port_and_flags() {
+        let cfg = parse_cli_args_from(
+            ["workstation-monitor", "-p", "8888", "-n", "-H", "0.0.0.0"],
+            None,
+            None,
+            None,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(cfg.port, 8888);
+        assert_eq!(cfg.bind_ip, "0.0.0.0".parse::<std::net::IpAddr>().unwrap());
+        assert!(cfg.no_open);
+    }
+
+    #[test]
+    fn cli_parser_help_and_version_return_none() {
+        assert!(parse_cli_args_from(["workstation-monitor", "--help"], None, None, None)
+            .unwrap()
+            .is_none());
+        assert!(parse_cli_args_from(["workstation-monitor", "-v"], None, None, None)
+            .unwrap()
+            .is_none());
     }
 }

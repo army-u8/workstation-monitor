@@ -37,11 +37,44 @@
 
 ---
 
-## 快速开始（无需编译）
+## 快速开始（推荐使用 NPX 秒开）
 
-适合绝大多数用户——**无需命令行，无需安装任何工具链**：
+无需配置环境，一行命令直接运行：
 
-1. 前往 **[Releases](https://github.com/army-u8/workstation-monitor/releases)** 下载适合当前 Mac 的压缩包：Apple Silicon 选择 `Workstation_Monitor_VERSION_aarch64.app.zip`，Intel 选择 `Workstation_Monitor_VERSION_x64.app.zip`；Universal 压缩包兼容两种架构。
+```bash
+# 自动下载/启动并自动在浏览器打开 http://localhost:9527
+npx vibedesk
+```
+
+也可以通过 npm 全局安装或一键脚本安装：
+
+```bash
+# 通过 npm 全局安装
+npm install -g vibedesk
+vibedesk
+
+# 或通过一键 Shell 脚本安装
+curl -fsSL https://raw.githubusercontent.com/army-u8/workstation-monitor/main/scripts/install.sh | bash
+```
+
+### CLI 常用指令
+
+```bash
+vibedesk                     # 默认端口 9527 启动并自动打开浏览器
+vibedesk -p 9999 --no-open   # 指定自定义端口，后台运行不弹窗
+vibedesk status              # 查看当前后台常驻服务的运行状态、PID 与内存指标
+vibedesk stop                # 优雅停止后台服务实例
+vibedesk open                # 在浏览器中打开正在运行的控制台
+vibedesk --help              # 查看完整 CLI 命令行帮助菜单
+```
+
+---
+
+## 桌面端应用下载 (.app)
+
+适合喜欢传统双击打开 App 的 macOS 用户：
+
+1. 前往 **[Releases](https://github.com/army-u8/workstation-monitor/releases)** 下载适合当前 Mac 的压缩包：Apple Silicon 选择 `Workstation_Monitor_VERSION_aarch64.app.zip`，Intel 选择 `Workstation_Monitor_VERSION_x64.app.zip`。
 2. 解压后把 **Workstation Monitor** 拖入"应用程序"文件夹。
 3. 双击打开，浏览器会自动跳转到 **http://localhost:9527**。
 

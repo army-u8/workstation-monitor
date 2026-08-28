@@ -20,11 +20,13 @@ import { DevToolsView } from './components/DevToolsView';
 import { OpsView } from './components/OpsView';
 import { WebArtifactsView } from './components/WebArtifactsView';
 import { AiRadarView } from './components/AiRadarView';
+import { TokenAnalyticsView } from './components/TokenAnalyticsView';
 import { ActivityTimeline } from './components/ActivityTimeline';
 import {
   fetchHostsApi,
   fetchMachineInfoApi,
   fetchObsidianVaultApi,
+  fetchTokenSummaryApi,
   fetchUpdateCheckApi,
   fetchWebArtifactsApi,
   initWebSocket,
@@ -44,6 +46,7 @@ export const App: Component = () => {
     fetchObsidianVaultApi();
     fetchHostsApi();
     fetchWebArtifactsApi();
+    fetchTokenSummaryApi();
 
     // 3. Silent background update check after 3 seconds
     const updateCheckTimer = setTimeout(() => {
@@ -72,6 +75,7 @@ export const App: Component = () => {
       <Route path={RoutePath.OPS} component={OpsView} />
       <Route path={RoutePath.ARTIFACTS} component={WebArtifactsView} />
       <Route path={RoutePath.AI_RADAR} component={AiRadarView} />
+      <Route path={RoutePath.TOKEN_ANALYTICS} component={TokenAnalyticsView} />
       <Route path={RoutePath.ACTIVITY} component={ActivityTimeline} />
       <Route path="*path" component={() => <Navigate href={RoutePath.OVERVIEW} />} />
     </Route>

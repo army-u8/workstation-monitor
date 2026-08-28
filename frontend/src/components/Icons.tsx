@@ -9,20 +9,26 @@ import {
   IconBrandChrome,
   IconBrandGithub,
   IconBroadcast,
+  IconCalendarStats,
   IconCamera,
+  IconChartBar,
+  IconChartPie,
   IconCheck,
   IconChevronDown,
   IconCircle,
   IconCircleDot,
   IconClock,
   IconCode,
+  IconCoins,
   IconCompass,
   IconCopy,
   IconCpu,
+  IconCurrencyDollar,
   IconDashboard,
   IconDatabase,
   IconDeviceDesktop,
   IconDisc,
+  IconDiscountCheck,
   IconExternalLink,
   IconEye,
   IconEyeOff,
@@ -42,6 +48,7 @@ import {
   IconPackage,
   IconPhoto,
   IconPlug,
+  IconReceipt2,
   IconRefresh,
   IconRobot,
   IconRocket,
@@ -53,6 +60,7 @@ import {
   IconTarget,
   IconTerminal2,
   IconTrash,
+  IconTrendingUp,
   IconUser,
   IconWorld,
   IconX,
@@ -139,3 +147,13 @@ export const TargetIcon = IconTarget;
 export const PhotoIcon = IconPhoto;
 export const ShieldIcon = IconShield;
 export const ChevronDownIcon = IconChevronDown;
+export const CoinsIcon = IconCoins;
+export const CurrencyDollarIcon = IconCurrencyDollar;
+export const ChartBarIcon = IconChartBar;
+export const ChartPieIcon = IconChartPie;
+export const CalendarStatsIcon = IconCalendarStats;
+export const TrendingUpIcon = IconTrendingUp;
+export const ReceiptIcon = IconReceipt2;
+export const SavingsIcon = IconDiscountCheck;
+export const CpuIcon = IconCpu;
+

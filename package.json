@@ -1,0 +1,57 @@
+{
+  "name": "vibedesk",
+  "version": "0.3.0",
+  "description": "macOS Workstation Mission Control & AI Coding Cockpit (VibeDesk)",
+  "main": "bin/vibedesk.js",
+  "bin": {
+    "vibedesk": "./bin/vibedesk.js",
+    "workstation-monitor": "./bin/vibedesk.js"
+  },
+  "scripts": {
+    "start": "node bin/vibedesk.js",
+    "status": "node bin/vibedesk.js status",
+    "stop": "node bin/vibedesk.js stop",
+    "frontend:dev": "bun --cwd frontend run dev",
+    "frontend:build": "bun --cwd frontend run build",
+    "frontend:test": "bun --cwd frontend run test",
+    "frontend:lint": "bun --cwd frontend run lint",
+    "backend:dev": "cargo run -- 9527",
+    "backend:test": "cargo test --offline",
+    "backend:build": "cargo build --release",
+    "test": "cargo test --offline && bun --cwd frontend run test",
+    "lint": "bun --cwd frontend run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/army-u8/workstation-monitor.git"
+  },
+  "keywords": [
+    "vibedesk",
+    "workstation-monitor",
+    "macos",
+    "workstation",
+    "ai-agents",
+    "claude-code",
+    "cursor",
+    "ollama",
+    "token-counter",
+    "dashboard",
+    "mission-control",
+    "vibe-coding"
+  ],
+  "author": "army-u8",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/army-u8/workstation-monitor/issues"
+  },
+  "homepage": "https://github.com/army-u8/workstation-monitor#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ]
+}
