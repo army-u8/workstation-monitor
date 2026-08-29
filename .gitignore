@@ -1,8 +1,11 @@
 /target
 .cargo/
 icons.iconset/
+__pycache__/
+*.pyc
 
 # Graphify keeps these intermediate extraction files beside the committed reports.
 graphify-out/.graphify_*
 graphify-out/cache/
 graphify-out/manifest.json
+

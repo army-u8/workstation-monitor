@@ -72,21 +72,21 @@ export const Header: Component = () => {
 
         <div class="flex items-center gap-2 text-xs">
           <div class="flex items-center gap-1.5 text-text-muted font-medium">
-            <span class="h-1.5 w-1.5 rounded-full bg-accent animate-pulse-dot" />
-            <span>{t().common.console}</span>
+            <span class="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_6px_rgba(56,189,248,0.8)] animate-pulse-dot" />
+            <span class="font-mono uppercase text-[10px] tracking-wider font-bold text-accent/80">{t().common.console}</span>
           </div>
           <span class="text-text-muted/40 font-mono">/</span>
           <h1 class="font-bold text-text-primary text-xs m-0 p-0 tracking-tight flex items-center gap-2">
             <span>{getSectionTitle()}</span>
           </h1>
-          <span class="hidden rounded-md bg-bg-subtle/80 border border-border-subtle px-2 py-0.5 mono text-[10px] text-text-tertiary sm:inline-block shadow-2xs">
+          <span class="hidden rounded-md bg-bg-subtle border border-border-subtle px-2 py-0.5 mono text-[10px] text-text-tertiary sm:inline-block shadow-2xs">
             {stats()?.host_name || 'localhost'}
           </span>
         </div>
       </div>
 
       {/* Right: Compact Vitals, Theme Switcher & Lang Switcher */}
-      <div class="flex items-center gap-2.5">
+      <div class="flex items-center gap-2">
         <Button
           type="button"
           variant="outline"
@@ -94,11 +94,11 @@ export const Header: Component = () => {
           onClick={() => setIsCommandPaletteOpen(true)}
           aria-label={t().control.openCommandPalette}
           title={t().control.openCommandPalette}
-          class="gap-2"
+          class="gap-1.5 h-7 px-2.5 bg-bg-subtle/70 hover:bg-bg-subtle"
         >
           <CommandIcon class="h-3.5 w-3.5 text-accent" />
-          <span class="hidden xl:inline">{t().control.title}</span>
-          <kbd class="rounded border border-border-default bg-bg-subtle px-1 py-0.5 text-[9px] text-text-muted">
+          <span class="hidden xl:inline font-mono text-[11px]">{t().control.title}</span>
+          <kbd class="rounded border border-border-default bg-bg-base px-1.5 py-0.2 text-[9px] font-mono text-text-muted">
             {t().control.shortcut}
           </kbd>
         </Button>

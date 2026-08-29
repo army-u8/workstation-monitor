@@ -312,20 +312,20 @@ export const Sidebar: Component = () => {
         }}
       >
         {/* Brand Header */}
-        <div class="flex h-13 shrink-0 items-center justify-between border-b border-border-default/60 px-4">
+        <div class="flex h-13 shrink-0 items-center justify-between border-b border-border-default px-3.5 bg-bg-sidebar">
           <A
             href={RoutePath.OVERVIEW}
             onClick={() => setIsSidebarOpen(false)}
-            class="flex items-center gap-2.5 group hover:opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-accent rounded-lg"
+            class="flex items-center gap-2.5 group hover:opacity-95 transition-all focus-visible:ring-1.5 focus-visible:ring-accent rounded-lg"
           >
-            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 border border-accent/25 text-accent font-mono text-xs font-bold transition-all group-hover:bg-accent group-hover:text-white">
+            <div class="flex h-7.5 w-7.5 items-center justify-center rounded-lg bg-accent/15 border border-accent/30 text-accent font-mono text-xs font-bold transition-all group-hover:bg-accent group-hover:text-bg-base group-hover:shadow-[0_0_12px_rgba(56,189,248,0.5)]">
               ⌘
             </div>
             <div class="flex flex-col">
               <span class="text-xs font-bold tracking-tight text-text-primary group-hover:text-accent transition-colors">
                 {t().common.workstation}
               </span>
-              <span class="text-[9.5px] text-text-muted font-medium">
+              <span class="text-[9px] text-text-muted font-medium font-mono tracking-wider">
                 {t().sidebar.brandSubtitle}
               </span>
             </div>
@@ -351,7 +351,7 @@ export const Sidebar: Component = () => {
           <For each={groups}>
             {(group) => (
               <div class="space-y-0.5">
-                <div class="px-2.5 pt-1.5 pb-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-accent/60 flex items-center gap-1.5">
+                <div class="px-2.5 pt-1.5 pb-0.5 text-[9px] font-mono font-bold uppercase tracking-wider text-accent/70 flex items-center gap-1.5">
                   <span class="text-[8px] text-accent/40">//</span>
                   <span>{group.category()}</span>
                 </div>
@@ -366,9 +366,9 @@ export const Sidebar: Component = () => {
                         <A
                           href={path}
                           onClick={() => setIsSidebarOpen(false)}
-                          activeClass="border-l-2 border-accent bg-accent/15 text-accent font-bold shadow-[inset_0_0_10px_rgba(0,240,255,0.15)]"
+                          activeClass="border-l-2 border-accent bg-accent/15 text-accent font-bold shadow-[inset_0_0_10px_rgba(56,189,248,0.15)]"
                           inactiveClass="border-l-2 border-transparent text-text-secondary hover:bg-bg-hover/80 hover:text-text-primary"
-                          class="group flex w-full items-center gap-2.5 rounded-sm px-2.5 py-1.5 text-xs transition-all focus-visible:ring-1 focus-visible:ring-accent font-mono"
+                          class="group flex w-full items-center gap-2.5 rounded-r-md px-2.5 py-1.5 text-xs transition-all duration-150 focus-visible:ring-1 focus-visible:ring-accent font-mono"
                         >
                           <Icon
                             class={`h-3.8 w-3.8 shrink-0 transition-colors ${
@@ -390,16 +390,16 @@ export const Sidebar: Component = () => {
         </nav>
 
         {/* System Real-time Vitals Footer */}
-        <div class="shrink-0 border-t border-border-default/60 p-3 bg-bg-surface/40 backdrop-blur-xs">
+        <div class="shrink-0 border-t border-border-default p-3 bg-bg-surface/60 backdrop-blur-md">
           <div class="flex items-center justify-between text-[10.5px] text-text-muted mb-2 px-0.5">
-            <span class="font-semibold tracking-tight text-text-secondary text-[11px]">
+            <span class="font-bold tracking-tight text-text-secondary text-[10.5px] uppercase font-mono">
               {t().common.vitalsSummary}
             </span>
             <div class="flex items-center gap-1.5">
               <span
                 class="flex h-1.5 w-1.5 rounded-full"
                 classList={{
-                  'bg-status-success shadow-[0_0_6px_rgba(52,211,153,0.7)]':
+                  'bg-status-success shadow-[0_0_6px_rgba(52,211,153,0.8)]':
                     wsStatus() === WsConnectionStatus.ONLINE,
                   'bg-status-warning animate-pulse': wsStatus() === WsConnectionStatus.CONNECTING,
                   'bg-status-danger': wsStatus() === WsConnectionStatus.OFFLINE,
@@ -412,18 +412,18 @@ export const Sidebar: Component = () => {
             </div>
           </div>
 
-          <div class="space-y-2">
+          <div class="space-y-2.5">
             {/* CPU Metric */}
             <div class="space-y-1">
               <div class="flex justify-between text-[10px] text-text-secondary">
-                <span>{t().common.cpu}</span>
-                <span class="mono tabular-nums text-text-primary font-semibold">
+                <span class="font-mono font-medium">{t().common.cpu}</span>
+                <span class="mono tabular-nums text-accent font-bold">
                   {stats()?.cpu_usage?.toFixed(1) || '0.0'}%
                 </span>
               </div>
-              <div class="h-1 w-full rounded-full bg-bg-subtle overflow-hidden">
+              <div class="h-1.5 w-full rounded-full bg-bg-subtle overflow-hidden border border-border-subtle">
                 <div
-                  class="h-full bg-accent transition-all duration-300 rounded-full"
+                  class="h-full bg-linear-to-r from-accent to-sky-400 transition-all duration-300 rounded-full"
                   style={{ width: `${Math.min(stats()?.cpu_usage || 0, 100)}%` }}
                 />
               </div>
@@ -432,14 +432,14 @@ export const Sidebar: Component = () => {
             {/* Memory Metric */}
             <div class="space-y-1">
               <div class="flex justify-between text-[10px] text-text-secondary">
-                <span>{t().common.memory}</span>
-                <span class="mono tabular-nums text-text-primary font-semibold">
+                <span class="font-mono font-medium">{t().common.memory}</span>
+                <span class="mono tabular-nums text-status-success font-bold">
                   {stats()?.memory_percent?.toFixed(1) || '0.0'}%
                 </span>
               </div>
-              <div class="h-1 w-full rounded-full bg-bg-subtle overflow-hidden">
+              <div class="h-1.5 w-full rounded-full bg-bg-subtle overflow-hidden border border-border-subtle">
                 <div
-                  class="h-full bg-status-success transition-all duration-300 rounded-full"
+                  class="h-full bg-linear-to-r from-teal-400 to-status-success transition-all duration-300 rounded-full"
                   style={{ width: `${Math.min(stats()?.memory_percent || 0, 100)}%` }}
                 />
               </div>
@@ -448,20 +448,34 @@ export const Sidebar: Component = () => {
             {/* Battery Indicator if present */}
             <Show when={battery()}>
               {(bat) => (
-                <div class="flex items-center justify-between text-[10px] text-text-muted pt-1.5 border-t border-border-subtle/60">
-                  <span>{t().common.batteryTooltip}</span>
-                  <span
-                    class="mono font-semibold tabular-nums"
-                    classList={{
-                      'text-status-success': bat().percentage > 20,
-                      'text-status-warning': bat().percentage <= 20,
-                    }}
-                  >
-                    {bat().percentage}%
-                    <Show when={bat().is_charging}>
-                      <BoltIcon class="inline h-3 w-3 text-status-success ml-0.5" />
-                    </Show>
-                  </span>
+                <div class="space-y-1 pt-1.5 border-t border-border-subtle">
+                  <div class="flex justify-between text-[10px] text-text-secondary">
+                    <span class="font-mono font-medium flex items-center gap-1">
+                      {t().common.batteryTooltip}
+                      <Show when={bat().is_charging}>
+                        <BoltIcon class="h-3 w-3 text-status-success animate-pulse" />
+                      </Show>
+                    </span>
+                    <span
+                      class="mono tabular-nums font-bold"
+                      classList={{
+                        'text-status-success': bat().percentage > 20,
+                        'text-status-warning': bat().percentage <= 20,
+                      }}
+                    >
+                      {bat().percentage}%
+                    </span>
+                  </div>
+                  <div class="h-1.5 w-full rounded-full bg-bg-subtle overflow-hidden border border-border-subtle">
+                    <div
+                      class="h-full rounded-full transition-all duration-300"
+                      classList={{
+                        'bg-linear-to-r from-status-success to-emerald-400': bat().percentage > 20,
+                        'bg-linear-to-r from-status-warning to-amber-500': bat().percentage <= 20,
+                      }}
+                      style={{ width: `${Math.min(bat().percentage, 100)}%` }}
+                    />
+                  </div>
                 </div>
               )}
             </Show>

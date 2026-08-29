@@ -16,7 +16,7 @@ const http = require('http');
 const https = require('https');
 const { spawn, execSync } = require('child_process');
 
-const VERSION = '0.3.0';
+const VERSION = '0.3.1';
 const GITHUB_REPO = 'army-u8/workstation-monitor';
 const DEFAULT_PORT = 9527;
 
